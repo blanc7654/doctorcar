@@ -497,6 +497,19 @@
   object-fit: cover;
 }
 
+.hero-qr {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 120px;         /* QR 크기 */
+  height: 120px;
+  border-radius: 12px; /* 둥글게 */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.hero {
+  position: relative; /* QR을 hero 안에 고정시키기 위해 필요 */
+}
 
   </style>
 </head>
@@ -519,6 +532,8 @@
 
     <!-- 히어로 영역 -->
     <header class="hero" id="top">
+	<img src="images/Gqr.jpg" alt="QR Code" class="hero-qr" />
+
       <div class="hero-top-label">Incheon Regional Trauma Center · Gachon University Gil Hospital</div>
       <h1 class="hero-title">길병원 닥터카 안내</h1>
       <p class="hero-subtitle">
