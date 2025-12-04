@@ -88,7 +88,7 @@
     /* 이미지 배너(가로 긴 스트립) */
     .image-strip {
       width: 100%;
-      height: 180px;              /* 세 장 다 이 높이로 맞춤 */
+      height: 180px;
       border-radius: 20px;
       overflow: hidden;
       margin: 12px 0 18px;
@@ -99,7 +99,6 @@
       background-repeat: no-repeat;
     }
 
-    /* 필요하면 약한 어두운 오버레이(글자 올릴 때 쓸 수 있음) */
     .image-strip::after {
       content: "";
       position: absolute;
@@ -128,7 +127,6 @@
       opacity: 0.9;
     }
 
-    /* 실제 이미지 경로(확장자에 맞게 수정 필요!) */
     .image-strip-g1 { background-image: url("images/G1.jpg"); }
     .image-strip-g2 { background-image: url("images/G2.jpg"); }
     .image-strip-g3 { background-image: url("images/G3.jpg"); }
@@ -141,6 +139,7 @@
       padding: 24px 20px 28px;
       box-shadow: var(--shadow-soft);
       margin: 0 0 20px;
+      position: relative;  /* QR 박스 고정용 */
     }
 
     .hero-top-label {
@@ -409,170 +408,142 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .image-strip {
-        height: 210px; /* 데스크탑에서 조금 더 크게 */
+        height: 210px;
       }
     }
 
-.call-btn-full {
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 14px 12px 10px;
+    .call-btn-full {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px 12px 10px;
+      background: #ffffff;
+      border-radius: 999px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+      border: 1px solid #dfe7f5;
+      color: var(--primary);
+      text-decoration: none;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
 
-  background: #ffffff;
-  border-radius: 999px;
+    .call-btn-full:active {
+      transform: scale(0.97);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
 
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
-  border: 1px solid #dfe7f5;
+    .call-btn-full .call-icon {
+      font-size: 1.1rem;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
 
-  color: var(--primary);
-  text-decoration: none;
+    .call-btn-full .call-title {
+      font-size: 1rem;
+      font-weight: 700;
+      vertical-align: middle;
+    }
 
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
+    .call-btn-full .call-sub {
+      display: block;
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 2px;
+    }
 
-.call-btn-full:active {
-  transform: scale(0.97);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-}
+    /* 닥터카 기타 섹션 전용 텍스트 스타일 */
+    .etc-section {
+      margin-top: 32px;
+    }
 
-/* 버튼 안 구성 요소 */
-.call-btn-full .call-icon {
-  font-size: 1.1rem;
-  margin-right: 4px;
-  vertical-align: middle;
-}
+    .etc-text {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-top: 0.2px;
+      margin-bottom: 50px;
+      line-height: 1.4;
+    }
 
-.call-btn-full .call-title {
-  font-size: 1rem;
-  font-weight: 700;
-  vertical-align: middle;
-}
+    .etc-text strong {
+      font-weight: 700;
+    }
 
-.call-btn-full .call-sub {
-  display: block;
-  font-size: 0.75rem;
-  color: #666;
-  margin-top: 2px;
-}
+    .etc-image-full {
+      width: 100%;
+      border-radius: 14px;
+      margin: 14px 0;
+      object-fit: cover;
+    }
 
-/* 닥터카 기타 섹션 전용 텍스트 스타일 */
-.etc-section {
-  margin-top: 32px; /* 위쪽 Preparation이랑 더 띄우기 */
-}
+    .etc-image-half {
+      width: 50%;
+      border-radius: 14px;
+      height: 360px;
+      object-fit: cover;
+    }
 
-.etc-text {
-  font-size: 0.85rem;
-  color: var(--text-main);
-  margin-top: 0.2px;          /* 그림과 텍스트 사이 → 가깝게 */
-  margin-bottom: 50px;      /* 텍스트와 다음 그림 사이 → 넉넉하게 */
-  line-height: 1.4;
-}
+    .etc-image-amputation {
+      width: 100%;
+      border-radius: 14px;
+      margin: 16px 0;
+      height: 430px;
+      object-fit: cover;
+    }
 
-.etc-text strong {
-  font-weight: 700;
-}
-
-/* 닥터카 기타 섹션 이미지 공통 여백 */
-.etc-image-full {
-  width: 100%;
-  border-radius: 14px;
-  margin: 14px 0;
-  object-fit: cover;
-}
-
-.etc-image-half {
-  width: 50%;
-  border-radius: 14px;
-  height: 360px;
-  object-fit: cover;
-}
-
-/* Gamputation는 조금 더 높게 */
-.etc-image-amputation {
-  width: 100%;
-  border-radius: 14px;
-  margin: 16px 0;
-  height: 430px; /* 기존보다 더 크게 */
-  object-fit: cover;
-}
-
-/* QR 바 영역 */
-.qr-bar {
-  max-width: 960px;
-  margin: 10px auto 12px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: var(--shadow-soft);
+ /* 히어로 안 QR + 버튼 묶음 */
+.hero-qr-wrap {
+  /* 절대 위치 없애고, 그냥 히어로 카드 안 첫 줄에 놓기 */
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;   /* 아래 텍스트랑 간격 */
 }
 
-.qr-image {
-  width: 96px;
-  height: 96px;
+.hero-qr {
+  width: 80px;
+  height: 80px;
   border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
   object-fit: cover;
 }
 
-.qr-text {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--text-main);
-  line-height: 1.5;
-}
-
-.qr-text strong {
-  font-weight: 700;
-}
-
-.qr-buttons {
+.hero-qr-buttons {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.qr-btn {
-  font-size: 0.78rem;
-  padding: 6px 10px;
+.hero-qr-btn {
   border-radius: 999px;
+  padding: 4px 8px;
   border: 1px solid #d0d7ea;
   background: #f5f7fb;
   cursor: pointer;
+  text-decoration: none;
+  color: #333;
   white-space: nowrap;
+  font-size: 0.78rem;
 }
 
-.qr-btn.primary {
+.hero-qr-btn.primary {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
 }
 
-@media (max-width: 640px) {
-  .qr-bar {
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
-
-  .qr-image {
-    width: 80px;
-    height: 80px;
-  }
-
-  .qr-buttons {
+/* 모바일일 때는 버튼을 옆으로 나란히 */
+@media (max-width: 600px) {
+  .hero-qr-buttons {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 4px;
+    justify-content: flex-end;
   }
 
-  .qr-btn {
-    font-size: 0.76rem;
-    padding: 5px 8px;
+  .hero-qr-btn {
+    font-size: 0.75rem;
+    padding: 4px 8px;
   }
 }
-
 
   </style>
 </head>
@@ -589,29 +560,22 @@
     </div>
   </nav>
 
- 
-
   <div class="page">
-
-    <!-- QR 코드 바 -->
-    <section class="qr-bar">
-      <img src="images/Gqr.jpg" alt="길병원 닥터카 안내 QR 코드" class="qr-image">
-
-      <div class="qr-text">
-        <strong>길병원 닥터카 안내 QR 코드</strong><br />
-        구급대와 응급실 선생님들 간에 공유하실 수 있습니다.
-      </div>
-
-      <div class="qr-buttons">
-        <button type="button" class="qr-btn primary" id="qr-download-btn">QR 이미지 다운로드</button>
-        <button type="button" class="qr-btn" id="qr-copy-btn">링크 복사</button>
-        </div>
-    </section>
-
 
     <!-- 히어로 영역 -->
     <header class="hero" id="top">
-	
+      <!-- QR + 버튼 세트 (파란 박스 안) -->
+      <div class="hero-qr-wrap">
+        <img src="images/Gqr.jpg" alt="길병원 닥터카 안내 QR 코드" class="hero-qr" />
+        <div class="hero-qr-buttons">
+          <a href="images/Gqr.jpg" target="_blank" class="hero-qr-btn primary">
+            QR 크게 보기
+          </a>
+          <button type="button" class="hero-qr-btn" id="qr-copy-btn">
+            링크 복사
+          </button>
+        </div>
+      </div>
 
       <div class="hero-top-label">Incheon Regional Trauma Center · Gachon University Gil Hospital</div>
       <h1 class="hero-title">길병원 닥터카 안내</h1>
@@ -627,7 +591,6 @@
       </div>
 
       <div class="hero-actions">
-        <!-- TODO: 실제 외상당직폰 번호로 변경 -->
         <a href="tel:01062063010" class="btn-primary">
           📞 닥터카 바로 요청
           <small>길병원 외상당직폰 · 24시간 365일</small>
@@ -639,7 +602,6 @@
         </a>
       </div>
 
-      <!-- 의료진 전용 안내 문구: 버튼 아래, 빨간색 -->
       <p class="request-warning">
         ※ 닥터카 출동 요청은 <strong>119 구급대원 및 의료진</strong>만 가능합니다.<br>
         일반인의 직접 요청은 <strong>불가</strong>합니다.
@@ -647,7 +609,7 @@
     </header>
 
     <main>
-      <!-- G2: 닥터카 소개~출동결정 앞의 배너 (현장 이미지) -->
+      <!-- G2 배너 -->
       <div class="image-strip image-strip-g2">
         <div class="image-strip-inner">
           <div class="image-strip-title">현장과 최초병원을 잇는 다리</div>
@@ -662,7 +624,7 @@
 
         <article class="card">
           <div class="card-header">
-            <h3 class="card-title">닥터카란? <span style="font-size:0.85rem; opacity:0.8;"></span></h3>
+            <h3 class="card-title">닥터카란?</h3>
             <span class="card-chip">중증외상 전용</span>
           </div>
           <div class="card-body">
@@ -707,18 +669,22 @@
             <span class="card-chip">24시간 365일</span>
           </div>
           <div class="card-body">
-            <p><strong>▶ 길병원 외상당직폰으로 전화주세요.</strong><br />
+            <p>
+              <strong>▶ 길병원 외상당직폰으로 전화주세요.</strong><br />
               <small>(24시간 365일 연중무휴)</small>
             </p>
-<a href="tel:01062063010" class="call-btn-full">
-  <span class="call-icon">📞</span>
-  <span class="call-title">닥터카 바로 요청</span>
-  <span class="call-sub">길병원 외상당직폰 · 24시간 365일</span>
-</a>
-<p class="request-warning bottom-warning">
-  ※ 닥터카 출동 요청은 <strong>119 구급대원 및 의료진</strong>만 가능합니다.<br>
-  일반인의 직접 요청은 <strong>불가</strong>합니다.
-</p>
+
+            <a href="tel:01062063010" class="call-btn-full">
+              <span class="call-icon">📞</span>
+              <span class="call-title">닥터카 바로 요청</span>
+              <span class="call-sub">길병원 외상당직폰 · 24시간 365일</span>
+            </a>
+
+            <p class="request-warning bottom-warning">
+              ※ 닥터카 출동 요청은 <strong>119 구급대원 및 의료진</strong>만 가능합니다.<br>
+              일반인의 직접 요청은 <strong>불가</strong>합니다.
+            </p>
+
             <div class="highlight">
               📞 전화 연결 시<br />
               · <strong>환자 나이 / 성별</strong><br />
@@ -781,7 +747,7 @@
         </article>
       </section>
 
-      <!-- G3: 맨 아래 배너 (가방 이미지) -->
+      <!-- G3 배너 -->
       <div class="image-strip image-strip-g3">
         <div class="image-strip-inner">
           <div class="image-strip-title">현장에서 수술실까지</div>
@@ -806,7 +772,6 @@
             <p class="skills-tagline">중증외상 초기 소생부터 응급수술 전 단계까지, 닥터카에서 직접 개입 가능합니다.</p>
 
             <div class="skills-grid">
-              <!-- ABC -->
               <div>
                 <div class="skills-label">🫁 A, B, C</div>
                 <ul class="skills-list">
@@ -817,7 +782,6 @@
                 </ul>
               </div>
 
-              <!-- X -->
               <div>
                 <div class="skills-label">🩸 X (사지 손상·출혈 조절)</div>
                 <ul class="skills-list">
@@ -827,7 +791,6 @@
                 </ul>
               </div>
 
-              <!-- 시술 -->
               <div>
                 <div class="skills-label">🛠 시술 (Procedures)</div>
                 <ul class="skills-list">
@@ -839,7 +802,6 @@
                 </ul>
               </div>
 
-              <!-- 수술 -->
               <div>
                 <div class="skills-label">⚕️ 수술 (Surgical interventions)</div>
                 <ul class="skills-list">
@@ -851,16 +813,15 @@
               </div>
             </div>
 
-	<!-- Preparation -->
-	<div>
-	  <div class="skills-label">🧰 Preparation (길병원 내 사전 준비)</div>
-	  <ul class="skills-list">
-	    <li>수술방 준비</li>
-	    <li>대량급속수혈 시스템 준비</li>
-	    <li>혈관조영술(Angiography) 준비</li>
-	    <li>혈관색전술(Embolization) 준비</li>
-	  </ul>
-	</div>
+            <div>
+              <div class="skills-label">🧰 Preparation (길병원 내 사전 준비)</div>
+              <ul class="skills-list">
+                <li>수술방 준비</li>
+                <li>대량급속수혈 시스템 준비</li>
+                <li>혈관조영술(Angiography) 준비</li>
+                <li>혈관색전술(Embolization) 준비</li>
+              </ul>
+            </div>
 
             <p class="footnote">
               * 위 시술과 수술은 <strong>상황에 따라 현장, 최초병원, 닥터카 내에서</strong> 시행될 수 있습니다.
@@ -870,105 +831,87 @@
       </section>
     </main>
 
+    <!-- 닥터카: 기타 -->
+    <section id="etc" class="etc-section">
+      <div class="section-label">닥터카 기타</div>
+      <h2 class="section-title">닥터카; 기타</h2>
 
-<!-- 닥터카: 기타 -->
-<section id="etc" class="etc-section">
-  <div class="section-label">닥터카 기타</div>
-  <h2 class="section-title">닥터카; 기타</h2>
+      <div style="display:flex; gap:10px; margin:16px 0;">
+        <img src="images/Gdoctorcaroutside.jpg" class="etc-image-half" />
+        <img src="images/Gdoctorcarinside.jpg" class="etc-image-half" />
+      </div>
+      <p class="etc-text">
+        닥터카의 내·외부 모습입니다.
+      </p>
 
-  <!-- 닥터카 내외부: 병렬 이미지 -->
-  <div style="display:flex; gap:10px; margin:16px 0;">
-    <img src="images/Gdoctorcaroutside.jpg" class="etc-image-half">
-    <img src="images/Gdoctorcarinside.jpg" class="etc-image-half">
-  </div>
-  <p class="etc-text">
-    닥터카의 내·외부 모습입니다.
-  </p>
+      <img src="images/Gamputation.jpg" class="etc-image-amputation" />
+      <p class="etc-text">
+        닥터카가 현장으로 출동하여 구조물에 끼어서 구출할 수 없는 환자를 진료하였습니다.<br>
+        구출에 시간이 오래 소요될 것으로 판단되는 경우 닥터카가 출동할 수 있습니다.
+      </p>
 
-  <!-- 절단 환자 현장 출동 (조금 더 크게) -->
-  <img src="images/Gamputation.jpg" class="etc-image-amputation">
-  <p class="etc-text">
-    닥터카가 현장으로 출동하여 구조물에 끼어서 구출할 수 없는 환자를 진료하였습니다.<br>
-    구출에 시간이 오래 소요될 것으로 판단되는 경우 닥터카가 출동할 수 있습니다.
-  </p>
+      <div style="display:flex; gap:10px; margin:16px 0;">
+        <img src="images/Gganghwa.jpg" class="etc-image-half" />
+        <img src="images/Ggimpo.jpg" class="etc-image-half" />
+      </div>
+      <p class="etc-text">
+        강화, 김포, 부천, 광명, 시흥 등지에서 환자 발생 시 구급대원님이 닥터카를 요청하면,<br>
+        중간 위치의 병원이나 안전한 장소에서 만나 환자를 닥터카로 인계할 수 있습니다.
+      </p>
 
-  <!-- 강화 / 김포 지역 병렬 이미지 -->
-  <div style="display:flex; gap:10px; margin:16px 0;">
-    <img src="images/Gganghwa.jpg" class="etc-image-half">
-    <img src="images/Ggimpo.jpg" class="etc-image-half">
-  </div>
-  <p class="etc-text">
-    강화, 김포, 부천, 광명, 시흥 등지에서 환자 발생 시 구급대원님이 닥터카를 요청하면,<br>
-    중간 위치의 병원이나 안전한 장소에서 만나 환자를 닥터카로 인계할 수 있습니다.
-  </p>
+      <img src="images/Ger.jpg" class="etc-image-full" />
+      <p class="etc-text">
+        응급실 선생님들께서도 환자 접촉 시 지체 없이 연락주시길 부탁드립니다.<br>
+        Full work-up이 되지 않은 상태라도 전화주셔도 괜찮습니다.
+      </p>
 
-  <!-- 응급실 협조 안내 -->
-  <img src="images/Ger.jpg" class="etc-image-full">
-  <p class="etc-text">
-    응급실 선생님들께서도 환자 접촉 시 지체 없이 연락주시길 부탁드립니다.<br>
-    Full work-up이 되지 않은 상태라도 전화주셔도 괜찮습니다.
-  </p>
+      <img src="images/Ggachon.jpg" class="etc-image-full" />
+      <p class="etc-text">
+        <strong>맺으며…</strong><br><br>
+        병원 전 단계의 환자 이송 문제는 개인이 해결할 수 없습니다.<br>
+        <strong>길병원 외상센터도, 지역·권역 응급센터도 혼자서는 해결할 수 없습니다.</strong><br><br>
+        모두의 관심과 거버넌스, 시스템 확립과 긴밀한 소통이 필요합니다.<br>
+        함께 힘써주신다면 반드시 더 나은 결과로 보답하겠습니다.<br><br>
+        보다 안전하고 체계적인 외상환자 이송을 위해<br>
+        길병원 외상센터 닥터카가 앞장서겠습니다.<br>
+        감사합니다.
+      </p>
+    </section>
 
-  <!-- 맺음말 + 학교 이미지 -->
-  <img src="images/Ggachon.jpg" class="etc-image-full">
-  <p class="etc-text">
-    <strong>맺으며…</strong><br><br>
-    병원 전 단계의 환자 이송 문제는 개인이 해결할 수 없습니다.<br>
-    <strong>길병원 외상센터도, 지역·권역 응급센터도 혼자서는 해결할 수 없습니다.</strong><br><br>
-    모두의 관심과 거버넌스, 시스템 확립과 긴밀한 소통이 필요합니다.<br>
-    함께 힘써주신다면 반드시 더 나은 결과로 보답하겠습니다.<br><br>
-    보다 안전하고 체계적인 외상환자 이송을 위해<br>
-    길병원 외상센터 닥터카가 앞장서겠습니다.<br>
-    감사합니다.
-  </p>
-</section>
-
-<!-- 새로운 Footnote -->
-<footer style="margin-top:40px; text-align:center; font-size:0.78rem; color:#666;">
-  <span>© Gachon University Gil Medical Center – Incheon Regional Trauma Center</span>
-  <span>Department of Trauma Surgery · Doctor Car Team</span>
-  <span>Correspondence: blanc7654@gmail.com (Jaeik Jang, MD)</span>
-</footer>
+    <footer style="margin-top:40px; text-align:center; font-size:0.78rem; color:#666;">
+      <span>© Gachon University Gil Medical Center – Incheon Regional Trauma Center</span>
+      <span>Department of Trauma Surgery · Doctor Car Team</span>
+      <span>Correspondence: blanc7654@gmail.com (Jaeik Jang, MD)</span>
+    </footer>
 
   </div>
-<script>
-  // 닥터카 페이지 URL
-  const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
 
-  // QR 이미지 다운로드
-  document.getElementById('qr-download-btn').addEventListener('click', function () {
-    const link = document.createElement('a');
-    link.href = 'images/Gqr.jpg';          // QR 이미지 경로
-    link.download = 'doctorcar_qr.jpg';    // 저장 파일 이름
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  });
+  <script>
+    // 닥터카 페이지 URL
+    const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
 
-  // 링크 복사
-  document.getElementById('qr-copy-btn').addEventListener('click', function () {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(doctorcarUrl).then(() => {
-        alert('닥터카 안내 링크가 복사되었습니다.');
-      }).catch(() => {
-        alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
-      });
-    } else {
-      // 구형 브라우저 대응
-      const textarea = document.createElement('textarea');
-      textarea.value = doctorcarUrl;
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        alert('닥터카 안내 링크가 복사되었습니다.');
-      } catch (e) {
-        alert('복사에 실패했습니다.');
+    // 링크 복사
+    document.getElementById('qr-copy-btn').addEventListener('click', function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(doctorcarUrl).then(() => {
+          alert('닥터카 안내 링크가 복사되었습니다.');
+        }).catch(() => {
+          alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
+        });
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = doctorcarUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          alert('닥터카 안내 링크가 복사되었습니다.');
+        } catch (e) {
+          alert('복사에 실패했습니다.');
+        }
+        document.body.removeChild(textarea);
       }
-      document.body.removeChild(textarea);
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
