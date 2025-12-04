@@ -497,38 +497,82 @@
   object-fit: cover;
 }
 
-.hero-qr {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 120px;         /* QR 크기 */
-  height: 120px;
-  border-radius: 12px; /* 둥글게 */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+/* QR 바 영역 */
+.qr-bar {
+  max-width: 960px;
+  margin: 10px auto 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.hero {
-  position: relative; /* QR을 hero 안에 고정시키기 위해 필요 */
+.qr-image {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
-@media (max-width: 600px) {
-  /* 모바일에서 QR 조금 축소 */
-  .hero-qr {
-    top: 10px;
-    right: 10px;
-    width: 70px;
-    height: 70px;
+.qr-text {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.qr-text strong {
+  font-weight: 700;
+}
+
+.qr-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qr-btn {
+  font-size: 0.78rem;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #d0d7ea;
+  background: #f5f7fb;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.qr-btn.primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .qr-bar {
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
-  /* QR 오른쪽 공간을 비워서 텍스트 겹침 방지 */
-  .hero-top-label,
-  .hero-title,
-  .hero-subtitle,
-  .hero-badges,
-  .hero-actions {
-    padding-right: 90px;   /* QR 크기 + 여유 공간 */
+  .qr-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .qr-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .qr-btn {
+    font-size: 0.76rem;
+    padding: 5px 8px;
   }
 }
+
 
   </style>
 </head>
@@ -545,13 +589,29 @@
     </div>
   </nav>
 
+ 
+
   <div class="page">
 
+    <!-- QR 코드 바 -->
+    <section class="qr-bar">
+      <img src="images/Gqr.jpg" alt="길병원 닥터카 안내 QR 코드" class="qr-image">
+
+      <div class="qr-text">
+        <strong>길병원 닥터카 안내 QR 코드</strong><br />
+        구급대와 응급실 선생님들 간에 공유하실 수 있습니다.
+      </div>
+
+      <div class="qr-buttons">
+        <button type="button" class="qr-btn primary" id="qr-download-btn">QR 이미지 다운로드</button>
+        <button type="button" class="qr-btn" id="qr-copy-btn">링크 복사</button>
+        </div>
+    </section>
 
 
     <!-- 히어로 영역 -->
     <header class="hero" id="top">
-	<img src="images/Gqr.jpg" alt="QR Code" class="hero-qr" />
+	
 
       <div class="hero-top-label">Incheon Regional Trauma Center · Gachon University Gil Hospital</div>
       <h1 class="hero-title">길병원 닥터카 안내</h1>
@@ -871,5 +931,44 @@
 </footer>
 
   </div>
+<script>
+  // 닥터카 페이지 URL
+  const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
+
+  // QR 이미지 다운로드
+  document.getElementById('qr-download-btn').addEventListener('click', function () {
+    const link = document.createElement('a');
+    link.href = 'images/Gqr.jpg';          // QR 이미지 경로
+    link.download = 'doctorcar_qr.jpg';    // 저장 파일 이름
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  // 링크 복사
+  document.getElementById('qr-copy-btn').addEventListener('click', function () {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(doctorcarUrl).then(() => {
+        alert('닥터카 안내 링크가 복사되었습니다.');
+      }).catch(() => {
+        alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
+      });
+    } else {
+      // 구형 브라우저 대응
+      const textarea = document.createElement('textarea');
+      textarea.value = doctorcarUrl;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        alert('닥터카 안내 링크가 복사되었습니다.');
+      } catch (e) {
+        alert('복사에 실패했습니다.');
+      }
+      document.body.removeChild(textarea);
+    }
+  });
+</script>
+
 </body>
 </html>
