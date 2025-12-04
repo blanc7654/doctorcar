@@ -511,6 +511,25 @@
   position: relative; /* QR을 hero 안에 고정시키기 위해 필요 */
 }
 
+@media (max-width: 600px) {
+  /* 모바일에서 QR 조금 축소 */
+  .hero-qr {
+    top: 10px;
+    right: 10px;
+    width: 70px;
+    height: 70px;
+  }
+
+  /* QR 오른쪽 공간을 비워서 텍스트 겹침 방지 */
+  .hero-top-label,
+  .hero-title,
+  .hero-subtitle,
+  .hero-badges,
+  .hero-actions {
+    padding-right: 90px;   /* QR 크기 + 여유 공간 */
+  }
+}
+
   </style>
 </head>
 <body>
