@@ -1583,97 +1583,103 @@ gtag('config', 'G-MCKTRFREN3', {
     visitPurposeRadios.forEach(r => r.addEventListener('change', updateVisitPurposeOther));
     updateVisitPurposeOther();  // 초기 상태 반영
 
+// 6) GA4로 설문 이벤트 보내기 (#doctorcar-survey)
+const doctorcarSurvey = document.getElementById('doctorcar-survey');
+if (doctorcarSurvey) {
+  doctorcarSurvey.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-    // 6) GA4로 설문 이벤트 보내기 (#doctorcar-survey)
-    const doctorcarSurvey = document.getElementById('doctorcar-survey');
-    if (doctorcarSurvey) {
-      doctorcarSurvey.addEventListener('submit', function (e) {
-        e.preventDefault();
+    // 기본 정보
+    const orgType = (doctorcarSurvey.querySelector('input[name="org_type"]:checked') || {}).value || '';
+    const careerYears = (doctorcarSurvey.querySelector('input[name="career_years"]:checked') || {}).value || '';
+    const region = (doctorcarSurvey.querySelector('input[name="region"]:checked') || {}).value || '';
+    const regionOther = (doctorcarSurvey.querySelector('input[name="region_other_text"]') || {}).value.trim();
 
-        // 기본 정보
-        const orgType = (doctorcarSurvey.querySelector('input[name="org_type"]:checked') || {}).value || '';
-        const careerYears = (doctorcarSurvey.querySelector('input[name="career_years"]:checked') || {}).value || '';
-        const region = (doctorcarSurvey.querySelector('input[name="region"]:checked') || {}).value || '';
-        const regionOther = (doctorcarSurvey.querySelector('input[name="region_other_text"]') || {}).value.trim();
+    const usedDoctorcar = (doctorcarSurvey.querySelector('input[name="used_doctorcar"]:checked') || {}).value || '';
 
-        const usedDoctorcar = (doctorcarSurvey.querySelector('input[name="used_doctorcar"]:checked') || {}).value || '';
+    const visitPurpose = (doctorcarSurvey.querySelector('input[name="visit_purpose"]:checked') || {}).value || '';
+    const visitPurposeOther = (doctorcarSurvey.querySelector('input[name="visit_purpose_other_text"]') || {}).value.trim();
 
-        const visitPurpose = (doctorcarSurvey.querySelector('input[name="visit_purpose"]:checked') || {}).value || '';
-        const visitPurposeOther = (doctorcarSurvey.querySelector('input[name="visit_purpose_other_text"]') || {}).value.trim();
+    // 의사결정 영향 (체크박스 여러 개 → 콤마로 이어붙이기)
+    const impactChecked = doctorcarSurvey.querySelectorAll('input[name="decision_impact"]:checked');
+    const decisionImpact = impactChecked.length
+      ? Array.from(impactChecked).map(el => el.value).join(',')
+      : 'none';
 
-        // 의사결정 영향 (체크박스 여러 개 → 콤마로 이어붙이기)
-        const impactChecked = doctorcarSurvey.querySelectorAll('input[name="decision_impact"]:checked');
-        const decisionImpact = impactChecked.length
-          ? Array.from(impactChecked).map(el => el.value).join(',')
-          : 'none';
+    const decisionHelpScore = (doctorcarSurvey.decision_help_score || {}).value || '';
 
-        const decisionHelpScore = (doctorcarSurvey.decision_help_score || {}).value || '';
+    // 시간 단축 체감
+    const timeChecked = doctorcarSurvey.querySelectorAll('input[name="time_effect"]:checked');
+    const timeEffect = timeChecked.length
+      ? Array.from(timeChecked).map(el => el.value).join(',')
+      : 'none';
 
-        // 시간 단축 체감
-        const timeChecked = doctorcarSurvey.querySelectorAll('input[name="time_effect"]:checked');
-        const timeEffect = timeChecked.length
-          ? Array.from(timeChecked).map(el => el.value).join(',')
-          : 'none';
+    // 처치 어느 부분이 좋았는지
+    const treatChecked = doctorcarSurvey.querySelectorAll('input[name="treatment_good"]:checked');
+    const treatmentGood = treatChecked.length
+      ? Array.from(treatChecked).map(el => el.value).join(',')
+      : 'none';
 
-        // 처치 어느 부분이 좋았는지
-        const treatChecked = doctorcarSurvey.querySelectorAll('input[name="treatment_good"]:checked');
-        const treatmentGood = treatChecked.length
-          ? Array.from(treatChecked).map(el => el.value).join(',')
-          : 'none';
+    // 자유 서술 (100자 이내로 잘라서 전송)
+    const treatmentFreeRaw = (doctorcarSurvey.querySelector('textarea[name="treatment_free_text"]') || {}).value || '';
+    const improvementFreeRaw = (doctorcarSurvey.querySelector('textarea[name="improvement_free_text"]') || {}).value || '';
 
-        // 자유 서술 (100자 이내로 잘라서 전송)
-        const treatmentFreeRaw = (doctorcarSurvey.querySelector('textarea[name="treatment_free_text"]') || {}).value || '';
-        const improvementFreeRaw = (doctorcarSurvey.querySelector('textarea[name="improvement_free_text"]') || {}).value || '';
+    const treatmentFree100 = treatmentFreeRaw.substring(0, 100);
+    const improvementFree100 = improvementFreeRaw.substring(0, 100);
 
-        const treatmentFree100 = treatmentFreeRaw.substring(0, 100);
-        const improvementFree100 = improvementFreeRaw.substring(0, 100);
+    const reuseIntent = (doctorcarSurvey.reuse_intent || {}).value || '';
+    const npsScore = (doctorcarSurvey.nps_score || {}).value || '';
 
-        const reuseIntent = (doctorcarSurvey.reuse_intent || {}).value || '';
-        const npsScore = (doctorcarSurvey.nps_score || {}).value || '';
+    const submitTime = new Date().toISOString();
 
-        const submitTime = new Date().toISOString();
+    // 🔹 GA4로 보낼 payload 하나로 묶기
+    const payload = {
+      user_role: currentUserRole || 'unknown',
+      org_type: orgType,
+      career_years: careerYears,
+      region: region,
+      region_other: regionOther.substring(0, 50),
+      used_doctorcar: usedDoctorcar,
+      visit_purpose: visitPurpose,
+      visit_purpose_other: visitPurposeOther.substring(0, 50),
+      decision_impact: decisionImpact,
+      decision_help_score: decisionHelpScore,
+      time_effect: timeEffect,
+      treatment_good: treatmentGood,
+      treatment_free_text_100: treatmentFree100,
+      reuse_intent: reuseIntent,
+      nps_score: npsScore,
+      improvement_free_text_100: improvementFree100,
+      entry_channel: trafficInfo ? trafficInfo.channel : 'unknown',
+      survey_submit_time: submitTime
+    };
 
-        if (typeof gtag === 'function') {
-          gtag('event', 'submit_survey_doctorcar', {
-            user_role: currentUserRole || 'unknown',
-            org_type: orgType,
-            career_years: careerYears,
-            region: region,
-            region_other: regionOther.substring(0, 50),
-            used_doctorcar: usedDoctorcar,
-            visit_purpose: visitPurpose,
-            visit_purpose_other: visitPurposeOther.substring(0, 50),
-            decision_impact: decisionImpact,
-            decision_help_score: decisionHelpScore,
-            time_effect: timeEffect,
-            treatment_good: treatmentGood,
-            treatment_free_text_100: treatmentFree100,
-            reuse_intent: reuseIntent,
-            nps_score: npsScore,
-            improvement_free_text_100: improvementFree100,
-            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown',
-            survey_submit_time: submitTime
-          });
-        }
+    // 🔹 이 줄이 찍히면 submit 핸들러는 정상 작동 중
+    console.log('GA4 submit_survey_doctorcar payload = ', payload);
 
-       alert('응답해 주셔서 감사합니다.');
-doctorcarSurvey.reset();
-
-// 설문 리셋 후, 블록/입력창 상태 초기화
-updateExperienceBlock();
-updateRegionOther();
-updateVisitPurposeOther();
-
-// 글자수 카운터만 0으로 수동 초기화
-if (treatmentCounter) {
-  treatmentCounter.textContent = '0 / 100자';
-}
-if (improvementCounter) {
-  improvementCounter.textContent = '0 / 100자';
-}
-
-      });
+    if (typeof gtag === 'function') {
+      gtag('event', 'submit_survey_doctorcar', payload);
     }
+
+    alert('응답해 주셔서 감사합니다.');
+    doctorcarSurvey.reset();
+
+    // 설문 리셋 후, 블록/입력창 상태 초기화
+    updateExperienceBlock();
+    updateRegionOther();
+    updateVisitPurposeOther();
+
+    // 글자수 카운터만 0으로 수동 초기화
+    if (treatmentCounter) {
+      treatmentCounter.textContent = '0 / 100자';
+    }
+    if (improvementCounter) {
+      improvementCounter.textContent = '0 / 100자';
+    }
+  });
+}
+
+  
   });
 </script>
 
