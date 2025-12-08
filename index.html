@@ -1007,6 +1007,7 @@
     </button>
   </div>
 </div>
+
 <script>
   // 닥터카 페이지 URL
   const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
@@ -1076,13 +1077,26 @@
       return;
     }
 
-    // GA4 이벤트: 출신 선택
+    // GA4 이벤트: 출신 선택 (기타 포함해서 누가 눌렀는지는 남김)
     if (typeof gtag === 'function') {
       gtag('event', 'select_role', {
         user_role: selectedRole
       });
     }
 
+    // 👉 기타인 경우: 안내만 하고 전화 막기
+    if (selectedRole === 'other') {
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
+      // pendingCall 초기화 (이 통화는 취소)
+      pendingCall = null;
+
+      alert('닥터카 출동 요청은 의사 또는 구급대원만 가능합니다.\n일반인의 직접 전화 요청은 불가합니다.');
+      return; // 여기서 함수 종료 → executeCall 호출 안 함
+    }
+
+    // 의사 / 구급대원인 경우에만 계속 진행
     if (overlay) {
       overlay.style.display = 'none';
     }
@@ -1106,8 +1120,8 @@
     // GA4 이벤트: 전화 버튼 클릭
     if (typeof gtag === 'function') {
       gtag('event', 'click_call_button', {
-        user_role: role,
-        call_target: target
+        user_role: role,       // er_doctor / ems
+        call_target: target    // hero_doctorcar / how_doctorcar
       });
     }
 
@@ -1118,4 +1132,3 @@
 
 </body>
 </html>
-
