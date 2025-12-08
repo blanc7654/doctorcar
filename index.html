@@ -1292,420 +1292,457 @@ gtag('config', 'G-MCKTRFREN3', {
 </div>
 
 <script>
-  const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
-  let pendingCall = null;          // { tel, target }
-  let currentUserRole = null;      // er_doctor / ems / other
-  let trafficInfo = null;          // { channel, rawRef }
+const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
+let pendingCall = null;          // { tel, target }
+let currentUserRole = null;      // er_doctor / ems / other
+let trafficInfo = null;          // { channel, rawRef }
+let roleOverlayOpen = false;     // 팝업 열림 여부
 
-  // 접속 채널 분류 (QR / Kakao / EMS 채팅 / 기타)
-  function classifyTraffic() {
-    let channel = 'direct_or_unknown';
-    let rawRef = document.referrer || '';
+// 접속 채널 분류 (QR / Kakao / EMS 채팅 / 기타)
+function classifyTraffic() {
+  let channel = 'direct_or_unknown';
+  let rawRef = document.referrer || '';
 
-    try {
-      const url = new URL(window.location.href);
-      const src = url.searchParams.get('src') || url.searchParams.get('utm_source');
+  try {
+    const url = new URL(window.location.href);
+    const src = url.searchParams.get('src') || url.searchParams.get('utm_source');
 
-      if (src) {
-        const s = src.toLowerCase();
-        if (s.includes('qr')) channel = 'qr';
-        else if (s.includes('kakao')) channel = 'kakao';
-        else if (s.includes('ems') || s.includes('chat')) channel = 'ems_chat';
-        else channel = s;
-      } else {
-        const ua = navigator.userAgent || '';
-        if (/kakao/i.test(rawRef) || /kakaotalk/i.test(ua)) {
-          channel = 'kakao';
-        } else if (rawRef) {
-          try {
-            const refUrl = new URL(rawRef);
-            channel = 'referral_' + refUrl.hostname;
-          } catch (e) {
-            channel = 'referral_other';
-          }
-        } else {
-          channel = 'direct_or_unknown';
+    if (src) {
+      const s = src.toLowerCase();
+      if (s.includes('qr')) channel = 'qr';
+      else if (s.includes('kakao')) channel = 'kakao';
+      else if (s.includes('ems') || s.includes('chat')) channel = 'ems_chat';
+      else channel = s;
+    } else {
+      const ua = navigator.userAgent || '';
+      if (/kakao/i.test(rawRef) || /kakaotalk/i.test(ua)) {
+        channel = 'kakao';
+      } else if (rawRef) {
+        try {
+          const refUrl = new URL(rawRef);
+          channel = 'referral_' + refUrl.hostname;
+        } catch (e) {
+          channel = 'referral_other';
         }
-      }
-    } catch (e) {}
-
-    return {
-      channel,
-      rawRef: rawRef || '(none)'
-    };
-  }
-
-  // === 출신(직역) 선택 팝업 ===
-  function openRoleOverlay() {
-    const overlay = document.getElementById('role-overlay');
-    if (overlay) {
-      overlay.style.display = 'flex';
-    }
-  }
-
-  function confirmRoleAndCall() {
-    const overlay = document.getElementById('role-overlay');
-    const radios = document.querySelectorAll('input[name="user_role"]');
-
-    let selectedRole = null;
-    radios.forEach(function (r) {
-      if (r.checked) selectedRole = r.value;
-    });
-
-    if (!selectedRole) {
-      alert('출신(의사 / 구급대원 / 기타)을 선택해 주세요.');
-      return;
-    }
-
-    currentUserRole = selectedRole;
-
-    // GA4: 직역 선택 이벤트 + user_property
-    if (typeof gtag === 'function') {
-      gtag('event', 'select_role', {
-        user_role: selectedRole
-      });
-      gtag('set', 'user_properties', {
-        position_type: selectedRole   // er_doctor / ems / other
-      });
-    }
-
-    // ✅ 기타(일반인)인 경우: 안내만 하고 전화는 절대 안 감
-    if (selectedRole === 'other') {
-      pendingCall = null;
-
-      alert(
-        '닥터카 출동 요청은 의사 또는 구급대원만 가능합니다.\n' +
-        '일반인의 직접 전화 요청은 불가합니다.'
-      );
-
-      if (overlay) {
-        overlay.style.display = 'none';  // 팝업 닫고 → 밑의 웹앱 화면 그대로
-      }
-      return;
-    }
-
-    // 🩺 의사 / 🚑 구급대원인 경우에만 실제 전화 진행
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
-
-    if (pendingCall) {
-      executeCall({
-        tel: pendingCall.tel,
-        target: pendingCall.target,
-        role: selectedRole
-      });
-      pendingCall = null;
-    }
-  }
-
-  // 실제 전화 실행 + GA4 이벤트 기록
-  function executeCall(info) {
-    const tel = info.tel;
-    const target = info.target || 'unknown';
-    const role = info.role || currentUserRole || 'unknown';
-    const callTime = new Date().toISOString();
-
-    if (typeof gtag === 'function') {
-      gtag('event', 'click_call_button', {
-        user_role: role,
-        call_target: target,          // hero_doctorcar / how_doctorcar
-        call_time: callTime,
-        entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
-      });
-    }
-
-    window.location.href = 'tel:' + tel;
-  }
-
-  // 설문 오버레이 (지금은 안 쓰지만 향후 확장용)
-  function openSurveyOverlay() {
-    const overlay = document.getElementById('survey-overlay');
-    if (overlay) overlay.style.display = 'flex';
-  }
-
-  function closeSurveyOverlay() {
-    const overlay = document.getElementById('survey-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  // === DOMContentLoaded 이후 DOM 바인딩들 ===
-  document.addEventListener('DOMContentLoaded', function () {
-    // 0) 접속 채널 분류 → GA4 전송
-    trafficInfo = classifyTraffic();
-    if (typeof gtag === 'function') {
-      gtag('set', 'user_properties', {
-        entry_channel: trafficInfo.channel
-      });
-
-      gtag('event', 'classify_visit', {
-        entry_channel: trafficInfo.channel,
-        raw_referrer: trafficInfo.rawRef.substring(0, 200)
-      });
-    }
-
-    // 1) QR 링크 복사 버튼
-    const qrCopyBtn = document.getElementById('qr-copy-btn');
-    if (qrCopyBtn) {
-      qrCopyBtn.addEventListener('click', function () {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(doctorcarUrl).then(() => {
-            alert('닥터카 안내 링크가 복사되었습니다.');
-          }).catch(() => {
-            alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
-          });
-        } else {
-          const textarea = document.createElement('textarea');
-          textarea.value = doctorcarUrl;
-          document.body.appendChild(textarea);
-          textarea.select();
-          try {
-            document.execCommand('copy');
-            alert('닥터카 안내 링크가 복사되었습니다.');
-          } catch (e) {
-            alert('복사에 실패했습니다.');
-          }
-          document.body.removeChild(textarea);
-        }
-
-        if (typeof gtag === 'function') {
-          gtag('event', 'copy_qr_link', {
-            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
-          });
-        }
-      });
-    }
-
-    // 2) 전화 버튼(위/아래) 공통 처리 – 항상 직역 팝업 먼저
-    const callButtons = document.querySelectorAll('.call-btn');
-    callButtons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const tel = btn.getAttribute('data-tel') || '01062063010';
-        const target = btn.getAttribute('data-call-target') || 'unknown';
-
-        pendingCall = { tel, target };
-        openRoleOverlay();
-      });
-    });
-
-    // 3) 설문 배너 클릭 → 설문 섹션으로 스크롤 (※ 한 번만 정의)
-    const openSurveyBtn = document.getElementById('open-survey-btn');
-    if (openSurveyBtn) {
-      openSurveyBtn.addEventListener('click', function () {
-        const nowIso = new Date().toISOString();
-
-        if (typeof gtag === 'function') {
-          gtag('event', 'click_survey_banner', {
-            user_role: currentUserRole || 'unknown',
-            survey_click_time: nowIso,
-            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
-          });
-        }
-
-        const surveySection = document.getElementById('survey');
-        if (surveySection) {
-          surveySection.scrollIntoView({ behavior: 'smooth' });
-        }
-      });
-    }
-
-    // 4) 닥터카 실제 이용 경험에 따라 추가 문항 블록 토글
-    const usedYes = document.querySelector('input[name="used_doctorcar"][value="yes"]');
-    const usedNo  = document.querySelector('input[name="used_doctorcar"][value="no"]');
-    const experienceBlock = document.getElementById('doctorcar-experience-block');
-
-    function updateExperienceBlock() {
-      if (!experienceBlock) return;
-      if (usedYes && usedYes.checked) {
-        experienceBlock.style.display = 'block';
       } else {
-        experienceBlock.style.display = 'none';
-        // 닥터카 미경험이면 내부 체크/텍스트도 리셋
-        const insideInputs = experienceBlock.querySelectorAll('input[type="checkbox"], textarea');
-        insideInputs.forEach(el => {
-          if (el.type === 'checkbox') el.checked = false;
-          else if (el.tagName === 'TEXTAREA') el.value = '';
-        });
+        channel = 'direct_or_unknown';
       }
     }
+  } catch (e) {}
 
-    if (usedYes) usedYes.addEventListener('change', updateExperienceBlock);
-    if (usedNo)  usedNo.addEventListener('change', updateExperienceBlock);
-    updateExperienceBlock();  // 초기 1회 호출
-
-    // 5) 자유 서술 2개 글자 수 카운터 (100자 제한 + 표시)
-    const treatmentFree = document.getElementById('treatment_free_text');
-    const treatmentCounter = document.getElementById('treatment_free_counter');
-    const improvementFree = document.getElementById('improvement_free_text');
-    const improvementCounter = document.getElementById('improvement_free_counter');
-
-    function bindCounter(textarea, counter) {
-      if (!textarea || !counter) return;
-      const update = () => {
-        const len = textarea.value.length;
-        counter.textContent = len + ' / 100자';
-      };
-      textarea.addEventListener('input', update);
-      update();
-    }
-
-    bindCounter(treatmentFree, treatmentCounter);
-    bindCounter(improvementFree, improvementCounter);
-
-    // 6-0) 근무기관 유형의 '기타' 입력칸 토글
-    function updateOrgTypeOther() {
-      const wrap = document.getElementById('org_type_other_wrap');
-      const input = document.querySelector('input[name="org_type_other_text"]');
-      if (!wrap) return;
-      const selected = document.querySelector('input[name="org_type"]:checked');
-      if (selected && selected.value === 'other_org') {
-        wrap.style.display = 'block';
-      } else {
-        wrap.style.display = 'none';
-        if (input) input.value = '';
-      }
-    }
-
-    const orgTypeRadios = document.querySelectorAll('input[name="org_type"]');
-    orgTypeRadios.forEach(r => r.addEventListener('change', updateOrgTypeOther));
-    updateOrgTypeOther();  // 초기 상태 반영
-
-
-    // 6) 근무지역/방문목적의 '기타' 입력칸은 기타 선택 시에만 보이도록
-    function updateRegionOther() {
-      const wrap = document.getElementById('region_other_wrap');
-      const input = document.querySelector('input[name="region_other_text"]');
-      if (!wrap) return;
-      const selected = document.querySelector('input[name="region"]:checked');
-      if (selected && selected.value === 'other_region') {
-        wrap.style.display = 'block';
-      } else {
-        wrap.style.display = 'none';
-        if (input) input.value = '';
-      }
-    }
-
-    function updateVisitPurposeOther() {
-      const wrap = document.getElementById('visit_purpose_other_wrap');
-      const input = document.querySelector('input[name="visit_purpose_other_text"]');
-      if (!wrap) return;
-      const selected = document.querySelector('input[name="visit_purpose"]:checked');
-      if (selected && selected.value === 'other') {
-        wrap.style.display = 'block';
-      } else {
-        wrap.style.display = 'none';
-        if (input) input.value = '';
-      }
-    }
-
-    const regionRadios = document.querySelectorAll('input[name="region"]');
-    regionRadios.forEach(r => r.addEventListener('change', updateRegionOther));
-    updateRegionOther();   // 초기 상태 반영
-
-    const visitPurposeRadios = document.querySelectorAll('input[name="visit_purpose"]');
-    visitPurposeRadios.forEach(r => r.addEventListener('change', updateVisitPurposeOther));
-    updateVisitPurposeOther();  // 초기 상태 반영
-
-// 6) GA4로 설문 이벤트 보내기 (#doctorcar-survey)
-const doctorcarSurvey = document.getElementById('doctorcar-survey');
-if (doctorcarSurvey) {
-  doctorcarSurvey.addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    // 기본 정보
-    const orgType = (doctorcarSurvey.querySelector('input[name="org_type"]:checked') || {}).value || '';
-const orgTypeOther = (doctorcarSurvey.querySelector('input[name="org_type_other_text"]') || {}).value.trim();
-    const careerYears = (doctorcarSurvey.querySelector('input[name="career_years"]:checked') || {}).value || '';
-    const region = (doctorcarSurvey.querySelector('input[name="region"]:checked') || {}).value || '';
-    const regionOther = (doctorcarSurvey.querySelector('input[name="region_other_text"]') || {}).value.trim();
-
-    const usedDoctorcar = (doctorcarSurvey.querySelector('input[name="used_doctorcar"]:checked') || {}).value || '';
-
-    const visitPurpose = (doctorcarSurvey.querySelector('input[name="visit_purpose"]:checked') || {}).value || '';
-    const visitPurposeOther = (doctorcarSurvey.querySelector('input[name="visit_purpose_other_text"]') || {}).value.trim();
-
-    // 의사결정 영향 (체크박스 여러 개 → 콤마로 이어붙이기)
-    const impactChecked = doctorcarSurvey.querySelectorAll('input[name="decision_impact"]:checked');
-    const decisionImpact = impactChecked.length
-      ? Array.from(impactChecked).map(el => el.value).join(',')
-      : 'none';
-
-    const decisionHelpScore = (doctorcarSurvey.decision_help_score || {}).value || '';
-
-    // 시간 단축 체감
-    const timeChecked = doctorcarSurvey.querySelectorAll('input[name="time_effect"]:checked');
-    const timeEffect = timeChecked.length
-      ? Array.from(timeChecked).map(el => el.value).join(',')
-      : 'none';
-
-    // 처치 어느 부분이 좋았는지
-    const treatChecked = doctorcarSurvey.querySelectorAll('input[name="treatment_good"]:checked');
-    const treatmentGood = treatChecked.length
-      ? Array.from(treatChecked).map(el => el.value).join(',')
-      : 'none';
-
-    // 자유 서술 (100자 이내로 잘라서 전송)
-    const treatmentFreeRaw = (doctorcarSurvey.querySelector('textarea[name="treatment_free_text"]') || {}).value || '';
-    const improvementFreeRaw = (doctorcarSurvey.querySelector('textarea[name="improvement_free_text"]') || {}).value || '';
-
-    const treatmentFree100 = treatmentFreeRaw.substring(0, 100);
-    const improvementFree100 = improvementFreeRaw.substring(0, 100);
-
-    const reuseIntent = (doctorcarSurvey.reuse_intent || {}).value || '';
-    const npsScore = (doctorcarSurvey.nps_score || {}).value || '';
-
-    const submitTime = new Date().toISOString();
-
-    // 🔹 GA4로 보낼 payload 하나로 묶기
-    const payload = {
-      user_role: currentUserRole || 'unknown',
-      org_type: orgType,
-      org_type_other: orgTypeOther.substring(0, 50),
-      career_years: careerYears,
-      region: region,
-      region_other: regionOther.substring(0, 50),
-      used_doctorcar: usedDoctorcar,
-      visit_purpose: visitPurpose,
-      visit_purpose_other: visitPurposeOther.substring(0, 50),
-      decision_impact: decisionImpact,
-      decision_help_score: decisionHelpScore,
-      time_effect: timeEffect,
-      treatment_good: treatmentGood,
-      treatment_free_text_100: treatmentFree100,
-      reuse_intent: reuseIntent,
-      nps_score: npsScore,
-      improvement_free_text_100: improvementFree100,
-      entry_channel: trafficInfo ? trafficInfo.channel : 'unknown',
-      survey_submit_time: submitTime
-    };
-
-    // 🔹 이 줄이 찍히면 submit 핸들러는 정상 작동 중
-    console.log('GA4 submit_survey_doctorcar payload = ', payload);
-
-    if (typeof gtag === 'function') {
-      gtag('event', 'submit_survey_doctorcar', payload);
-    }
-
-    alert('응답해 주셔서 감사합니다.');
-    doctorcarSurvey.reset();
-
-    // 설문 리셋 후, 블록/입력창 상태 초기화
-    updateExperienceBlock();
-    updateRegionOther();
-    updateVisitPurposeOther();
-
-    // 글자수 카운터만 0으로 수동 초기화
-    if (treatmentCounter) {
-      treatmentCounter.textContent = '0 / 100자';
-    }
-    if (improvementCounter) {
-      improvementCounter.textContent = '0 / 100자';
-    }
-  });
+  return {
+    channel,
+    rawRef: rawRef || '(none)'
+  };
 }
 
-  
+// === 오버레이 닫기 공용 함수 ===
+function closeRoleOverlay() {
+  const overlay = document.getElementById('role-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+  roleOverlayOpen = false;
+}
+
+// === 출신(직역) 선택 팝업 열기 ===
+function openRoleOverlay() {
+  const overlay = document.getElementById('role-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+
+    // 뒤로가기 한 번으로 팝업만 닫을 수 있도록 history 한 칸 쌓기
+    if (!roleOverlayOpen) {
+      history.pushState({ roleOverlay: true }, '', window.location.href);
+      roleOverlayOpen = true;
+    }
+  }
+}
+
+function confirmRoleAndCall() {
+  const overlay = document.getElementById('role-overlay');
+  const radios = document.querySelectorAll('input[name="user_role"]');
+
+  let selectedRole = null;
+  radios.forEach(function (r) {
+    if (r.checked) selectedRole = r.value;
   });
+
+  if (!selectedRole) {
+    alert('출신(의사 / 구급대원 / 기타)을 선택해 주세요.');
+    return;
+  }
+
+  currentUserRole = selectedRole;
+
+  // GA4: 직역 선택 이벤트 + user_property
+  if (typeof gtag === 'function') {
+    gtag('event', 'select_role', {
+      user_role: selectedRole
+    });
+    gtag('set', 'user_properties', {
+      position_type: selectedRole   // er_doctor / ems / other
+    });
+  }
+
+  // ✅ 기타(일반인)인 경우: 안내만 하고 전화는 절대 안 감
+  if (selectedRole === 'other') {
+    pendingCall = null;
+
+    alert(
+      '닥터카 출동 요청은 의사 또는 구급대원만 가능합니다.\n' +
+      '일반인의 직접 전화 요청은 불가합니다.'
+    );
+
+    closeRoleOverlay();  // 공용 닫기 함수
+    return;
+  }
+
+  // 🩺 의사 / 🚑 구급대원인 경우에만 실제 전화 진행
+  closeRoleOverlay();
+
+  if (pendingCall) {
+    executeCall({
+      tel: pendingCall.tel,
+      target: pendingCall.target,
+      role: selectedRole
+    });
+    pendingCall = null;
+  }
+}
+
+// 실제 전화 실행 + GA4 이벤트 기록
+function executeCall(info) {
+  const tel = info.tel;
+  const target = info.target || 'unknown';
+  const role = info.role || currentUserRole || 'unknown';
+  const callTime = new Date().toISOString();
+
+  if (typeof gtag === 'function') {
+    gtag('event', 'click_call_button', {
+      user_role: role,
+      call_target: target,          // hero_doctorcar / how_doctorcar
+      call_time: callTime,
+      entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+    });
+  }
+
+  window.location.href = 'tel:' + tel;
+}
+
+// 설문 오버레이 (지금은 안 쓰지만 향후 확장용)
+function openSurveyOverlay() {
+  const overlay = document.getElementById('survey-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
+function closeSurveyOverlay() {
+  const overlay = document.getElementById('survey-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// === DOMContentLoaded 이후 DOM 바인딩들 ===
+document.addEventListener('DOMContentLoaded', function () {
+  // 0) 접속 채널 분류 → GA4 전송
+  trafficInfo = classifyTraffic();
+  if (typeof gtag === 'function') {
+    gtag('set', 'user_properties', {
+      entry_channel: trafficInfo.channel
+    });
+
+    gtag('event', 'classify_visit', {
+      entry_channel: trafficInfo.channel,
+      raw_referrer: trafficInfo.rawRef.substring(0, 200)
+    });
+  }
+
+  // 1) QR 링크 복사 버튼
+  const qrCopyBtn = document.getElementById('qr-copy-btn');
+  if (qrCopyBtn) {
+    qrCopyBtn.addEventListener('click', function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(doctorcarUrl).then(() => {
+          alert('닥터카 안내 링크가 복사되었습니다.');
+        }).catch(() => {
+          alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
+        });
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = doctorcarUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          alert('닥터카 안내 링크가 복사되었습니다.');
+        } catch (e) {
+          alert('복사에 실패했습니다.');
+        }
+        document.body.removeChild(textarea);
+      }
+
+      if (typeof gtag === 'function') {
+        gtag('event', 'copy_qr_link', {
+          entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+        });
+      }
+    });
+  }
+
+  // 2) 전화 버튼(위/아래) 공통 처리 – 항상 직역 팝업 먼저
+  const callButtons = document.querySelectorAll('.call-btn');
+  callButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const tel = btn.getAttribute('data-tel') || '01062063010';
+      const target = btn.getAttribute('data-call-target') || 'unknown';
+
+      pendingCall = { tel, target };
+      openRoleOverlay();
+    });
+  });
+
+  // 3) 설문 배너 클릭 → 설문 섹션으로 스크롤
+  const openSurveyBtn = document.getElementById('open-survey-btn');
+  if (openSurveyBtn) {
+    openSurveyBtn.addEventListener('click', function () {
+      const nowIso = new Date().toISOString();
+
+      if (typeof gtag === 'function') {
+        gtag('event', 'click_survey_banner', {
+          user_role: currentUserRole || 'unknown',
+          survey_click_time: nowIso,
+          entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+        });
+      }
+
+      const surveySection = document.getElementById('survey');
+      if (surveySection) {
+        surveySection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  // 4) 닥터카 실제 이용 경험에 따라 추가 문항 블록 토글
+  const usedYes = document.querySelector('input[name="used_doctorcar"][value="yes"]');
+  const usedNo  = document.querySelector('input[name="used_doctorcar"][value="no"]');
+  const experienceBlock = document.getElementById('doctorcar-experience-block');
+
+  function updateExperienceBlock() {
+    if (!experienceBlock) return;
+    if (usedYes && usedYes.checked) {
+      experienceBlock.style.display = 'block';
+    } else {
+      experienceBlock.style.display = 'none';
+      // 닥터카 미경험이면 내부 체크/텍스트도 리셋
+      const insideInputs = experienceBlock.querySelectorAll('input[type="checkbox"], textarea');
+      insideInputs.forEach(el => {
+        if (el.type === 'checkbox') el.checked = false;
+        else if (el.tagName === 'TEXTAREA') el.value = '';
+      });
+    }
+  }
+
+  if (usedYes) usedYes.addEventListener('change', updateExperienceBlock);
+  if (usedNo)  usedNo.addEventListener('change', updateExperienceBlock);
+  updateExperienceBlock();  // 초기 1회 호출
+
+  // 5) 자유 서술 2개 글자 수 카운터 (100자 제한 + 표시)
+  const treatmentFree = document.getElementById('treatment_free_text');
+  const treatmentCounter = document.getElementById('treatment_free_counter');
+  const improvementFree = document.getElementById('improvement_free_text');
+  const improvementCounter = document.getElementById('improvement_free_counter');
+
+  function bindCounter(textarea, counter) {
+    if (!textarea || !counter) return;
+    const update = () => {
+      const len = textarea.value.length;
+      counter.textContent = len + ' / 100자';
+    };
+    textarea.addEventListener('input', update);
+    update();
+  }
+
+  bindCounter(treatmentFree, treatmentCounter);
+  bindCounter(improvementFree, improvementCounter);
+
+  // 6-0) 근무기관 유형의 '기타' 입력칸 토글
+  function updateOrgTypeOther() {
+    const wrap = document.getElementById('org_type_other_wrap');
+    const input = document.querySelector('input[name="org_type_other_text"]');
+    if (!wrap) return;
+    const selected = document.querySelector('input[name="org_type"]:checked');
+    if (selected && selected.value === 'other_org') {
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+      if (input) input.value = '';
+    }
+  }
+
+  const orgTypeRadios = document.querySelectorAll('input[name="org_type"]');
+  orgTypeRadios.forEach(r => r.addEventListener('change', updateOrgTypeOther));
+  updateOrgTypeOther();  // 초기 상태 반영
+
+  // 6) 근무지역/방문목적의 '기타' 입력칸은 기타 선택 시에만 보이도록
+  function updateRegionOther() {
+    const wrap = document.getElementById('region_other_wrap');
+    const input = document.querySelector('input[name="region_other_text"]');
+    if (!wrap) return;
+    const selected = document.querySelector('input[name="region"]:checked');
+    if (selected && selected.value === 'other_region') {
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+      if (input) input.value = '';
+    }
+  }
+
+  function updateVisitPurposeOther() {
+    const wrap = document.getElementById('visit_purpose_other_wrap');
+    const input = document.querySelector('input[name="visit_purpose_other_text"]');
+    if (!wrap) return;
+    const selected = document.querySelector('input[name="visit_purpose"]:checked');
+    if (selected && selected.value === 'other') {
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+      if (input) input.value = '';
+    }
+  }
+
+  const regionRadios = document.querySelectorAll('input[name="region"]');
+  regionRadios.forEach(r => r.addEventListener('change', updateRegionOther));
+  updateRegionOther();   // 초기 상태 반영
+
+  const visitPurposeRadios = document.querySelectorAll('input[name="visit_purpose"]');
+  visitPurposeRadios.forEach(r => r.addEventListener('change', updateVisitPurposeOther));
+  updateVisitPurposeOther();  // 초기 상태 반영
+
+  // 7) GA4로 설문 이벤트 보내기 (#doctorcar-survey)
+  const doctorcarSurvey = document.getElementById('doctorcar-survey');
+  if (doctorcarSurvey) {
+    doctorcarSurvey.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // 기본 정보
+      const orgType = (doctorcarSurvey.querySelector('input[name="org_type"]:checked') || {}).value || '';
+      const orgTypeOther = (doctorcarSurvey.querySelector('input[name="org_type_other_text"]') || {}).value.trim();
+      const careerYears = (doctorcarSurvey.querySelector('input[name="career_years"]:checked') || {}).value || '';
+      const region = (doctorcarSurvey.querySelector('input[name="region"]:checked') || {}).value || '';
+      const regionOther = (doctorcarSurvey.querySelector('input[name="region_other_text"]') || {}).value.trim();
+
+      const usedDoctorcar = (doctorcarSurvey.querySelector('input[name="used_doctorcar"]:checked') || {}).value || '';
+
+      const visitPurpose = (doctorcarSurvey.querySelector('input[name="visit_purpose"]:checked') || {}).value || '';
+      const visitPurposeOther = (doctorcarSurvey.querySelector('input[name="visit_purpose_other_text"]') || {}).value.trim();
+
+      // 의사결정 영향 (체크박스 여러 개 → 콤마로 이어붙이기)
+      const impactChecked = doctorcarSurvey.querySelectorAll('input[name="decision_impact"]:checked');
+      const decisionImpact = impactChecked.length
+        ? Array.from(impactChecked).map(el => el.value).join(',')
+        : 'none';
+
+      const decisionHelpScore = (doctorcarSurvey.decision_help_score || {}).value || '';
+
+      // 시간 단축 체감
+      const timeChecked = doctorcarSurvey.querySelectorAll('input[name="time_effect"]:checked');
+      const timeEffect = timeChecked.length
+        ? Array.from(timeChecked).map(el => el.value).join(',')
+        : 'none';
+
+      // 처치 어느 부분이 좋았는지
+      const treatChecked = doctorcarSurvey.querySelectorAll('input[name="treatment_good"]:checked');
+      const treatmentGood = treatChecked.length
+        ? Array.from(treatChecked).map(el => el.value).join(',')
+        : 'none';
+
+      // 자유 서술 (100자 이내로 잘라서 전송)
+      const treatmentFreeRaw = (doctorcarSurvey.querySelector('textarea[name="treatment_free_text"]') || {}).value || '';
+      const improvementFreeRaw = (doctorcarSurvey.querySelector('textarea[name="improvement_free_text"]') || {}).value || '';
+
+      const treatmentFree100 = treatmentFreeRaw.substring(0, 100);
+      const improvementFree100 = improvementFreeRaw.substring(0, 100);
+
+      const reuseIntent = (doctorcarSurvey.reuse_intent || {}).value || '';
+      const npsScore = (doctorcarSurvey.nps_score || {}).value || '';
+
+      const submitTime = new Date().toISOString();
+
+      // GA4로 보낼 payload 하나로 묶기
+      const payload = {
+        user_role: currentUserRole || 'unknown',
+        org_type: orgType,
+        org_type_other: orgTypeOther.substring(0, 50),
+        career_years: careerYears,
+        region: region,
+        region_other: regionOther.substring(0, 50),
+        used_doctorcar: usedDoctorcar,
+        visit_purpose: visitPurpose,
+        visit_purpose_other: visitPurposeOther.substring(0, 50),
+        decision_impact: decisionImpact,
+        decision_help_score: decisionHelpScore,
+        time_effect: timeEffect,
+        treatment_good: treatmentGood,
+        treatment_free_text_100: treatmentFree100,
+        reuse_intent: reuseIntent,
+        nps_score: npsScore,
+        improvement_free_text_100: improvementFree100,
+        entry_channel: trafficInfo ? trafficInfo.channel : 'unknown',
+        survey_submit_time: submitTime
+      };
+
+      console.log('GA4 submit_survey_doctorcar payload = ', payload);
+
+      if (typeof gtag === 'function') {
+        gtag('event', 'submit_survey_doctorcar', payload);
+      }
+
+      alert('응답해 주셔서 감사합니다.');
+      doctorcarSurvey.reset();
+
+      // 설문 리셋 후, 블록/입력창 상태 초기화
+      updateExperienceBlock();
+      updateRegionOther();
+      updateVisitPurposeOther();
+
+      // 글자수 카운터만 0으로 수동 초기화
+      if (treatmentCounter) {
+        treatmentCounter.textContent = '0 / 100자';
+      }
+      if (improvementCounter) {
+        improvementCounter.textContent = '0 / 100자';
+      }
+    });
+  }
+
+  // 8) 브라우저 뒤로가기 시, 팝업이 열려 있으면 팝업만 닫기
+  window.addEventListener('popstate', function (event) {
+    const overlay = document.getElementById('role-overlay');
+    if (roleOverlayOpen && overlay && overlay.style.display !== 'none') {
+      closeRoleOverlay();
+    }
+  });
+
+  // 9) 오버레이 바깥(검은 영역) 클릭 시 닫기
+  const roleOverlay = document.getElementById('role-overlay');
+  if (roleOverlay) {
+    roleOverlay.addEventListener('click', function (e) {
+      if (e.target === roleOverlay) {
+        closeRoleOverlay();
+      }
+    });
+  }
+});
+
+// 10) ESC 키로 팝업 닫기
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    const overlay = document.getElementById('role-overlay');
+    if (roleOverlayOpen && overlay && overlay.style.display !== 'none') {
+      closeRoleOverlay();
+    }
+  }
+});
+
 </script>
 
 
