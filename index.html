@@ -64,19 +64,16 @@ gtag('config', 'G-MCKTRFREN3', {
       padding: 6px 0 4px;
     }
 
-    .top-nav-inner {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 16px;
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .top-nav-inner::-webkit-scrollbar {
-      display: none;
-    }
+.top-nav-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  gap: 6px;
+  /* overflow-x: auto;  ← 이 줄 지우기 */
+  /* scrollbar 숨기는 부분도 사실 의미 없어져서 같이 지워도 됩니다 */
+  flex-wrap: wrap;      /* ✅ 추가: 칩이 다음 줄로 내려가게 */
+}
 
     .nav-chip {
       font-size: 0.78rem;
@@ -1054,6 +1051,12 @@ gtag('config', 'G-MCKTRFREN3', {
             <label><input type="radio" name="org_type" value="local_emi"> 지역응급의료기관</label><br>
             <label><input type="radio" name="org_type" value="clinic_no_ed"> 병의원(응급실 없음)</label><br>
             <label><input type="radio" name="org_type" value="other_org"> 기타</label>
+    <!-- ✅ 기타일 때만 보이는 입력창 추가 -->
+    <div id="org_type_other_wrap" style="display:none; margin-top:6px;">
+      <input type="text" name="org_type_other_text"
+             placeholder="기타인 경우 근무기관 유형을 적어 주세요"
+             style="width:100%; font-size:0.85rem; padding:6px 8px;">
+    </div>
           </div>
         </div>
 
@@ -1136,13 +1139,14 @@ gtag('config', 'G-MCKTRFREN3', {
             <label><input type="radio" name="used_doctorcar" value="yes" required> 예 (길병원 닥터카를 실제로 이용한 경험이 있다)</label><br>
             <label><input type="radio" name="used_doctorcar" value="no"> 아니오 (아직 실제로 사용해 본 적은 없다)</label>
           </div>
-          <div class="experience-note">
-            ※ 아래 항목들은 “예”를 선택한 경우에만 답변해 주세요.
-          </div>
+         
         </div>
 
         <!-- 쪼르륵 펼쳐지는 보라색 경험 상세 블록 -->
         <div id="doctorcar-experience-block">
+	 <div class="experience-note">
+            ※ 아래 항목들은 “예”를 선택한 경우에만 답변해 주세요.
+          </div>
           <!-- 시간 단축 체감 -->
           <div class="exp-sub-card">
             <h4>시간 단축 체감 (복수 선택 가능)</h4>
@@ -1548,6 +1552,25 @@ gtag('config', 'G-MCKTRFREN3', {
     bindCounter(treatmentFree, treatmentCounter);
     bindCounter(improvementFree, improvementCounter);
 
+    // 6-0) 근무기관 유형의 '기타' 입력칸 토글
+    function updateOrgTypeOther() {
+      const wrap = document.getElementById('org_type_other_wrap');
+      const input = document.querySelector('input[name="org_type_other_text"]');
+      if (!wrap) return;
+      const selected = document.querySelector('input[name="org_type"]:checked');
+      if (selected && selected.value === 'other_org') {
+        wrap.style.display = 'block';
+      } else {
+        wrap.style.display = 'none';
+        if (input) input.value = '';
+      }
+    }
+
+    const orgTypeRadios = document.querySelectorAll('input[name="org_type"]');
+    orgTypeRadios.forEach(r => r.addEventListener('change', updateOrgTypeOther));
+    updateOrgTypeOther();  // 초기 상태 반영
+
+
     // 6) 근무지역/방문목적의 '기타' 입력칸은 기타 선택 시에만 보이도록
     function updateRegionOther() {
       const wrap = document.getElementById('region_other_wrap');
@@ -1591,6 +1614,7 @@ if (doctorcarSurvey) {
 
     // 기본 정보
     const orgType = (doctorcarSurvey.querySelector('input[name="org_type"]:checked') || {}).value || '';
+const orgTypeOther = (doctorcarSurvey.querySelector('input[name="org_type_other_text"]') || {}).value.trim();
     const careerYears = (doctorcarSurvey.querySelector('input[name="career_years"]:checked') || {}).value || '';
     const region = (doctorcarSurvey.querySelector('input[name="region"]:checked') || {}).value || '';
     const regionOther = (doctorcarSurvey.querySelector('input[name="region_other_text"]') || {}).value.trim();
@@ -1636,6 +1660,7 @@ if (doctorcarSurvey) {
     const payload = {
       user_role: currentUserRole || 'unknown',
       org_type: orgType,
+      org_type_other: orgTypeOther.substring(0, 50),
       career_years: careerYears,
       region: region,
       region_other: regionOther.substring(0, 50),
