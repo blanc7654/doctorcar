@@ -221,6 +221,17 @@
       padding: 9px 12px;
       opacity: 0.9;
     }
+    /* 설문 버튼만 밝게 보이게 */
+    .btn-survey {
+      background: #f0f7fb;             /* 밝은 하늘색 */
+      color: #0b7ac4;                  /* 파란 글씨 */
+      border-color: #d0d7ea;
+      opacity: 1;
+    }
+    .btn-survey small {
+      color: #555;
+      opacity: 0.9;
+    }
 
     .btn-primary small,
     .btn-outline small {
@@ -658,19 +669,29 @@
       </div>
 
       <div class="hero-actions">
-<button type="button"
-        class="btn-primary call-btn"
-        data-tel="01062063010"
-        data-call-target="hero_doctorcar">
-  📞 닥터카 바로 요청
-  <small>길병원 외상당직폰 · 24시간 365일</small>
-</button>
+        <!-- 닥터카 바로 요청 버튼 -->
+        <button type="button"
+                class="btn-primary call-btn"
+                data-tel="01062063010"
+                data-call-target="hero_doctorcar">
+          📞 닥터카 바로 요청
+          <small>길병원 외상당직폰 · 24시간 365일</small>
+        </button>
 
+        <!-- 사용 방법 보기 -->
         <a href="#how" class="btn-outline">
           ℹ️ 사용 방법 보기
           <small>누가, 언제, 어떻게 요청하나</small>
         </a>
+
+        <!-- ✅ 새 설문 버튼 -->
+        <button type="button" class="btn-outline btn-survey" id="open-survey-btn">
+  📊 웹 사용 경험 설문
+  <small>1분 소요 · 익명</small>
+</button>
+
       </div>
+
 
       <p class="request-warning">
         ※ 닥터카 출동 요청은 <strong>119 구급대원 및 의료진</strong>만 가능합니다.<br>
@@ -1008,12 +1029,250 @@
   </div>
 </div>
 
+<!-- 설문 오버레이 -->
+<div id="survey-overlay" style="
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);   /* 바깥은 살짝 더 어둡게 */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+">
+  <div style="
+    background:#f7f9ff;            /* 카드 배경 연한 파란색 톤 */
+    color:#222;                    /* 글씨는 진한 회색 */
+    padding:20px 18px;
+    border-radius:12px;
+    width:360px;
+    max-width:90%;
+    max-height:90%;
+    overflow-y:auto;
+    font-size:0.9rem;
+    border:1px solid #d0d7ea;      /* 테두리 살짝 */
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  ">
+    <h3 style="margin-bottom:10px; font-size:1.05rem; font-weight:700;">
+      닥터카 웹 사용 경험 설문
+    </h3>
+    <p style="font-size:0.8rem; color:#555; margin-bottom:12px;">
+      1분 정도 소요됩니다. 응답은 통계·연구 목적으로만 사용됩니다.
+    </p>
+
+    <form id="survey-form">
+      <!-- 근무기관 유형 -->
+      <div style="margin-bottom:10px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">근무기관 유형</div>
+	<label><input type="radio" name="facility_type" value="ems_station"> 119 구급대 / 소방서</label><br>       
+	 <label style="display:block; margin-bottom:2px;">
+          <input type="radio" name="facility_type" value="trauma_center"> 권역외상센터
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="radio" name="facility_type" value="regional_ed"> 권역응급의료센터
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="radio" name="facility_type" value="local_ed"> 지역응급의료센터
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="radio" name="facility_type" value="emergency_facility"> 지역응급의료기관
+        </label>
+	<label style="display:block;">
+          <input type="radio" name="facility_type" value="clinic_hospital"> 병의원(응급실 없음)
+        </label>
+      </div>
+
+      <!-- 방문 목적 -->
+      <div style="margin-bottom:10px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">방문 목적</div>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="radio" name="visit_purpose" value="actual_case_call"> 실제 환자 발생·전화하려고
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="radio" name="visit_purpose" value="see_promo"> 홍보물·내용 열람
+        </label>
+        <label style="display:block;">
+          <input type="radio" name="visit_purpose" value="education_simulation"> 교육·시뮬레이션
+        </label>
+      </div>
+
+      <!-- 의사결정 변화 -->
+      <div style="margin-bottom:10px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">닥터카 웹이 의사결정에 미친 영향 (복수 선택 가능)</div>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="checkbox" name="decision_change" value="doctorcar_call"> 닥터카 호출 결정에 영향
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="checkbox" name="decision_change" value="transfer_decision"> 병원 선정에 영향
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="checkbox" name="decision_change" value="handover_point"> 인계 지점 결정에 영향
+        </label>
+        <label style="display:block;">
+          <input type="checkbox" name="decision_change" value="no_change"> 아직 영향 없음 / 잘 모르겠음
+        </label>
+      </div>
+
+      <!-- 시간 단축 체감 -->
+      <div style="margin-bottom:10px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">시간 단축 체감 (복수 선택 가능)</div>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="checkbox" name="time_saving" value="physician_contact"> physician contact time 줄어듦
+        </label>
+        <label style="display:block; margin-bottom:2px;">
+          <input type="checkbox" name="time_saving" value="find_phone"> 연락처 찾는 시간 줄어듦
+        </label>
+        <label style="display:block;">
+          <input type="checkbox" name="time_saving" value="no_saving"> 잘 모르겠음 / 비슷함
+        </label>
+      </div>
+
+      <!-- 재사용 의향 -->
+      <div style="margin-bottom:10px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">재사용 의향 (1=전혀, 5=매우 그렇다)</div>
+        <select name="reuse_intention" style="
+          width:100%;
+          padding:6px 8px;
+          border-radius:6px;
+          border:1px solid #c0c6dc;
+          background:#fff;
+        ">
+          <option value="">선택...</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+      </div>
+
+      <!-- 추천 의향 -->
+      <div style="margin-bottom:10px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">추천 의향 (0~10점, NPS)</div>
+        <select name="recommend_intention" style="
+          width:100%;
+          padding:6px 8px;
+          border-radius:6px;
+          border:1px solid #c0c6dc;
+          background:#fff;
+        ">
+          <option value="">선택...</option>
+          <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+          <option value="9">9</option><option value="10">10</option>
+        </select>
+      </div>
+
+      <!-- 자유기술: 실제 의사결정 변화 사례 -->
+      <div style="margin-bottom:8px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">웹이 실제 의사결정을 바꾼 사례 (있다면)</div>
+        <textarea name="free_case_text" rows="3"
+                  style="
+                    width:100%;
+                    border-radius:6px;
+                    border:1px solid #c0c6dc;
+                    padding:6px 8px;
+                    background:#fff;
+                  "></textarea>
+      </div>
+
+      <!-- 개선점 -->
+      <div style="margin-bottom:12px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:4px;">개선점 / 바라는 점</div>
+        <textarea name="improvement_suggestion" rows="3"
+                  style="
+                    width:100%;
+                    border-radius:6px;
+                    border:1px solid #c0c6dc;
+                    padding:6px 8px;
+                    background:#fff;
+                  "></textarea>
+      </div>
+
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <button type="submit" style="
+          flex:1;
+          padding:8px 0;
+          border-radius:999px;
+          border:none;
+          background:#0b7ac4;
+          color:#fff;
+          font-size:0.9rem;
+        ">
+          제출하기
+        </button>
+        <button type="button" id="survey-cancel-btn" style="
+          flex:1;
+          padding:8px 0;
+          border-radius:999px;
+          border:1px solid #c0c6dc;
+          background:#f5f5f5;
+          font-size:0.9rem;
+        ">
+          닫기
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 <script>
-  // 닥터카 페이지 URL
   const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
-  let pendingCall = null; // { tel, target }
+  let pendingCall = null;          // { tel, target }
+  let currentUserRole = null;      // er_doctor / ems / other
+  let trafficInfo = null;          // { channel, rawRef }
+
+  // 접속 채널 분류 (QR / Kakao / EMS 채팅 / 기타)
+  function classifyTraffic() {
+    let channel = 'direct_or_unknown';
+    let rawRef = document.referrer || '';
+
+    try {
+      const url = new URL(window.location.href);
+      const src = url.searchParams.get('src') || url.searchParams.get('utm_source');
+
+      if (src) {
+        const s = src.toLowerCase();
+        if (s.includes('qr')) channel = 'qr';
+        else if (s.includes('kakao')) channel = 'kakao';
+        else if (s.includes('ems') || s.includes('chat')) channel = 'ems_chat';
+        else channel = s;
+      } else {
+        const ua = navigator.userAgent || '';
+        if (/kakao/i.test(rawRef) || /kakaotalk/i.test(ua)) {
+          channel = 'kakao';
+        } else if (rawRef) {
+          try {
+            const refUrl = new URL(rawRef);
+            channel = 'referral_' + refUrl.hostname;
+          } catch (e) {
+            channel = 'referral_other';
+          }
+        } else {
+          channel = 'direct_or_unknown';
+        }
+      }
+    } catch (e) {}
+
+    return {
+      channel,
+      rawRef: rawRef || '(none)'
+    };
+  }
 
   document.addEventListener('DOMContentLoaded', function () {
+    // 0) 접속 채널 분류 → GA4 전송
+    trafficInfo = classifyTraffic();
+    if (typeof gtag === 'function') {
+      gtag('set', 'user_properties', {
+        entry_channel: trafficInfo.channel
+      });
+
+      gtag('event', 'classify_visit', {
+        entry_channel: trafficInfo.channel,
+        raw_referrer: trafficInfo.rawRef.substring(0, 200)
+      });
+    }
+
     // 1) QR 링크 복사 버튼
     const qrCopyBtn = document.getElementById('qr-copy-btn');
     if (qrCopyBtn) {
@@ -1037,24 +1296,102 @@
           }
           document.body.removeChild(textarea);
         }
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'copy_qr_link', {
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+          });
+        }
       });
     }
 
-    // 2) 전화 버튼 두 개(위/아래) 모두 처리 – 항상 팝업 먼저
+    // 2) 전화 버튼(위/아래) 공통 처리 – 항상 직역 팝업 먼저
     const callButtons = document.querySelectorAll('.call-btn');
     callButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
-        const tel = btn.getAttribute('data-tel');
+        const tel = btn.getAttribute('data-tel') || '01062063010';
         const target = btn.getAttribute('data-call-target') || 'unknown';
 
-        // 👉 항상 출신 선택 팝업을 먼저 띄우기
         pendingCall = { tel, target };
         openRoleOverlay();
       });
     });
+
+    // 3) 설문 배너 클릭
+    const openSurveyBtn = document.getElementById('open-survey-btn');
+    if (openSurveyBtn) {
+      openSurveyBtn.addEventListener('click', function () {
+        const nowIso = new Date().toISOString();
+        if (typeof gtag === 'function') {
+          gtag('event', 'click_survey_banner', {
+            user_role: currentUserRole || 'unknown',
+            survey_click_time: nowIso,
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+          });
+        }
+        openSurveyOverlay();
+      });
+    }
+
+    // 4) 설문 제출 및 취소
+    const surveyForm = document.getElementById('survey-form');
+    const surveyCancelBtn = document.getElementById('survey-cancel-btn');
+
+    if (surveyForm) {
+      surveyForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const facility =
+          (surveyForm.querySelector('input[name="facility_type"]:checked') || {}).value || 'unknown';
+        const purpose =
+          (surveyForm.querySelector('input[name="visit_purpose"]:checked') || {}).value || 'unknown';
+
+        const decisionChecks = surveyForm.querySelectorAll('input[name="decision_change"]:checked');
+        const decisionVals = Array.from(decisionChecks).map(el => el.value);
+        const decision = decisionVals.length ? decisionVals.join(',') : 'none';
+
+        const timeChecks = surveyForm.querySelectorAll('input[name="time_saving"]:checked');
+        const timeVals = Array.from(timeChecks).map(el => el.value);
+        const timeSaving = timeVals.length ? timeVals.join(',') : 'none';
+
+        const reuse = (surveyForm.reuse_intention || {}).value || '';
+        const recommend = (surveyForm.recommend_intention || {}).value || '';
+
+        const freeCase = (surveyForm.free_case_text || {}).value || '';
+        const improvement = (surveyForm.improvement_suggestion || {}).value || '';
+
+        const submitTime = new Date().toISOString();
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'submit_survey', {
+            user_role: currentUserRole || 'unknown',
+            facility_type: facility,
+            visit_purpose: purpose,
+            decision_change: decision,
+            time_saving_effect: timeSaving,
+            reuse_intention: reuse,
+            recommend_intention: recommend,
+            free_case_text: freeCase.substring(0, 180),
+            improvement_suggestion: improvement.substring(0, 180),
+            survey_submit_time: submitTime,
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+          });
+        }
+
+        alert('응답해 주셔서 감사합니다.');
+        closeSurveyOverlay();
+        surveyForm.reset();
+      });
+    }
+
+    if (surveyCancelBtn) {
+      surveyCancelBtn.addEventListener('click', function () {
+        closeSurveyOverlay();
+      });
+    }
   });
 
-  // 출신 선택 오버레이 열기
+  // === 출신(직역) 선택 팝업 ===
   function openRoleOverlay() {
     const overlay = document.getElementById('role-overlay');
     if (overlay) {
@@ -1062,7 +1399,6 @@
     }
   }
 
-  // 팝업에서 "확인 후 전화하기" 눌렀을 때
   function confirmRoleAndCall() {
     const overlay = document.getElementById('role-overlay');
     const radios = document.querySelectorAll('input[name="user_role"]');
@@ -1077,26 +1413,34 @@
       return;
     }
 
-    // GA4 이벤트: 출신 선택 (기타 포함해서 누가 눌렀는지는 남김)
+    currentUserRole = selectedRole;
+
+    // GA4: 직역 선택 이벤트 + user_property
     if (typeof gtag === 'function') {
       gtag('event', 'select_role', {
         user_role: selectedRole
       });
+      gtag('set', 'user_properties', {
+        position_type: selectedRole   // er_doctor / ems / other
+      });
     }
 
-    // 👉 기타인 경우: 안내만 하고 전화 막기
+    // ✅ 기타(일반인)인 경우: 안내만 하고 전화는 절대 안 감
     if (selectedRole === 'other') {
-      if (overlay) {
-        overlay.style.display = 'none';
-      }
-      // pendingCall 초기화 (이 통화는 취소)
       pendingCall = null;
 
-      alert('닥터카 출동 요청은 의사 또는 구급대원만 가능합니다.\n일반인의 직접 전화 요청은 불가합니다.');
-      return; // 여기서 함수 종료 → executeCall 호출 안 함
+      alert(
+        '닥터카 출동 요청은 의사 또는 구급대원만 가능합니다.\n' +
+        '일반인의 직접 전화 요청은 불가합니다.'
+      );
+
+      if (overlay) {
+        overlay.style.display = 'none';  // 팝업 닫고 → 밑의 웹앱 화면 그대로
+      }
+      return;
     }
 
-    // 의사 / 구급대원인 경우에만 계속 진행
+    // 🩺 의사 / 🚑 구급대원인 경우에만 실제 전화 진행
     if (overlay) {
       overlay.style.display = 'none';
     }
@@ -1115,20 +1459,33 @@
   function executeCall(info) {
     const tel = info.tel;
     const target = info.target || 'unknown';
-    const role = info.role || 'unknown';
+    const role = info.role || currentUserRole || 'unknown';
+    const callTime = new Date().toISOString();
 
-    // GA4 이벤트: 전화 버튼 클릭
     if (typeof gtag === 'function') {
       gtag('event', 'click_call_button', {
-        user_role: role,       // er_doctor / ems
-        call_target: target    // hero_doctorcar / how_doctorcar
+        user_role: role,
+        call_target: target,          // hero_doctorcar / how_doctorcar
+        call_time: callTime,
+        entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
       });
     }
 
-    // 실제 전화 연결
     window.location.href = 'tel:' + tel;
   }
+
+  // === 설문 오버레이 열기/닫기 ===
+  function openSurveyOverlay() {
+    const overlay = document.getElementById('survey-overlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+
+  function closeSurveyOverlay() {
+    const overlay = document.getElementById('survey-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
 </script>
+
 
 </body>
 </html>
