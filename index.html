@@ -658,10 +658,13 @@
       </div>
 
       <div class="hero-actions">
-        <a href="tel:01062063010" class="btn-primary">
-          📞 닥터카 바로 요청
-          <small>길병원 외상당직폰 · 24시간 365일</small>
-        </a>
+<button type="button"
+        class="btn-primary call-btn"
+        data-tel="01062063010"
+        data-call-target="hero_doctorcar">
+  📞 닥터카 바로 요청
+  <small>길병원 외상당직폰 · 24시간 365일</small>
+</button>
 
         <a href="#how" class="btn-outline">
           ℹ️ 사용 방법 보기
@@ -749,11 +752,15 @@
               <small>(24시간 365일 연중무휴)</small>
             </p>
 
-            <a href="tel:01062063010" class="call-btn-full">
+                       <button type="button"
+                    class="call-btn-full call-btn"
+                    data-tel="01062063010"
+                    data-call-target="how_doctorcar">
               <span class="call-icon">📞</span>
               <span class="call-title">닥터카 바로 요청</span>
               <span class="call-sub">길병원 외상당직폰 · 24시간 365일</span>
-            </a>
+            </button>
+
 
             <p class="request-warning bottom-warning">
               ※ 닥터카 출동 요청은 <strong>119 구급대원 및 의료진</strong>만 가능합니다.<br>
@@ -961,32 +968,154 @@
 
   </div>
 
-  <script>
-    // 닥터카 페이지 URL
-    const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
+ <!-- 출신 선택 오버레이 -->
+<div id="role-overlay" style="
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+">
+  <div style="
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    width:320px;
+    max-width:90%;
+    text-align:center;
+  ">
+    <h3 style="margin-bottom:12px; font-size:18px;">
+      출신을 선택해 주세요
+    </h3>
 
-    // 링크 복사
-    document.getElementById('qr-copy-btn').addEventListener('click', function () {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(doctorcarUrl).then(() => {
-          alert('닥터카 안내 링크가 복사되었습니다.');
-        }).catch(() => {
-          alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
-        });
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = doctorcarUrl;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          document.execCommand('copy');
-          alert('닥터카 안내 링크가 복사되었습니다.');
-        } catch (e) {
-          alert('복사에 실패했습니다.');
+    <!-- 직역 선택 -->
+    <div style="text-align:left; margin-bottom:16px; font-size:15px; line-height:1.6;">
+      <label><input type="radio" name="user_role" value="er_doctor"> 🩺 의사</label><br>
+      <label><input type="radio" name="user_role" value="ems"> 🚑 구급대원</label><br>
+      <label>
+        <input type="radio" name="user_role" value="other">
+        기타 (※ 의사와 구급대원 이외에는 전화 요청이 불가합니다)
+      </label>
+    </div>
+
+    <button type="button"
+            onclick="confirmRoleAndCall()"
+            style="width:100%; padding:10px; border-radius:999px; background:#0b7ac4; color:#fff; font-size:15px;">
+      확인 후 전화하기
+    </button>
+  </div>
+</div>
+<script>
+  // 닥터카 페이지 URL
+  const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
+  let pendingCall = null; // { tel, target }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // 1) QR 링크 복사 버튼
+    const qrCopyBtn = document.getElementById('qr-copy-btn');
+    if (qrCopyBtn) {
+      qrCopyBtn.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(doctorcarUrl).then(() => {
+            alert('닥터카 안내 링크가 복사되었습니다.');
+          }).catch(() => {
+            alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
+          });
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = doctorcarUrl;
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            alert('닥터카 안내 링크가 복사되었습니다.');
+          } catch (e) {
+            alert('복사에 실패했습니다.');
+          }
+          document.body.removeChild(textarea);
         }
-        document.body.removeChild(textarea);
-      }
+      });
+    }
+
+    // 2) 전화 버튼 두 개(위/아래) 모두 처리 – 항상 팝업 먼저
+    const callButtons = document.querySelectorAll('.call-btn');
+    callButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const tel = btn.getAttribute('data-tel');
+        const target = btn.getAttribute('data-call-target') || 'unknown';
+
+        // 👉 항상 출신 선택 팝업을 먼저 띄우기
+        pendingCall = { tel, target };
+        openRoleOverlay();
+      });
     });
-  </script>
+  });
+
+  // 출신 선택 오버레이 열기
+  function openRoleOverlay() {
+    const overlay = document.getElementById('role-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+  }
+
+  // 팝업에서 "확인 후 전화하기" 눌렀을 때
+  function confirmRoleAndCall() {
+    const overlay = document.getElementById('role-overlay');
+    const radios = document.querySelectorAll('input[name="user_role"]');
+
+    let selectedRole = null;
+    radios.forEach(function (r) {
+      if (r.checked) selectedRole = r.value;
+    });
+
+    if (!selectedRole) {
+      alert('출신(의사 / 구급대원 / 기타)을 선택해 주세요.');
+      return;
+    }
+
+    // GA4 이벤트: 출신 선택
+    if (typeof gtag === 'function') {
+      gtag('event', 'select_role', {
+        user_role: selectedRole
+      });
+    }
+
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+
+    if (pendingCall) {
+      executeCall({
+        tel: pendingCall.tel,
+        target: pendingCall.target,
+        role: selectedRole
+      });
+      pendingCall = null;
+    }
+  }
+
+  // 실제 전화 실행 + GA4 이벤트 기록
+  function executeCall(info) {
+    const tel = info.tel;
+    const target = info.target || 'unknown';
+    const role = info.role || 'unknown';
+
+    // GA4 이벤트: 전화 버튼 클릭
+    if (typeof gtag === 'function') {
+      gtag('event', 'click_call_button', {
+        user_role: role,
+        call_target: target
+      });
+    }
+
+    // 실제 전화 연결
+    window.location.href = 'tel:' + tel;
+  }
+</script>
+
 </body>
 </html>
+
