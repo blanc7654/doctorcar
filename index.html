@@ -12,8 +12,10 @@
   function gtag(){ dataLayer.push(arguments); }
   gtag('js', new Date());
 
-  // 기본 page_view 자동 기록
-  gtag('config', 'G-MCKTRFREN3');
+// 기본 page_view 자동 기록 + 디버그 모드
+gtag('config', 'G-MCKTRFREN3', {
+  debug_mode: true
+});
 </script>
 
   <style>
