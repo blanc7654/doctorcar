@@ -726,19 +726,34 @@ gtag('config', 'G-MCKTRFREN3', {
     <!-- 오른쪽: QR + 버튼 세트 -->
     <div class="hero-qr-wrap">
       <img src="images/Gqr.jpg" alt="길병원 닥터카 안내 QR 코드" class="hero-qr" />
-      <div class="hero-qr-buttons">
-        <a href="images/Gqr.jpg" target="_blank" class="hero-qr-btn primary">
-          QR 크게 보기
-        </a>
-        <button type="button" class="hero-qr-btn" id="qr-copy-btn">
-          링크 복사
-        </button>
-<!-- 🔹 PWA 설치 버튼 (안드로이드/Chrome에서만 표시됨) -->
-<button type="button" class="hero-qr-btn hero-qr-text" id="installPwaBtn" style="display:none;">
-  📱 바탕화면에 바로가기 추가
-</button>
+    
+<div class="hero-qr-buttons">
+  <!-- QR 크게 보기 -->
+  <a href="images/Gqr.jpg" target="_blank" class="hero-qr-btn primary">
+    QR 크게 보기
+  </a>
 
-      </div>
+  <!-- 링크 복사 -->
+  <button type="button" class="hero-qr-btn" id="qr-copy-btn">
+    링크 복사
+  </button>
+
+  <!-- 🖥️ PC용: 바탕화면 바로가기 (.url) 다운로드 -->
+  <a href="doctorcar.url"
+     download="길병원 닥터카 바로가기.url"
+     class="hero-qr-btn">
+    🖥️ PC 바로가기 생성
+  </a>
+
+  <!-- 📱 모바일용: PWA 설치 (안드로이드/지원 브라우저에서만 보임) -->
+  <button type="button"
+          class="hero-qr-btn hero-qr-text"
+          id="installPwaBtn"
+          style="display:none;">
+    📱 모바일앱 설치하기
+  </button>
+</div>
+
     </div>
   </div>
 
