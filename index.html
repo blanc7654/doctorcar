@@ -4,12 +4,6 @@
   <meta charset="UTF-8" />
   <title>길병원 닥터카 안내 | 인천권역외상센터</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0b7ac4" />
-
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b7ac4" />
 
   <!-- 🔹 정적 manifest 파일 연결 -->
@@ -561,6 +555,24 @@ gtag('config', 'G-MCKTRFREN3', {
   gap: 4px;
 }
 
+/* PWA 설치용 버튼을 글자 링크처럼 보이게 */
+.hero-qr-btn.hero-qr-text {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-top: 4px;
+  box-shadow: none;
+  color: #0b7ac4;
+  text-decoration: underline;
+  font-size: 0.8rem;
+}
+
+/* 눌렀을 때 약간만 어둡게 */
+.hero-qr-btn.hero-qr-text:active {
+  opacity: 0.6;
+}
+
+
 .hero-qr-btn {
   border-radius: 999px;
   padding: 4px 8px;
@@ -721,10 +733,11 @@ gtag('config', 'G-MCKTRFREN3', {
         <button type="button" class="hero-qr-btn" id="qr-copy-btn">
           링크 복사
         </button>
- <!-- 🔹 PWA 설치 버튼 (안드로이드/Chrome에서만 표시됨) -->
-        <button type="button" class="hero-qr-btn" id="installPwaBtn" style="display:none;">
-          📱 바탕화면에 아이콘 추가
-        </button>
+<!-- 🔹 PWA 설치 버튼 (안드로이드/Chrome에서만 표시됨) -->
+<button type="button" class="hero-qr-btn hero-qr-text" id="installPwaBtn" style="display:none;">
+  📱 바탕화면에 바로가기 추가
+</button>
+
       </div>
     </div>
   </div>
