@@ -5,6 +5,17 @@
   <title>길병원 닥터카 안내 | 인천권역외상센터</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b7ac4" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b7ac4" />
+
+  <!-- 🔹 정적 manifest 파일 연결 -->
+  <link rel="manifest" href="manifest.webmanifest" />
+
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MCKTRFREN3"></script>
 <script>
@@ -710,6 +721,10 @@ gtag('config', 'G-MCKTRFREN3', {
         <button type="button" class="hero-qr-btn" id="qr-copy-btn">
           링크 복사
         </button>
+ <!-- 🔹 PWA 설치 버튼 (안드로이드/Chrome에서만 표시됨) -->
+        <button type="button" class="hero-qr-btn" id="installPwaBtn" style="display:none;">
+          📱 바탕화면에 아이콘 추가
+        </button>
       </div>
     </div>
   </div>
@@ -1292,11 +1307,25 @@ gtag('config', 'G-MCKTRFREN3', {
 </div>
 
 <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('Service Worker registered:', reg.scope);
+      })
+      .catch(err => {
+        console.log('SW registration failed:', err);
+      });
+  });
+}
+
 const doctorcarUrl = 'https://blanc7654.github.io/doctorcar/';
 let pendingCall = null;          // { tel, target }
 let currentUserRole = null;      // er_doctor / ems / other
 let trafficInfo = null;          // { channel, rawRef }
 let roleOverlayOpen = false;     // 팝업 열림 여부
+let deferredPrompt = null;       // PWA 설치 이벤트 저장용
+
 
 // 접속 채널 분류 (QR / Kakao / EMS 채팅 / 기타)
 function classifyTraffic() {
@@ -1487,6 +1516,37 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+
+  // 🔹 PWA 설치 버튼 (안드로이드/Chrome 전용)
+  const installBtn = document.getElementById('installPwaBtn');
+  if (installBtn) {
+    // 브라우저가 "설치 가능"하다고 판단하면 발생하는 이벤트
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();        // 기본 미니 배너 막기
+      deferredPrompt = e;        // 나중에 쓸 수 있게 저장
+      installBtn.style.display = 'inline-block';  // 버튼 보여주기
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();   // 브라우저 설치 다이얼로그 띄우기
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('PWA install outcome:', outcome);  // accepted / dismissed
+
+      // GA4 이벤트도 원하면 기록
+      if (typeof gtag === 'function') {
+        gtag('event', 'click_pwa_install', {
+          outcome: outcome,
+          entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+        });
+      }
+
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    });
+  }
+
 
   // 2) 전화 버튼(위/아래) 공통 처리 – 항상 직역 팝업 먼저
   const callButtons = document.querySelectorAll('.call-btn');
