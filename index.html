@@ -701,6 +701,30 @@ gtag('config', 'G-MCKTRFREN3', {
   display: block;
   margin-bottom: 3px;
 }
+/* 지도 마커 옆에 붙는 라벨 */
+.marker-label {
+  background: #ffffff;
+  border: 1px solid #d0d4e4;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* 길병원 라벨 (보라색) */
+.marker-label.gil {
+  border-color: #7b4dd6;
+  color: #5b3fa3;
+  font-weight: 600;
+}
+
+/* 내 위치 라벨 (빨간색) */
+.marker-label.user {
+  border-color: #c62828;
+  color: #b71c1c;
+  font-weight: 600;
+}
 
   </style>
 
@@ -1396,6 +1420,90 @@ let trafficInfo = null;          // { channel, rawRef }
 let roleOverlayOpen = false;     // 팝업 열림 여부
 let deferredPrompt = null;       // PWA 설치 이벤트 저장용
 
+// 🔻 내 위치 / 병원 지도 / 길병원 좌표
+let USER_POS = null;        // 내 현재 위치 (kakao.maps.LatLng)
+let HOSPITAL_MAP = null;    // 주변 병원 지도 객체
+
+// 길병원 위도/경도 (고정값)
+const GIL_COORD = {
+  lat: 37.448344,
+  lng: 126.701847
+};
+
+// 🔻 Kakao Mobility Directions REST API 키 (자동차 길찾기용)
+// 교수님 REST 키 넣으시면 됩니다.
+const KAKAO_DIRECTIONS_KEY = '15c28ebb75dda243548737ac615a5681';
+
+// ✅ Kakao Mobility Directions API로 자동차 거리/시간 요약 가져오기
+async function fetchDriveSummary(fromLatLng, toLatLng) {
+  if (!fromLatLng || !toLatLng) return null;
+
+  const origin = `${fromLatLng.getLng()},${fromLatLng.getLat()}`;
+  const destination = `${toLatLng.getLng()},${toLatLng.getLat()}`;
+
+  const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${origin}&destination=${destination}`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `KakaoAK ${KAKAO_DIRECTIONS_KEY}`
+      }
+    });
+
+    if (!res.ok) {
+      console.warn('Directions API error:', res.status);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!data.routes || !data.routes.length) return null;
+
+    const summary = data.routes[0].summary;
+    const distanceKm = (summary.distance / 1000).toFixed(1); // km
+    const durationMin = Math.round(summary.duration / 60);   // min
+
+    return { distanceKm, durationMin };
+  } catch (e) {
+    console.error('Directions fetch error:', e);
+    return null;
+  }
+}
+
+// ✅ 클릭한 마커에 ETA 인포윈도우 띄우기
+async function showEtaInfoWindow(map, marker, fromLatLng, toLatLng, titleText) {
+  const infoWindow = new kakao.maps.InfoWindow({ removable: true });
+
+  // 먼저 "계산 중" 문구 띄우기
+  infoWindow.setContent(`
+    <div style="padding:8px 10px;font-size:12px;">
+      <div style="margin-bottom:4px;"><b>${titleText}</b></div>
+      <div>소요시간 계산 중...</div>
+    </div>
+  `);
+  infoWindow.open(map, marker);
+
+  const summary = await fetchDriveSummary(fromLatLng, toLatLng);
+  if (!summary) {
+    infoWindow.setContent(`
+      <div style="padding:8px 10px;font-size:12px;">
+        <div style="margin-bottom:4px;"><b>${titleText}</b></div>
+        <div style="color:#c62828;">소요시간을 불러오지 못했습니다.</div>
+      </div>
+    `);
+    return;
+  }
+
+  infoWindow.setContent(`
+    <div style="padding:8px 10px;font-size:12px;">
+      <div style="margin-bottom:4px;"><b>${titleText}</b></div>
+      <div>거리: <b>${summary.distanceKm} km</b></div>
+      <div>예상 소요시간: <b>${summary.durationMin}분</b></div>
+    </div>
+  `);
+}
+
+
 // 🔹 인천·부천·광명·시흥·김포 연계 2차 병원 목록
 const SECONDARY_HOSPITALS = [
   { name: "가톨릭관동대학교 국제성모병원", region: "인천 서구" },
@@ -1421,7 +1529,7 @@ const SECONDARY_HOSPITALS = [
   { name: "김포우리병원", region: "경기 김포시" }
 ];
 
-// 🔹 병원 리스트를 Kakao Places로 검색해서 마커 찍어주는 함수
+// 🔹 병원 리스트를 Kakao Places로 검색해서 마커 + 라벨 + 소요시간(클릭) 붙이기
 function addSecondaryHospitalMarkers(kakaoMap) {
   if (!window.kakao || !kakao.maps || !kakao.maps.services) return;
 
@@ -1440,28 +1548,28 @@ function addSecondaryHospitalMarkers(kakaoMap) {
       const place = data[0];
       const position = new kakao.maps.LatLng(place.y, place.x);
 
+      // 🏥 병원 마커
       const marker = new kakao.maps.Marker({
         map: kakaoMap,
         position
       });
 
-      const iwContent = `
-        <div style="padding:8px;font-size:13px;">
-          <b>${hospital.name}</b><br/>
-          <span style="color:#666;">
-            ${place.road_address_name || place.address_name}
-          </span><br/>
-          <a href="https://map.kakao.com/link/to/${encodeURIComponent(hospital.name)},${place.y},${place.x}"
-             target="_blank"
-             style="color:#0b7ac4;text-decoration:none;">
-            길찾기 열기
-          </a>
-        </div>
-      `;
+      // 🏷 병원 이름 라벨
+      const label = new kakao.maps.CustomOverlay({
+        position,
+        yAnchor: 1.4,
+        content: `<div class="marker-label">${hospital.name}</div>`
+      });
+      label.setMap(kakaoMap);
 
-      const infowindow = new kakao.maps.InfoWindow({ content: iwContent });
+      // 🔁 클릭 시: 내 위치 → 해당 병원 소요시간
       kakao.maps.event.addListener(marker, "click", () => {
-        infowindow.open(kakaoMap, marker);
+        if (!USER_POS) {
+          alert('현재 위치 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+          return;
+        }
+        const titleText = `내 위치 → ${hospital.name}`;
+        showEtaInfoWindow(kakaoMap, marker, USER_POS, position, titleText);
       });
 
       bounds.extend(position);
@@ -1974,16 +2082,76 @@ function initSecondaryHospitalsMap() {
   }
 
   // 실제로 지도를 만드는 함수
-  function createMap() {
-    const center = new kakao.maps.LatLng(37.48, 126.74); // 인천 근처
-    const mapOptions = {
-      center: center,
-      level: 8
-    };
-    const hospitalMap = new kakao.maps.Map(mapContainer, mapOptions);
-    console.log('병원 지도 생성 완료');
-    addSecondaryHospitalMarkers(hospitalMap);
+function createMap() {
+  const center = new kakao.maps.LatLng(37.48, 126.74); // 인천 근처
+  const mapOptions = {
+    center: center,
+    level: 8
+  };
+
+  const hospitalMap = new kakao.maps.Map(mapContainer, mapOptions);
+  console.log('병원 지도 생성 완료');
+
+  // 전역에 저장해서 필요하면 다른 곳에서도 사용
+  HOSPITAL_MAP = hospitalMap;
+
+  // 💜 길병원 위치 LatLng
+  const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
+
+  // 💜 길병원 마커
+  const gilMarker = new kakao.maps.Marker({
+    map: hospitalMap,
+    position: gilLatLng
+  });
+
+  // 💜 길병원 라벨 (보라색)
+  const gilLabel = new kakao.maps.CustomOverlay({
+    position: gilLatLng,
+    yAnchor: 1.4,
+    content: `<div class="marker-label gil">💜 길병원</div>`
+  });
+  gilLabel.setMap(hospitalMap);
+
+  // 길병원 클릭 시: 내 위치 → 길병원 거리/시간
+  kakao.maps.event.addListener(gilMarker, 'click', function () {
+    if (!USER_POS) {
+      alert('현재 위치를 먼저 허용해 주세요.');
+      return;
+    }
+    showEtaInfoWindow(hospitalMap, gilMarker, USER_POS, gilLatLng, '내 위치 → 길병원');
+  });
+
+  // 🔴 내 위치: Geolocation으로 빨간 라벨 표시
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+
+      const userMarker = new kakao.maps.Marker({
+        map: hospitalMap,
+        position: USER_POS
+      });
+
+      const userLabel = new kakao.maps.CustomOverlay({
+        position: USER_POS,
+        yAnchor: 1.4,
+        content: `<div class="marker-label user">📍 현재 위치</div>`
+      });
+      userLabel.setMap(hospitalMap);
+
+      // 내 위치 + 길병원을 모두 포함하도록 지도 범위 조정
+      const bounds = new kakao.maps.LatLngBounds();
+      bounds.extend(USER_POS);
+      bounds.extend(gilLatLng);
+      hospitalMap.setBounds(bounds);
+    }, function (err) {
+      console.warn('Geolocation 실패:', err);
+    });
   }
+
+  // 나머지 주변 2차 병원들 마커 올리기
+  addSecondaryHospitalMarkers(hospitalMap);
+}
+
 
   // kakao 객체가 아직 없으면 조금 있다가 다시 시도
   if (!window.kakao || !kakao.maps) {
