@@ -726,6 +726,47 @@ gtag('config', 'G-MCKTRFREN3', {
   font-weight: 600;
 }
 
+/* 🔹 GPS 안내 배너 + 버튼 */
+.gps-banner {
+  margin: 10px 0 18px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border: 1px solid #dde2f0;
+}
+
+.gps-banner-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.eta-gps-tip {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.btn-gps {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #0b7ac4;
+  background: #0b7ac4;
+  color: #fff;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.btn-gps:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+
   </style>
 
   <!-- Kakao 지도 SDK (병원 지도용) -->
@@ -748,7 +789,18 @@ gtag('config', 'G-MCKTRFREN3', {
     </div>
   </nav>
 
-  <div class="page">
+   <div class="page">
+
+    <!-- 🔹 HERO 위 GPS 배너 -->
+    <section class="gps-banner" id="gps-banner-top">
+      <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
+      <p class="eta-gps-tip">
+        * GPS를 켜면 내 위치 기준으로 근처병원 및 길병원까지의 소요시간을 알 수 있습니다.
+      </p>
+      <button type="button" class="btn-gps" id="enable-gps-btn">
+        📍 GPS 켜고 소요시간 보기
+      </button>
+    </section>
 
     <!-- 히어로 영역 -->
 <header class="hero" id="top">
@@ -1078,6 +1130,14 @@ gtag('config', 'G-MCKTRFREN3', {
           길병원과 가깝게 위치한 병원들의 위치입니다.
           마커를 클릭하면 병원 주소와 길찾기 링크를 확인할 수 있습니다.
         </p>
+
+ <!-- 🔹 지도 근처에서도 GPS로 소요시간 보기 버튼 -->
+        <p class="eta-gps-tip">
+          * GPS를 켜면 내 위치 기준으로 길병원 및 주변 병원까지의 소요시간을 알 수 있습니다.
+        </p>
+        <button type="button" class="btn-gps" id="enable-gps-map-btn">
+          📍 GPS 켜서 근처병원까지의 소요시간 알아보기
+        </button>
 
         <article class="card">
           <div class="card-body">
@@ -1423,6 +1483,8 @@ let deferredPrompt = null;       // PWA 설치 이벤트 저장용
 // 🔻 내 위치 / 병원 지도 / 길병원 좌표
 let USER_POS = null;        // 내 현재 위치 (kakao.maps.LatLng)
 let HOSPITAL_MAP = null;    // 주변 병원 지도 객체
+let USER_MARKER = null;     // 내 위치 마커
+let USER_LABEL = null;      // 내 위치 라벨
 
 // 길병원 위도/경도 (고정값)
 const GIL_COORD = {
@@ -1503,6 +1565,62 @@ async function showEtaInfoWindow(map, marker, fromLatLng, toLatLng, titleText) {
   `);
 }
 
+// ✅ 내 위치를 받아서 지도에 표시하고, 길병원과 함께 보이게 맞추는 함수
+function updateUserLocationOnMap(forceAsk = true) {
+  if (!navigator.geolocation) {
+    alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');
+    return;
+  }
+
+  if (!HOSPITAL_MAP) {
+    console.warn('HOSPITAL_MAP 이 아직 준비되지 않았습니다.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+
+      // 이전 마커/라벨 있으면 제거
+      if (USER_MARKER) {
+        USER_MARKER.setMap(null);
+      }
+      if (USER_LABEL) {
+        USER_LABEL.setMap(null);
+      }
+
+      // 🔴 내 위치 마커
+      USER_MARKER = new kakao.maps.Marker({
+        map: HOSPITAL_MAP,
+        position: USER_POS
+      });
+
+      // 🔴 내 위치 라벨
+      USER_LABEL = new kakao.maps.CustomOverlay({
+        position: USER_POS,
+        yAnchor: 1.4,
+        content: `<div class="marker-label user">📍 현재 위치</div>`
+      });
+      USER_LABEL.setMap(HOSPITAL_MAP);
+
+      // 길병원 + 내 위치 모두 화면에 들어오도록 범위 조정
+      const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
+      const bounds = new kakao.maps.LatLngBounds();
+      bounds.extend(USER_POS);
+      bounds.extend(gilLatLng);
+      HOSPITAL_MAP.setBounds(bounds);
+    },
+    (err) => {
+      console.warn('Geolocation 실패:', err);
+      alert('위치 정보를 불러오지 못했습니다. 브라우저 설정에서 위치 권한을 확인해 주세요.');
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000
+    }
+  );
+}
+
 
 // 🔹 인천·부천·광명·시흥·김포 연계 2차 병원 목록
 const SECONDARY_HOSPITALS = [
@@ -1527,6 +1645,7 @@ const SECONDARY_HOSPITALS = [
   { name: "광명성애병원 응급실", region: "경기 광명시" },
   { name: "뉴고려병원", region: "경기 김포시" },
   { name: "김포우리병원", region: "경기 김포시" }
+ { name: "신천연합병원", region: "인천" }
 ];
 
 // 🔹 병원 리스트를 Kakao Places로 검색해서 마커 + 라벨 + 소요시간(클릭) 붙이기
@@ -2073,6 +2192,46 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
+  // 🔹 HERO 위 GPS 배너 버튼
+  const enableGpsBtn = document.getElementById('enable-gps-btn');
+  if (enableGpsBtn) {
+    enableGpsBtn.addEventListener('click', function () {
+      if (typeof gtag === 'function') {
+        gtag('event', 'click_enable_gps_top', {
+          entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+        });
+      }
+
+      updateUserLocationOnMap(true);
+
+      // 눌렀으면 지도 섹션으로 스크롤
+      const mapSection = document.getElementById('network-hospitals');
+      if (mapSection) {
+        mapSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  // 🔹 지도 섹션 근처 GPS 버튼
+  const enableGpsMapBtn = document.getElementById('enable-gps-map-btn');
+  if (enableGpsMapBtn) {
+    enableGpsMapBtn.addEventListener('click', function () {
+      if (typeof gtag === 'function') {
+        gtag('event', 'click_enable_gps_map', {
+          entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+        });
+      }
+
+      updateUserLocationOnMap(true);
+
+      const mapSection = document.getElementById('network-hospitals');
+      if (mapSection) {
+        mapSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+
 // 11) 인천·부천·광명·김포·시흥 2차 병원 지도 초기화 (카카오 로딩까지 기다리는 버전)
 function initSecondaryHospitalsMap() {
   const mapContainer = document.getElementById('secondary-hospitals-map');
@@ -2121,32 +2280,7 @@ function createMap() {
     showEtaInfoWindow(hospitalMap, gilMarker, USER_POS, gilLatLng, '내 위치 → 길병원');
   });
 
-  // 🔴 내 위치: Geolocation으로 빨간 라벨 표시
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-
-      const userMarker = new kakao.maps.Marker({
-        map: hospitalMap,
-        position: USER_POS
-      });
-
-      const userLabel = new kakao.maps.CustomOverlay({
-        position: USER_POS,
-        yAnchor: 1.4,
-        content: `<div class="marker-label user">📍 현재 위치</div>`
-      });
-      userLabel.setMap(hospitalMap);
-
-      // 내 위치 + 길병원을 모두 포함하도록 지도 범위 조정
-      const bounds = new kakao.maps.LatLngBounds();
-      bounds.extend(USER_POS);
-      bounds.extend(gilLatLng);
-      hospitalMap.setBounds(bounds);
-    }, function (err) {
-      console.warn('Geolocation 실패:', err);
-    });
-  }
+  
 
   // 나머지 주변 2차 병원들 마커 올리기
   addSecondaryHospitalMarkers(hospitalMap);
