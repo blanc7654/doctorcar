@@ -69,6 +69,20 @@ gtag('config', 'G-MCKTRFREN3', {
       padding: 6px 0 4px;
     }
 
+    .map-container {
+      width: 100%;
+      height: 360px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    @media (min-width: 720px) {
+      .map-container {
+        height: 420px;
+      }
+    }
+
+
 .top-nav-inner {
   max-width: 960px;
   margin: 0 auto;
@@ -689,7 +703,11 @@ gtag('config', 'G-MCKTRFREN3', {
 }
 
   </style>
+
+  <!-- Kakao 지도 SDK (병원 지도용) -->
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b9ccd41f81d72605a0882435c138dc91&libraries=services"></script>
 </head>
+
 <body>
   <!-- 상단 네비게이션 -->
   <nav class="top-nav">
@@ -700,6 +718,7 @@ gtag('config', 'G-MCKTRFREN3', {
       <a href="#when" class="nav-chip">요청 시점</a>
       <a href="#decision" class="nav-chip">출동 결정</a>
       <a href="#can-do" class="nav-chip">닥터카 역할</a>
+      <a href="#network-hospitals" class="nav-chip">주변병원</a>
       <a href="#survey" class="nav-chip">설문</a>
 
     </div>
@@ -741,7 +760,8 @@ gtag('config', 'G-MCKTRFREN3', {
   <!-- 🖥️ PC용: 바탕화면 바로가기 (.url) 다운로드 -->
   <a href="doctorcar.url"
      download="길병원 닥터카 바로가기.url"
-     class="hero-qr-btn">
+     class="hero-qr-btn"
+	id="pc-shortcut-btn">
     🖥️ PC 바로가기 생성
   </a>
 
@@ -1025,6 +1045,28 @@ gtag('config', 'G-MCKTRFREN3', {
           </div>
         </article>
       </section>
+
+      <!-- 닥터카 주변병원들 지도 -->
+      <section id="network-hospitals">
+        <div class="section-label">Network</div>
+        <h2 class="section-title">주변 병원들 지도</h2>
+        <p class="section-description">
+          길병원과 가깝게 위치한 병원들의 위치입니다.
+          마커를 클릭하면 병원 주소와 길찾기 링크를 확인할 수 있습니다.
+        </p>
+
+        <article class="card">
+          <div class="card-body">
+            <div id="secondary-hospitals-map" class="map-container"></div>
+            <p style="font-size:0.78rem; color:#777; margin-top:8px;">
+              ※ 본 지도는 <strong>길병원과 가까운 병원들</strong>을 소개하기 위한 것이며, 실시간 수용 가능 여부는
+              반드시 전화로 확인해 주시기 바랍니다.
+            </p>
+          </div>
+        </article>
+      </section>
+
+
     </main>
 
     <!-- 닥터카: 기타 -->
@@ -1354,6 +1396,80 @@ let trafficInfo = null;          // { channel, rawRef }
 let roleOverlayOpen = false;     // 팝업 열림 여부
 let deferredPrompt = null;       // PWA 설치 이벤트 저장용
 
+// 🔹 인천·부천·광명·시흥·김포 연계 2차 병원 목록
+const SECONDARY_HOSPITALS = [
+  { name: "가톨릭관동대학교 국제성모병원", region: "인천 서구" },
+  { name: "인천세종병원", region: "인천 계양구 작전동" },
+  { name: "한림병원", region: "인천 계양구 작전동" },
+  { name: "나은병원", region: "인천 서구" },
+  { name: "나사렛국제병원", region: "인천 연수구" },
+  { name: "인천사랑병원", region: "인천 미추홀구" },
+  { name: "부천성모병원 응급의료센터", region: "경기 부천시" },
+  { name: "인천적십자병원", region: "인천 연수구" },
+  { name: "인천힘찬종합병원", region: "인천 남동구" },
+  { name: "더드림병원", region: "인천" },
+  { name: "순천향대학교 부속 부천병원", region: "경기 부천시" },
+  { name: "근로복지공단 인천병원", region: "인천 부평구" },
+  { name: "부천세종병원", region: "경기 부천시" },
+  { name: "시화병원", region: "경기 시흥시" },
+  { name: "센트럴병원", region: "인천 남동구" },   // 남동 센트럴 기준
+  { name: "중앙대학교광명병원", region: "경기 광명시" },
+  { name: "한도병원", region: "경기 시흥시" },
+  { name: "온누리병원", region: "인천" },
+  { name: "광명성애병원 응급실", region: "경기 광명시" },
+  { name: "뉴고려병원", region: "경기 김포시" },
+  { name: "김포우리병원", region: "경기 김포시" }
+];
+
+// 🔹 병원 리스트를 Kakao Places로 검색해서 마커 찍어주는 함수
+function addSecondaryHospitalMarkers(kakaoMap) {
+  if (!window.kakao || !kakao.maps || !kakao.maps.services) return;
+
+  const places = new kakao.maps.services.Places();
+  const bounds = new kakao.maps.LatLngBounds();
+
+  SECONDARY_HOSPITALS.forEach(hospital => {
+    const keyword = `${hospital.region} ${hospital.name}`;
+
+    places.keywordSearch(keyword, (data, status) => {
+      if (status !== kakao.maps.services.Status.OK || !data.length) {
+        console.warn("병원 검색 실패:", hospital.name, status);
+        return;
+      }
+
+      const place = data[0];
+      const position = new kakao.maps.LatLng(place.y, place.x);
+
+      const marker = new kakao.maps.Marker({
+        map: kakaoMap,
+        position
+      });
+
+      const iwContent = `
+        <div style="padding:8px;font-size:13px;">
+          <b>${hospital.name}</b><br/>
+          <span style="color:#666;">
+            ${place.road_address_name || place.address_name}
+          </span><br/>
+          <a href="https://map.kakao.com/link/to/${encodeURIComponent(hospital.name)},${place.y},${place.x}"
+             target="_blank"
+             style="color:#0b7ac4;text-decoration:none;">
+            길찾기 열기
+          </a>
+        </div>
+      `;
+
+      const infowindow = new kakao.maps.InfoWindow({ content: iwContent });
+      kakao.maps.event.addListener(marker, "click", () => {
+        infowindow.open(kakaoMap, marker);
+      });
+
+      bounds.extend(position);
+      kakaoMap.setBounds(bounds);
+    });
+  });
+}
+
 
 // 접속 채널 분류 (QR / Kakao / EMS 채팅 / 기타)
 function classifyTraffic() {
@@ -1575,6 +1691,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // ✅ 여기부터 새로 추가하는 블록
+  // 🔹 PC 바탕화면 바로가기 버튼 (모바일에서는 숨기기 + GA 이벤트)
+  const pcShortcutBtn = document.getElementById('pc-shortcut-btn');
+  if (pcShortcutBtn) {
+    // 모바일이면 숨기기
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      pcShortcutBtn.style.display = 'none';
+    } else {
+      // PC에서 클릭 시 GA4 이벤트만 기록
+      pcShortcutBtn.addEventListener('click', function () {
+        if (typeof gtag === 'function') {
+          gtag('event', 'download_pc_shortcut', {
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+          });
+        }
+      });
+    }
+  }
 
   // 2) 전화 버튼(위/아래) 공통 처리 – 항상 직역 팝업 먼저
   const callButtons = document.querySelectorAll('.call-btn');
@@ -1831,8 +1965,40 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
-</script>
+// 11) 인천·부천·광명·김포·시흥 2차 병원 지도 초기화 (카카오 로딩까지 기다리는 버전)
+function initSecondaryHospitalsMap() {
+  const mapContainer = document.getElementById('secondary-hospitals-map');
+  if (!mapContainer) {
+    // 섹션이 없으면 그냥 종료
+    return;
+  }
 
+  // 실제로 지도를 만드는 함수
+  function createMap() {
+    const center = new kakao.maps.LatLng(37.48, 126.74); // 인천 근처
+    const mapOptions = {
+      center: center,
+      level: 8
+    };
+    const hospitalMap = new kakao.maps.Map(mapContainer, mapOptions);
+    console.log('병원 지도 생성 완료');
+    addSecondaryHospitalMarkers(hospitalMap);
+  }
+
+  // kakao 객체가 아직 없으면 조금 있다가 다시 시도
+  if (!window.kakao || !kakao.maps) {
+    console.warn('kakao.maps 가 아직 준비되지 않아 300ms 후 재시도합니다.');
+    setTimeout(initSecondaryHospitalsMap, 300);
+    return;
+  }
+
+  // autoload=true (지금처럼 기본 설정)이므로 그냥 바로 생성
+  createMap();
+}
+
+// 페이지 로드가 끝나면 지도 초기화 시도 시작
+window.addEventListener('load', initSecondaryHospitalsMap);
+</script>
 
 </body>
 </html>
