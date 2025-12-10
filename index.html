@@ -734,24 +734,24 @@ gtag('config', 'G-MCKTRFREN3', {
 
 /* 🔹 GPS 안내 배너 + 버튼 */
 .gps-banner {
-  margin: 10px 0 18px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: #fff4f8;              /* ✨ 연한 파스텔 핑크 */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-  border: 1px solid #ffc9dd;        /* 연핑크 라인 */
+  margin: 10px 0 20px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffe0ec, #ffd0e0); /* 더 진한 핑크 그라데이션 */
+  border: 1px solid #ff8fb3;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.09);
 }
 
 .gps-banner-title {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 4px;
-  color: #c2185b;                    /* 살짝 진한 핑크 텍스트 */
+  color: #c2185b;  /* 진한 핑크 텍스트 */
 }
 
 .eta-gps-tip {
   font-size: 0.8rem;
-  color: #844454;                    /* 붉은기 도는 회색 느낌 */
+  color: #844454;
   margin-bottom: 8px;
 }
 
@@ -781,21 +781,22 @@ gtag('config', 'G-MCKTRFREN3', {
 </head>
 
 <body>
+<div id="page-top"></div> 
   <!-- 상단 네비게이션 -->
-  <nav class="top-nav">
-    <div class="top-nav-inner">
-      <a href="#top" class="nav-chip primary">맨 위로</a>
-      <a href="#intro" class="nav-chip">닥터카 소개</a>
-      <a href="#who" class="nav-chip">요청 주체</a>
-      <a href="#how" class="nav-chip">요청 방법</a>
-      <a href="#when" class="nav-chip">요청 시점</a>
-      <a href="#decision" class="nav-chip">출동 결정</a>
-      <a href="#can-do" class="nav-chip">닥터카 역할</a>
-      <a href="#network-hospitals" class="nav-chip">주변병원</a>
-      <a href="#survey" class="nav-chip">설문</a>
-
-    </div>
-  </nav>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <!-- 기존: <a href="#top" ...> -->
+    <a href="#page-top" class="nav-chip primary">맨 위로</a>  <!-- ✅ 이렇게 변경 -->
+    <a href="#intro" class="nav-chip">닥터카 소개</a>
+    <a href="#who" class="nav-chip">요청 주체</a>
+    <a href="#how" class="nav-chip">요청 방법</a>
+    <a href="#when" class="nav-chip">요청 시점</a>
+    <a href="#decision" class="nav-chip">출동 결정</a>
+    <a href="#can-do" class="nav-chip">닥터카 역할</a>
+    <a href="#network-hospitals" class="nav-chip">주변병원</a>
+    <a href="#survey" class="nav-chip">설문</a>
+  </div>
+</nav>
 
    <div class="page">
 
