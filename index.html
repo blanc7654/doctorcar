@@ -1644,7 +1644,7 @@ const SECONDARY_HOSPITALS = [
   { name: "온누리병원", region: "인천" },
   { name: "광명성애병원 응급실", region: "경기 광명시" },
   { name: "뉴고려병원", region: "경기 김포시" },
-  { name: "김포우리병원", region: "경기 김포시" }
+  { name: "김포우리병원", region: "경기 김포시" },
  { name: "신천연합병원", region: "인천" }
 ];
 
@@ -1842,7 +1842,8 @@ function closeSurveyOverlay() {
 }
 
 // === DOMContentLoaded 이후 DOM 바인딩들 ===
-document.addEventListener('DOMContentLoaded', function () {
+
+
   // 0) 접속 채널 분류 → GA4 전송
   trafficInfo = classifyTraffic();
   if (typeof gtag === 'function') {
