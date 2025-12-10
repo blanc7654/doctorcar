@@ -710,6 +710,12 @@ gtag('config', 'G-MCKTRFREN3', {
   font-size: 11px;
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+
+  /* ⬇⬇ 이 부분만 추가해 주세요 ⬇⬇ */
+  user-select: none;
+  -webkit-user-select: none;   /* 모바일 크롬/사파리 */
+  -ms-user-select: none;
+  -webkit-touch-callout: none; /* 길게 눌렀을 때 메뉴 뜨는 것도 방지 */
 }
 
 /* 길병원 라벨 (보라색) */
@@ -777,6 +783,7 @@ gtag('config', 'G-MCKTRFREN3', {
   <!-- 상단 네비게이션 -->
   <nav class="top-nav">
     <div class="top-nav-inner">
+      <a href="#top" class="nav-chip primary">맨 위로</a>
       <a href="#intro" class="nav-chip primary">닥터카 소개</a>
       <a href="#who" class="nav-chip">요청 주체</a>
       <a href="#how" class="nav-chip">요청 방법</a>
@@ -1674,11 +1681,16 @@ function addSecondaryHospitalMarkers(kakaoMap) {
       });
 
       // 🏷 병원 이름 라벨
-      const label = new kakao.maps.CustomOverlay({
-        position,
-        yAnchor: 1.4,
-        content: `<div class="marker-label">${hospital.name}</div>`
-      });
+const label = new kakao.maps.CustomOverlay({
+  position,
+  yAnchor: 1.4,
+  content: `
+    <div class="marker-label"
+         onclick="window._onHospitalLabelClick('${hospital.name}', ${position.getLat()}, ${position.getLng()})">
+      ${hospital.name}
+    </div>`
+});
+
       label.setMap(kakaoMap);
 
       // 🔁 클릭 시: 내 위치 → 해당 병원 소요시간
@@ -2232,6 +2244,23 @@ document.addEventListener('keydown', function (e) {
     });
   }
 
+window._onHospitalLabelClick = function(name, lat, lng) {
+  if (!USER_POS || !HOSPITAL_MAP) {
+    alert('현재 위치 정보를 먼저 허용해 주세요.');
+    return;
+  }
+
+  const pos = new kakao.maps.LatLng(lat, lng);
+  const dummyMarker = new kakao.maps.Marker({ position: pos });
+
+  showEtaInfoWindow(
+    HOSPITAL_MAP,
+    dummyMarker,
+    USER_POS,
+    pos,
+    `내 위치 → ${name}`
+  );
+};
 
 // 11) 인천·부천·광명·김포·시흥 2차 병원 지도 초기화 (카카오 로딩까지 기다리는 버전)
 function initSecondaryHospitalsMap() {
