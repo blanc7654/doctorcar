@@ -1488,6 +1488,8 @@ let currentUserRole = null;      // er_doctor / ems / other
 let trafficInfo = null;          // { channel, rawRef }
 let roleOverlayOpen = false;     // 팝업 열림 여부
 let deferredPrompt = null;       // PWA 설치 이벤트 저장용
+let CURRENT_INFO_WINDOW = null;   // 🔹 현재 열린 인포윈도우 (하나만 유지)
+
 
 // 🔻 내 위치 / 병원 지도 / 길병원 좌표
 let USER_POS = null;        // 내 현재 위치 (kakao.maps.LatLng)
@@ -1541,38 +1543,47 @@ async function fetchDriveSummary(fromLatLng, toLatLng) {
   }
 }
 
-// ✅ 클릭한 마커에 ETA 인포윈도우 띄우기
+// ✅ 클릭한 마커에 ETA 인포윈도우 띄우기 (단일 창 유지 + 심플한 내용)
 async function showEtaInfoWindow(map, marker, fromLatLng, toLatLng, titleText) {
+  // 이미 열려 있는 인포윈도우가 있으면 먼저 닫기
+  if (CURRENT_INFO_WINDOW) {
+    CURRENT_INFO_WINDOW.close();
+    CURRENT_INFO_WINDOW = null;
+  }
+
   const infoWindow = new kakao.maps.InfoWindow({ removable: true });
 
-  // 먼저 "계산 중" 문구 띄우기
+  // 먼저 "소요시간 계산 중"만 간단히 표시
   infoWindow.setContent(`
     <div style="padding:8px 10px;font-size:12px;">
-      <div style="margin-bottom:4px;"><b>${titleText}</b></div>
       <div>소요시간 계산 중...</div>
     </div>
   `);
   infoWindow.open(map, marker);
 
+  // 현재 열린 창으로 등록
+  CURRENT_INFO_WINDOW = infoWindow;
+
   const summary = await fetchDriveSummary(fromLatLng, toLatLng);
   if (!summary) {
     infoWindow.setContent(`
       <div style="padding:8px 10px;font-size:12px;">
-        <div style="margin-bottom:4px;"><b>${titleText}</b></div>
         <div style="color:#c62828;">소요시간을 불러오지 못했습니다.</div>
       </div>
     `);
     return;
   }
 
+  // 🔹 제목 줄(“내 위치 → 병원”)은 없애고, 거리 + 소요시간만 표시
   infoWindow.setContent(`
     <div style="padding:8px 10px;font-size:12px;">
-      <div style="margin-bottom:4px;"><b>${titleText}</b></div>
       <div>거리: <b>${summary.distanceKm} km</b></div>
-      <div>예상 소요시간: <b>${summary.durationMin}분</b></div>
+      <div>소요시간: <b>${summary.durationMin}분</b></div>
     </div>
   `);
 }
+
+
 
 // ✅ 내 위치를 받아서 지도에 표시하고, 길병원과 함께 보이게 맞추는 함수
 function updateUserLocationOnMap(forceAsk = true) {
@@ -2264,6 +2275,26 @@ window._onHospitalLabelClick = function(name, lat, lng) {
   );
 };
 
+// 💜 길병원 라벨 클릭 시: 내 위치 → 길병원 소요시간 표시
+window._onGilLabelClick = function(lat, lng) {
+  if (!USER_POS || !HOSPITAL_MAP) {
+    alert('현재 위치 정보를 먼저 허용해 주세요.');
+    return;
+  }
+
+  const gilPos = new kakao.maps.LatLng(lat, lng);
+  const dummyMarker = new kakao.maps.Marker({ position: gilPos });
+
+  showEtaInfoWindow(
+    HOSPITAL_MAP,
+    dummyMarker,
+    USER_POS,
+    gilPos,
+    '내 위치 → 길병원'
+  );
+};
+
+
 // 11) 인천·부천·광명·김포·시흥 2차 병원 지도 초기화 (카카오 로딩까지 기다리는 버전)
 function initSecondaryHospitalsMap() {
   const mapContainer = document.getElementById('secondary-hospitals-map');
@@ -2295,13 +2326,18 @@ function createMap() {
     position: gilLatLng
   });
 
-  // 💜 길병원 라벨 (보라색)
-  const gilLabel = new kakao.maps.CustomOverlay({
-    position: gilLatLng,
-    yAnchor: 1.4,
-    content: `<div class="marker-label gil">💜 길병원</div>`
-  });
-  gilLabel.setMap(hospitalMap);
+ // 💜 길병원 라벨 (보라색, 클릭 가능)
+const gilLabel = new kakao.maps.CustomOverlay({
+  position: gilLatLng,
+  yAnchor: 1.4,
+  content: `
+    <div class="marker-label gil"
+         onclick="window._onGilLabelClick(${GIL_COORD.lat}, ${GIL_COORD.lng})">
+      💜 길병원
+    </div>`
+});
+gilLabel.setMap(hospitalMap);
+
 
   // 길병원 클릭 시: 내 위치 → 길병원 거리/시간
   kakao.maps.event.addListener(gilMarker, 'click', function () {
