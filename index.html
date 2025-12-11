@@ -605,6 +605,15 @@ gtag('config', 'G-MCKTRFREN3', {
   border-color: var(--primary);
 }
 
+/* QR 크게 보기 버튼만 텍스트 가운데 정렬 */
+.hero-qr-btn.primary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+
 /* 모바일에서 조금 더 컴팩트하게 */
 @media (max-width: 600px) {
   .hero-qr {
@@ -1135,11 +1144,7 @@ gtag('config', 'G-MCKTRFREN3', {
       <section id="network-hospitals">
         <div class="section-label">Network</div>
         <h2 class="section-title">주변 병원들 지도</h2>
-        <p class="section-description">
-          길병원과 가깝게 위치한 병원들의 위치입니다.
-          마커를 클릭하면 병원 주소와 길찾기 링크를 확인할 수 있습니다.
-        </p>
-
+        
  <!-- 🔹 지도 근처에서도 GPS로 소요시간 보기 버튼 -->
         <p class="eta-gps-tip">
           * GPS를 켜면 내 위치 기준으로 길병원 및 주변 병원까지의 소요시간을 알 수 있습니다.
