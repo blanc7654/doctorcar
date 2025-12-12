@@ -752,6 +752,7 @@
         <div class="section-label">Map</div>
         <h2 class="section-title" style="margin-bottom:6px;">지도</h2>
 
+	<div id="gps-banner-wrap">
         <div class="gps-banner">
           <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
 
@@ -1160,53 +1161,60 @@
           </select>
         </div>
 
-        <!-- 닥터카 실제 이용 경험 + 보라색 블록 -->
-        <div class="card-body experience-wrapper">
-          <h3 class="card-title experience-title" style="margin-bottom:4px;">닥터카 실제 이용 경험</h3>
-          <div>
-            <label><input type="radio" name="used_doctorcar" value="yes" required> 예 (길병원 닥터카를 실제로 이용한 경험이 있다)</label><br>
-            <label><input type="radio" name="used_doctorcar" value="no"> 아니오 (아직 실제로 사용해 본 적은 없다)</label>
-          </div>
-        </div>
+<!-- 닥터카 실제 이용 경험 + 보라색 블록 -->
+<div class="card-body experience-wrapper">
+  <h3 class="card-title experience-title" style="margin-bottom:4px;">닥터카 실제 이용 경험</h3>
 
-        <!-- 쪼르륵 펼쳐지는 경험 상세 블록 -->
-        <div id="doctorcar-experience-block">
-          <div class="experience-note">
-            ※ 아래 항목들은 “예”를 선택한 경우에만 답변해 주세요.
-          </div>
-          <!-- 시간 단축 체감 -->
-          <div class="exp-sub-card">
-            <h4>시간 단축 체감 (복수 선택 가능)</h4>
-            <label><input type="checkbox" name="time_effect" value="shorter_contact"> 환자–의사 접촉 시간이 줄어들었다고 느낀다</label>
-            <label><input type="checkbox" name="time_effect" value="shorter_lookup"> 연락처 찾는 시간이 줄어듦</label>
-            <label><input type="checkbox" name="time_effect" value="shorter_total"> 전체 이송 시간이 단축되었다</label>
-            <label><input type="checkbox" name="time_effect" value="longer_total"> 전체 이송 시간이 오히려 늘었다</label>
-            <label><input type="checkbox" name="time_effect" value="no_change"> 잘 모르겠음 / 비슷함</label>
-          </div>
+  <div>
+    <label><input type="radio" name="used_doctorcar" value="yes" required>
+      예 (길병원 닥터카를 실제로 이용한 경험이 있다)
+    </label><br>
+    <label><input type="radio" name="used_doctorcar" value="no">
+      아니오 (아직 실제로 사용해 본 적은 없다)
+    </label>
+  </div>
 
-          <!-- 환자 처치 어떤 부분이 좋았는가 -->
-          <div class="exp-sub-card">
-            <h4>어떤 처치가 도움이 되었나요? (복수 선택 가능)</h4>
-            <label><input type="checkbox" name="treatment_good" value="X"> X (Bleeding Control)</label>
-            <label><input type="checkbox" name="treatment_good" value="AB"> A,B (기도관리)</label>
-            <label><input type="checkbox" name="treatment_good" value="C"> C (Circulation; 수액/수혈/승압제)</label>
-          </div>
+  <!-- ✅ 쪼르륵 펼쳐지는 경험 상세 블록: 보라색 블록 안으로 “이동” -->
+  <div id="doctorcar-experience-block">
+    <div class="experience-note">
+      ※ 아래 항목들은 “예”를 선택한 경우에만 답변해 주세요.
+    </div>
 
-          <!-- 닥터카 처치 좋았던 점 자유 서술 -->
-          <div class="exp-sub-card">
-            <h4>닥터카 처치 중 좋았던 점 (있다면)</h4>
-            <textarea name="treatment_free_text"
-                      id="treatment_free_text"
-                      placeholder="예: 출혈 조절, tourniquet, 현장 처치 등 좋았던 점을 자유롭게 적어주세요. (최대 100자)"
-                      rows="3"
-                      maxlength="100"
-                      style="width:100%; font-size:0.9rem; padding:6px 8px;"></textarea>
-            <div id="treatment_free_counter"
-                 style="font-size:0.78rem; color:#666; text-align:right; margin-top:2px;">
-              0 / 100자
-            </div>
-          </div>
-        </div>
+    <!-- 시간 단축 체감 -->
+    <div class="exp-sub-card">
+      <h4>시간 단축 체감 (복수 선택 가능)</h4>
+      <label><input type="checkbox" name="time_effect" value="shorter_contact"> 환자–의사 접촉 시간이 줄어들었다고 느낀다</label>
+      <label><input type="checkbox" name="time_effect" value="shorter_lookup"> 연락처 찾는 시간이 줄어듦</label>
+      <label><input type="checkbox" name="time_effect" value="shorter_total"> 전체 이송 시간이 단축되었다</label>
+      <label><input type="checkbox" name="time_effect" value="longer_total"> 전체 이송 시간이 오히려 늘었다</label>
+      <label><input type="checkbox" name="time_effect" value="no_change"> 잘 모르겠음 / 비슷함</label>
+    </div>
+
+    <!-- 환자 처치 어떤 부분이 좋았는가 -->
+    <div class="exp-sub-card">
+      <h4>어떤 처치가 도움이 되었나요? (복수 선택 가능)</h4>
+      <label><input type="checkbox" name="treatment_good" value="X"> X (Bleeding Control)</label>
+      <label><input type="checkbox" name="treatment_good" value="AB"> A,B (기도관리)</label>
+      <label><input type="checkbox" name="treatment_good" value="C"> C (Circulation; 수액/수혈/승압제)</label>
+    </div>
+
+    <!-- 닥터카 처치 좋았던 점 자유 서술 -->
+    <div class="exp-sub-card">
+      <h4>닥터카 처치 중 좋았던 점 (있다면)</h4>
+      <textarea name="treatment_free_text"
+                id="treatment_free_text"
+                placeholder="예: 출혈 조절, tourniquet, 현장 처치 등 좋았던 점을 자유롭게 적어주세요. (최대 100자)"
+                rows="3"
+                maxlength="100"
+                style="width:100%; font-size:0.9rem; padding:6px 8px;"></textarea>
+      <div id="treatment_free_counter"
+           style="font-size:0.78rem; color:#666; text-align:right; margin-top:2px;">
+        0 / 100자
+      </div>
+    </div>
+  </div>
+</div>
+
 
         <!-- 재사용 의향 -->
         <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px; margin-top:10px;">
@@ -1284,9 +1292,17 @@
         <div class="modal-title">주변 병원 지도 (크게보기)</div>
         <button type="button" class="modal-close" id="close-map-modal-btn">닫기 ✕</button>
       </div>
+<div id="modal-gps-slot"></div>
       <div id="modal-map"></div>
     </div>
   </div>
+
+#modal-gps-slot{
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  background:#fff;
+}
+#modal-gps-slot .gps-banner{ margin:0; } /* 모달 안에서는 바깥 여백 제거 */
 
   <!-- 출신 선택 오버레이 (원본 유지) -->
   <div id="role-overlay" style="
@@ -1338,6 +1354,13 @@
     let deferredPrompt = null;
     let CURRENT_INFO_WINDOW = null;
     let LAST_TARGET = null; // ✅ 마지막으로 클릭한 병원/길병원 기억
+
+function refreshLastTargetIfAny() {
+  if (!LAST_TARGET || !HOSPITAL_MAP) return;
+  const pos = new kakao.maps.LatLng(LAST_TARGET.lat, LAST_TARGET.lng);
+  // ✅ marker 없이 position으로 열어서 항상 갱신
+  showEtaInfoWindow(HOSPITAL_MAP, null, pos, LAST_TARGET.name, LAST_TARGET.tel);
+}
 
     // ✅ 내 위치(GPS) / 환자발생지(수동) 상태
     let USER_POS = null;
@@ -1439,14 +1462,13 @@ function formatTel(tel) {
         CURRENT_INFO_WINDOW = null;
       }
 
-LAST_TARGET = { latLng: toLatLng, name: targetName || '대상', tel: targetTel || '' };
+LAST_TARGET = {
+  lat: toLatLng.getLat(),
+  lng: toLatLng.getLng(),
+  name: targetName || '대상',
+  tel: targetTel || ''
+};
 
-function refreshLastTargetIfAny() {
-  if (!LAST_TARGET || !HOSPITAL_MAP) return;
-
-  // 현재 열려있는 인포윈도우가 있으면 그 자리에서 갱신되도록 "좌표로 open"
-  showEtaInfoWindow(HOSPITAL_MAP, null, LAST_TARGET.latLng, LAST_TARGET.name, LAST_TARGET.tel);
-}
 
 
       const infoWindow = new kakao.maps.InfoWindow({ removable: true });
@@ -1951,12 +1973,16 @@ refreshLastTargetIfAny();
     }
 
     // ✅ 라벨 클릭 공용(병원/길병원)
-    window._onTargetClick = function(lat, lng, name, tel) {
-      if (!HOSPITAL_MAP) return;
-      const pos = new kakao.maps.LatLng(lat, lng);
-      const dummyMarker = new kakao.maps.Marker({ position: pos });
-      showEtaInfoWindow(HOSPITAL_MAP, dummyMarker, pos, name || '대상', tel || '');
-    };
+window._onTargetClick = function(lat, lng, name, tel) {
+  const pos = new kakao.maps.LatLng(lat, lng);
+
+  // ✅ 모달이 열려있으면 MODAL_MAP, 아니면 HOSPITAL_MAP
+  const activeMap = (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) ? MODAL_MAP : HOSPITAL_MAP;
+  if (!activeMap) return;
+
+  showEtaInfoWindow(activeMap, null, pos, name || '대상', tel || '');
+};
+
 
     // 병원 지도 초기화
     function initSecondaryHospitalsMap() {
@@ -2008,6 +2034,9 @@ refreshLastTargetIfAny();
     const closeModalBtn = document.getElementById('close-map-modal-btn');
     let MODAL_MAP = null;
 
+let GPS_WRAP_HOME = null;   // gps-banner 원래 자리(복귀용)
+let GPS_WRAP_NODE = null;   // 실제 gps-banner-wrap 노드
+
     function isMobileUA() {
       return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     }
@@ -2016,6 +2045,14 @@ refreshLastTargetIfAny();
       if (isMobileUA()) return;
       if (!mapModal) return;
       mapModal.style.display = 'flex';
+
+// ✅ GPS/수동입력 배너를 모달로 “이동”
+if (!GPS_WRAP_NODE) GPS_WRAP_NODE = document.getElementById('gps-banner-wrap');
+const slot = document.getElementById('modal-gps-slot');
+if (GPS_WRAP_NODE && slot) {
+  if (!GPS_WRAP_HOME) GPS_WRAP_HOME = GPS_WRAP_NODE.parentNode; // 최초 1회만 원래 부모 기억
+  slot.appendChild(GPS_WRAP_NODE);
+}
 
       if (!MODAL_MAP) {
         const container = document.getElementById('modal-map');
@@ -2053,6 +2090,10 @@ refreshLastTargetIfAny();
 
     function closeMapModal() {
       if (!mapModal) return;
+// ✅ GPS/수동입력 배너를 원래 자리로 “복귀”
+if (GPS_WRAP_NODE && GPS_WRAP_HOME) {
+  GPS_WRAP_HOME.insertBefore(GPS_WRAP_NODE, GPS_WRAP_HOME.firstChild);
+}
       mapModal.style.display = 'none';
     }
 
