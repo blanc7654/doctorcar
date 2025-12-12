@@ -377,72 +377,7 @@
       .map-container { height: 420px; }
     }
 
-    .map-expand-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 30;
-      border-radius: 999px;
-      padding: 8px 12px;
-      border: 1px solid #d0d7ea;
-      background: rgba(255,255,255,0.95);
-      cursor: pointer;
-      font-size: 0.82rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      display: none;
-      user-select: none;
-    }
-    @media (min-width: 900px) {
-      .map-expand-btn { display: inline-flex; align-items: center; gap: 6px; }
-    }
-
-    #map-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-    }
-#map-modal .modal-inner{
-  width: 100vw;
-  height: 100vh;
-  background: #fff;
-  border-radius: 0;
-  overflow: hidden;
-  box-shadow: none;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-    #map-modal .modal-topbar {
-      padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    #map-modal .modal-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #111;
-    }
-    #map-modal .modal-close {
-      border: 1px solid #d0d7ea;
-      background: #fff;
-      border-radius: 999px;
-      padding: 7px 12px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    #modal-map {
-      flex: 1 1 auto;
-      width: 100%;
-      height: 100%;
-    }
+   
 
     /* ====== MARKER LABELS ====== */
     .marker-label {
@@ -664,17 +599,12 @@
     .etc-image-half { width: 50%; border-radius: 14px; height: 360px; object-fit: cover; }
     .etc-image-amputation { width: 100%; border-radius: 14px; margin: 16px 0; height: 430px; object-fit: cover; }
 
-#modal-gps-slot{
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-  background:#fff;
-}
-#modal-gps-slot .gps-banner{ margin:0; } /* 모달 안에서는 바깥 여백 제거 */
+
 
   </style>
 
   <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
-  <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b9ccd41f81d72605a0882435c138dc91&libraries=services"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b9ccd41f81d72605a0882435c138dc91&libraries=services"></script>
 </head>
 
 <body>
@@ -793,9 +723,6 @@
         <article class="card" style="margin-top:12px;">
           <div class="card-body">
             <div id="secondary-hospitals-map" class="map-container">
-              <button type="button" class="map-expand-btn" id="open-map-modal-btn">
-                🗺️ 지도 크게보기
-              </button>
             </div>
 
             <p style="font-size:0.78rem; color:#777; margin-top:8px;">
@@ -1293,18 +1220,6 @@
       <span>Department of Trauma Surgery · Doctor Car Team</span>
       <span>Correspondence: blanc7654@gmail.com (Jaeik Jang, MD)</span>
     </footer>
-  </div>
-
-  <!-- ✅ 지도 크게보기 모달 -->
-  <div id="map-modal">
-    <div class="modal-inner">
-      <div class="modal-topbar">
-        <div class="modal-title">주변 병원 지도 (크게보기)</div>
-        <button type="button" class="modal-close" id="close-map-modal-btn">닫기 ✕</button>
-      </div>
-<div id="modal-gps-slot"></div>
-      <div id="modal-map"></div>
-    </div>
   </div>
 
 
@@ -1984,16 +1899,13 @@ refreshLastTargetIfAny();
       });
     }
 
-    // ✅ 라벨 클릭 공용(병원/길병원)
+// ✅ 라벨 클릭 공용(병원/길병원)
 window._onTargetClick = function(lat, lng, name, tel) {
+  if (!HOSPITAL_MAP) return;
   const pos = new kakao.maps.LatLng(lat, lng);
-
-  // ✅ 모달이 열려있으면 MODAL_MAP, 아니면 HOSPITAL_MAP
-  const activeMap = (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) ? MODAL_MAP : HOSPITAL_MAP;
-  if (!activeMap) return;
-
-  showEtaInfoWindow(activeMap, null, pos, name || '대상', tel || '');
+  showEtaInfoWindow(HOSPITAL_MAP, null, pos, name || '대상', tel || '');
 };
+
 
 
     // 병원 지도 초기화
@@ -2013,16 +1925,17 @@ window._onTargetClick = function(lat, lng, name, tel) {
 
         const gilMarker = new kakao.maps.Marker({ map: hospitalMap, position: gilLatLng });
 
-        const gilLabel = new kakao.maps.CustomOverlay({
-          position: gilLatLng,
-          yAnchor: 1.4,
-          content: `
-            <div class="marker-label gil"
-onclick="window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, ${JSON.stringify('길병원')}, ${JSON.stringify('')})"
-              💜 길병원
-            </div>`
-        });
-        gilLabel.setMap(hospitalMap);
+const gilLabel = new kakao.maps.CustomOverlay({
+  position: gilLatLng,
+  yAnchor: 1.4,
+  content: `
+    <div class="marker-label gil"
+         onclick="window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, ${JSON.stringify('길병원')}, ${JSON.stringify('')})">
+      💜 길병원
+    </div>
+  `
+});
+gilLabel.setMap(hospitalMap);
 
         kakao.maps.event.addListener(gilMarker, 'click', function () {
           showEtaInfoWindow(hospitalMap, gilMarker, gilLatLng, '길병원', '');
@@ -2040,99 +1953,7 @@ onclick="window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, ${JSON.string
       createMap();
     }
 
-    // ✅ 지도 크게보기(PC만)
-    const openModalBtn = document.getElementById('open-map-modal-btn');
-    const mapModal = document.getElementById('map-modal');
-    const closeModalBtn = document.getElementById('close-map-modal-btn');
-    let MODAL_MAP = null;
-
-let GPS_WRAP_HOME = null;   // gps-banner 원래 자리(복귀용)
-let GPS_WRAP_NODE = null;   // 실제 gps-banner-wrap 노드
-
-    function isMobileUA() {
-      return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    }
-
-    function openMapModal() {
-      if (isMobileUA()) return;
-      if (!mapModal) return;
-      mapModal.style.display = 'flex';
-setTimeout(() => {
-  if (MODAL_MAP) MODAL_MAP.relayout();
-}, 80);
-
-// ✅ GPS/수동입력 배너를 모달로 “이동”
-if (!GPS_WRAP_NODE) GPS_WRAP_NODE = document.getElementById('gps-banner-wrap');
-const slot = document.getElementById('modal-gps-slot');
-if (GPS_WRAP_NODE && slot) {
-  if (!GPS_WRAP_HOME) GPS_WRAP_HOME = GPS_WRAP_NODE.parentNode; // 최초 1회만 원래 부모 기억
-  slot.appendChild(GPS_WRAP_NODE);
-}
-
-      if (!MODAL_MAP) {
-        const container = document.getElementById('modal-map');
-        const center = HOSPITAL_MAP ? HOSPITAL_MAP.getCenter() : new kakao.maps.LatLng(37.48, 126.74);
-        MODAL_MAP = new kakao.maps.Map(container, { center, level: 7 });
-
-        const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
-        const gilMarker = new kakao.maps.Marker({ map: MODAL_MAP, position: gilLatLng });
-
-        const gilLabel = new kakao.maps.CustomOverlay({
-          position: gilLatLng,
-          yAnchor: 1.4,
-          content: `
-            <div class="marker-label gil"
-                 onclick="(function(){ window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, '길병원', ''); })()">
-              💜 길병원
-            </div>`
-        });
-        gilLabel.setMap(MODAL_MAP);
-
-        kakao.maps.event.addListener(gilMarker, 'click', function () {
-          showEtaInfoWindow(MODAL_MAP, gilMarker, gilLatLng, '길병원', '');
-        });
-
-        addSecondaryHospitalMarkers(MODAL_MAP);
-
-        if (USER_POS) renderUserOnMap(MODAL_MAP);
-        if (PATIENT_POS) renderPatientOnMap(MODAL_MAP);
-      } else {
-        if (USER_POS) renderUserOnMap(MODAL_MAP);
-        if (PATIENT_POS) renderPatientOnMap(MODAL_MAP);
-        setTimeout(() => MODAL_MAP.relayout(), 50);
-      }
-    }
-
-    function closeMapModal() {
-      if (!mapModal) return;
-
-// ✅ GPS/수동입력 배너를 원래 자리(앵커 바로 뒤)로 “정확히” 복귀
-if (GPS_WRAP_NODE) {
-  const anchor = document.getElementById('gps-banner-anchor');
-  if (anchor && anchor.parentNode) {
-    anchor.parentNode.insertBefore(GPS_WRAP_NODE, anchor.nextSibling);
-  }
-}
-
-      mapModal.style.display = 'none';
-    }
-
-    if (openModalBtn) {
-      if (isMobileUA()) {
-        openModalBtn.style.display = 'none';
-      } else {
-        openModalBtn.addEventListener('click', openMapModal);
-      }
-    }
-    if (closeModalBtn) closeModalBtn.addEventListener('click', closeMapModal);
-    if (mapModal) {
-      mapModal.addEventListener('click', (e) => {
-        if (e.target === mapModal) closeMapModal();
-      });
-    }
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && mapModal && mapModal.style.display === 'flex') closeMapModal();
-    });
+ 
 
 // ======================
 // ✅ 설문 UX/동작 복구
