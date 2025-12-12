@@ -730,6 +730,60 @@ outline: 1px solid rgba(0,0,0,0.05);
   box-shadow:
     0 3px 6px rgba(0,0,0,0.06);  /* 퍼지지 않는 그림자 */
 }
+/* ✅ InfoWindow(클릭 팝업) 레이아웃 고정 */
+.iw-wrap{
+  max-width: 240px;      /* 팝업 폭 제한 */
+  overflow: hidden;      /* 삐져나오는 것 방지 */
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.iw-title{
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.iw-row{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 2px 0;
+}
+
+.iw-left{
+  min-width: 0;          /* flex 줄바꿈 안정화 */
+}
+
+.iw-right{
+  white-space: nowrap;   /* ✅ (4.4km, 9분) 절대 줄바꿈 금지 */
+  font-weight: 800;
+}
+
+.iw-phone{
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e2e2;
+}
+
+.iw-phone a{
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;   /* 전화번호도 한 줄 유지 */
+  overflow: hidden;
+  text-overflow: ellipsis;  /* 너무 길면 ... 처리 */
+}
+
+/* InfoWindow 거리 라벨 색상 */
+.iw-from-gps{
+  color: #0b7ac4;     /* 길병원 블루 */
+  font-weight: 900;
+}
+
+.iw-from-patient{
+  color: #d81b60;     /* 기존 핑크/레드 */
+  font-weight: 900;
+}
 
 
   </style>
@@ -1533,11 +1587,9 @@ function formatTel(tel) {
       if (USER_POS) {
         const s1 = await fetchDriveSummary(USER_POS, toLatLng);
 if (s1) lines.push(`
-  <div style="margin:2px 0;">
-    현재위치로부터
-    <span style="white-space:nowrap;">
-      (<b>${s1.distanceKm}km</b>, <b>${s1.durationMin}분</b>)
-    </span>
+  <div class="iw-row">
+    <div class="iw-left iw-from-gps">현재위치로부터</div>
+    <div class="iw-right">(${s1.distanceKm}km, ${s1.durationMin}분)</div>
   </div>
 `);
         else lines.push(`<div style="margin:2px 0; color:#c62828;">현재위치로부터 소요시간을 불러오지 못했습니다.</div>`);
@@ -1546,11 +1598,9 @@ if (s1) lines.push(`
       if (PATIENT_POS) {
         const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
 if (s2) lines.push(`
-  <div style="margin:2px 0;">
-    <span style="color:#d81b60;font-weight:800;">환자발생지로부터</span>
-    <span style="white-space:nowrap;">
-      (<b>${s2.distanceKm}km</b>, <b>${s2.durationMin}분</b>)
-    </span>
+  <div class="iw-row">
+<div class="iw-left iw-from-patient">환자발생지로부터</div>
+    <div class="iw-right">(${s2.distanceKm}km, ${s2.durationMin}분)</div>
   </div>
 `);
         else lines.push(`<div style="margin:2px 0; color:#d81b60;">환자발생지로부터 소요시간을 불러오지 못했습니다.</div>`);
@@ -1562,13 +1612,21 @@ if (s2) lines.push(`
           ☎ <b>${esc(tel)}</b>
         </div>` : ``;
 
-      infoWindow.setContent(`
-        <div style="padding:8px 10px;font-size:12px; line-height:1.35;">
-          <div style="font-weight:800; margin-bottom:4px;">${esc(targetName || '대상')}</div>
-          ${lines.join('')}
-          ${telHtml}
-        </div>
-      `);
+const tel = formatTel(targetTel);
+const telHtml = tel ? `
+  <div class="iw-phone">
+    ☎ <a href="tel:${esc(tel)}"><b>${esc(tel)}</b></a>
+  </div>
+` : ``;
+
+infoWindow.setContent(`
+  <div class="iw-wrap" style="padding:8px 10px;">
+    <div class="iw-title">${esc(targetName || '대상')}</div>
+    ${lines.join('')}
+    ${telHtml}
+  </div>
+`);
+
     }
 
     // ✅ 내 위치 표시 (빨간 라벨)
@@ -2177,6 +2235,32 @@ if (s2) lines.push(`
     });
   });
 })();
+
+// ====== 설문 제출 알림(최소 보장) ======
+(function attachSurveySubmitAlert(){
+  const form = document.getElementById('doctorcar-survey');
+  if (!form) {
+    console.warn('[survey] form not found: #doctorcar-survey');
+    return;
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault(); // 페이지 새로고침 방지
+
+    // (선택) GA 이벤트도 같이 찍고 싶으면
+    if (typeof gtag === 'function') {
+      gtag('event', 'submit_survey_doctorcar', {
+        user_role: (window.currentUserRole || 'unknown'),
+        entry_channel: (window.trafficInfo?.channel || 'unknown'),
+        submit_time: new Date().toISOString()
+      });
+    }
+
+    alert('설문이 제출되었습니다. 감사합니다!');
+    form.reset(); // 제출 후 초기화 (원치 않으면 이 줄 삭제)
+  }, { passive: false });
+})();
+
 
   </script>
 </body>
