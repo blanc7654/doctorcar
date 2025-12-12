@@ -1275,12 +1275,6 @@
     let CURRENT_INFO_WINDOW = null;
     let LAST_TARGET = null; // ✅ 마지막으로 클릭한 병원/길병원 기억
 
-function refreshLastTargetIfAny() {
-  if (!LAST_TARGET || !HOSPITAL_MAP) return;
-  const pos = new kakao.maps.LatLng(LAST_TARGET.lat, LAST_TARGET.lng);
-  // ✅ marker 없이 position으로 열어서 항상 갱신
-  showEtaInfoWindow(HOSPITAL_MAP, null, pos, LAST_TARGET.name, LAST_TARGET.tel);
-}
 
     // ✅ 내 위치(GPS) / 환자발생지(수동) 상태
     let USER_POS = null;
@@ -1521,8 +1515,7 @@ if (PATIENT_POS) {
           reverseGeocode(USER_POS, (addr) => {
   USER_ADDR = addr;
   showGpsAddress(addr);
-  refreshLastTargetIfAny(); // ✅ GPS 갱신 시에도 마지막 클릭 병원 자동 업데이트
-});
+ });
         },
         (err) => {
           console.warn('Geolocation 실패:', err);
@@ -1863,7 +1856,6 @@ if (PATIENT_POS) {
           patientInput.value = name;
           clearPatientResults();
 
-refreshLastTargetIfAny();
           alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
         });
         patientResults.appendChild(div);
