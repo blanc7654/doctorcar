@@ -1394,13 +1394,15 @@ LAST_TARGET = {
         </div>
       `);
 
-if (markerForOpen) {
+// ✅ marker가 있더라도 map에 안 올라가 있으면(position 방식으로) open
+const markerHasMap = !!(markerForOpen && typeof markerForOpen.getMap === 'function' && markerForOpen.getMap());
+
+if (markerHasMap) {
   infoWindow.open(map, markerForOpen);
 } else {
   infoWindow.setPosition(toLatLng);
   infoWindow.open(map);
 }
-
 
       CURRENT_INFO_WINDOW = infoWindow;
 
@@ -1894,10 +1896,22 @@ if (PATIENT_POS) {
 // ✅ 라벨 클릭 공용(병원/길병원)
 window._onTargetClick = function(lat, lng, name, tel) {
   if (!HOSPITAL_MAP) return;
-  const pos = new kakao.maps.LatLng(lat, lng);
-  showEtaInfoWindow(HOSPITAL_MAP, null, pos, name || '대상', tel || '');
-};
 
+  const pos = new kakao.maps.LatLng(lat, lng);
+
+  // 🔑 가짜 marker를 만들어 “마커 클릭과 동일한 경로”로 태움
+  const fakeMarker = new kakao.maps.Marker({
+    position: pos
+  });
+
+  showEtaInfoWindow(
+    HOSPITAL_MAP,
+    fakeMarker,   // ← 핵심
+    pos,
+    name || '대상',
+    tel || ''
+  );
+};
 
 
     // 병원 지도 초기화
