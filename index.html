@@ -730,16 +730,16 @@ outline: 1px solid rgba(0,0,0,0.05);
   box-shadow:
     0 3px 6px rgba(0,0,0,0.06);  /* 퍼지지 않는 그림자 */
 }
-/* ✅ InfoWindow(클릭 팝업) 레이아웃 고정 */
+/* ====== InfoWindow(클릭 팝업) 레이아웃 고정 ====== */
 .iw-wrap{
-  width: 100%;
-  max-width: 240px;
-  padding: 8px 10px;     /* ✅ 여기로 이동 */
-  box-sizing: border-box;/* ✅ padding 포함 계산 */
+  width: 210px;            /* ✅ 박스 폭 고정 (빈공간 커지는 것 방지) */
+  max-width: 210px;
+  padding: 8px 10px;
+  box-sizing: border-box;
   overflow: hidden;
   font-size: 12px;
   line-height: 1.35;
-  display: block;        /* ✅ 필수 */
+  display: block;
 }
 
 .iw-title{
@@ -749,18 +749,24 @@ outline: 1px solid rgba(0,0,0,0.05);
 
 .iw-row{
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
   margin: 2px 0;
+  /* ❌ space-between 제거 */
 }
 
 .iw-left{
-  min-width: 0;          /* flex 줄바꿈 안정화 */
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;        /* ✅ “환자발생지로부터” 줄바꿈 금지 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .iw-right{
-  white-space: nowrap;   /* ✅ (4.4km, 9분) 절대 줄바꿈 금지 */
+  flex: 0 0 auto;
+  margin-left: auto;          /* ✅ 오른쪽에만 붙이고 과한 빈공간 제거 */
+  white-space: nowrap;
   font-weight: 800;
 }
 
@@ -770,24 +776,29 @@ outline: 1px solid rgba(0,0,0,0.05);
   padding-top: 6px;
   border-top: 1px dashed #e2e2e2;
   box-sizing: border-box;
+  overflow: hidden;           /* ✅ 삐져나오는 것 방지 */
 }
 
 .iw-phone a{
-  display: inline-block;
+  display: block;             /* ✅ 높이 계산 안정화(전화번호가 아래로 튀는 문제 해결) */
   max-width: 100%;
-  white-space: nowrap;   /* 전화번호도 한 줄 유지 */
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;  /* 너무 길면 ... 처리 */
+  text-overflow: ellipsis;
 }
 
-/* InfoWindow 거리 라벨 색상 */
+/* ✅ “현재위치로부터” 파란 글씨 + 파란 테두리(배지 느낌) */
 .iw-from-gps{
-  color: #0b7ac4;     /* 길병원 블루 */
+  color: #0b7ac4 !important;
   font-weight: 900;
+  padding: 1px 6px;
+  border: 1px solid #0b7ac4;
+  border-radius: 999px;
+  background: #e6f3fb;
 }
 
 .iw-from-patient{
-  color: #d81b60;     /* 기존 핑크/레드 */
+  color: #d81b60 !important;
   font-weight: 900;
 }
 
@@ -1605,7 +1616,7 @@ if (s1) lines.push(`
         const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
 if (s2) lines.push(`
   <div class="iw-row">
-<div class="iw-left iw-from-patient">환자발생지로부터</div>
+    <div class="iw-left iw-from-patient">환자발생지로부터</div>
     <div class="iw-right">(${s2.distanceKm}km, ${s2.durationMin}분)</div>
   </div>
 `);
