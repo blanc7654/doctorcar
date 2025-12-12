@@ -405,17 +405,18 @@
       justify-content: center;
       z-index: 99999;
     }
-    #map-modal .modal-inner {
-      width: min(1200px, 96vw);
-      height: min(780px, 92vh);
-      background: #fff;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
+#map-modal .modal-inner{
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
     #map-modal .modal-topbar {
       padding: 10px 12px;
       border-bottom: 1px solid #eee;
@@ -662,6 +663,14 @@
     .etc-image-full { width: 100%; border-radius: 14px; margin: 14px 0; object-fit: cover; }
     .etc-image-half { width: 50%; border-radius: 14px; height: 360px; object-fit: cover; }
     .etc-image-amputation { width: 100%; border-radius: 14px; margin: 16px 0; height: 430px; object-fit: cover; }
+
+#modal-gps-slot{
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  background:#fff;
+}
+#modal-gps-slot .gps-banner{ margin:0; } /* 모달 안에서는 바깥 여백 제거 */
+
   </style>
 
   <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
@@ -752,6 +761,7 @@
         <div class="section-label">Map</div>
         <h2 class="section-title" style="margin-bottom:6px;">지도</h2>
 
+<div id="gps-banner-anchor"></div>
 	<div id="gps-banner-wrap">
         <div class="gps-banner">
           <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
@@ -1297,12 +1307,7 @@
     </div>
   </div>
 
-#modal-gps-slot{
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-  background:#fff;
-}
-#modal-gps-slot .gps-banner{ margin:0; } /* 모달 안에서는 바깥 여백 제거 */
+
 
   <!-- 출신 선택 오버레이 (원본 유지) -->
   <div id="role-overlay" style="
@@ -1479,8 +1484,15 @@ LAST_TARGET = {
           <div>소요시간 계산 중...</div>
         </div>
       `);
-    if (markerForOpen) infoWindow.open(map, markerForOpen);
-else infoWindow.open(map, toLatLng);
+
+if (markerForOpen) {
+  infoWindow.open(map, markerForOpen);
+} else {
+  infoWindow.setPosition(toLatLng);
+  infoWindow.open(map);
+}
+
+
       CURRENT_INFO_WINDOW = infoWindow;
 
       if (!USER_POS && !PATIENT_POS) {
@@ -1666,11 +1678,11 @@ if (PATIENT_POS) {
           const marker = new kakao.maps.Marker({ map: kakaoMap, position });
 
           const labelHtml = `
-            <div class="marker-label"
-                 onclick="window._onTargetClick(${position.getLat()}, ${position.getLng()}, '${esc(hospital.name)}', '${esc(hospital.erTel || '')}')">
-              ${esc(hospital.name)}
-            </div>
-          `;
+  <div class="marker-label"
+       onclick="window._onTargetClick(${position.getLat()}, ${position.getLng()}, ${JSON.stringify(hospital.name)}, ${JSON.stringify(hospital.erTel || '')})">
+    ${esc(hospital.name)}
+  </div>
+`;
 
           const label = new kakao.maps.CustomOverlay({
             position,
@@ -2006,7 +2018,7 @@ window._onTargetClick = function(lat, lng, name, tel) {
           yAnchor: 1.4,
           content: `
             <div class="marker-label gil"
-                 onclick="window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, '길병원', '')">
+onclick="window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, ${JSON.stringify('길병원')}, ${JSON.stringify('')})"
               💜 길병원
             </div>`
         });
@@ -2045,6 +2057,9 @@ let GPS_WRAP_NODE = null;   // 실제 gps-banner-wrap 노드
       if (isMobileUA()) return;
       if (!mapModal) return;
       mapModal.style.display = 'flex';
+setTimeout(() => {
+  if (MODAL_MAP) MODAL_MAP.relayout();
+}, 80);
 
 // ✅ GPS/수동입력 배너를 모달로 “이동”
 if (!GPS_WRAP_NODE) GPS_WRAP_NODE = document.getElementById('gps-banner-wrap');
@@ -2090,10 +2105,15 @@ if (GPS_WRAP_NODE && slot) {
 
     function closeMapModal() {
       if (!mapModal) return;
-// ✅ GPS/수동입력 배너를 원래 자리로 “복귀”
-if (GPS_WRAP_NODE && GPS_WRAP_HOME) {
-  GPS_WRAP_HOME.insertBefore(GPS_WRAP_NODE, GPS_WRAP_HOME.firstChild);
+
+// ✅ GPS/수동입력 배너를 원래 자리(앵커 바로 뒤)로 “정확히” 복귀
+if (GPS_WRAP_NODE) {
+  const anchor = document.getElementById('gps-banner-anchor');
+  if (anchor && anchor.parentNode) {
+    anchor.parentNode.insertBefore(GPS_WRAP_NODE, anchor.nextSibling);
+  }
 }
+
       mapModal.style.display = 'none';
     }
 
