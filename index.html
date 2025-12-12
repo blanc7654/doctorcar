@@ -1616,28 +1616,45 @@
 
     // 인천·부천·광명·시흥·김포 연계 2차 병원 목록
     const SECONDARY_HOSPITALS = [
-      { name: "가톨릭관동대학교 국제성모병원", region: "인천 서구" },
-      { name: "인천세종병원", region: "인천 계양구 작전동" },
-      { name: "한림병원 응급의료센터", region: "인천 계양구" },
-      { name: "나은병원", region: "인천 서구" },
-      { name: "나사렛국제병원", region: "인천 연수구" },
-      { name: "인천사랑병원", region: "인천 미추홀구" },
-      { name: "부천성모병원 응급의료센터", region: "경기 부천시" },
-      { name: "인천적십자병원", region: "인천 연수구" },
-      { name: "인천힘찬종합병원", region: "인천 남동구" },
-      { name: "더드림병원", region: "인천" },
-      { name: "순천향대학교 부속 부천병원", region: "경기 부천시" },
-      { name: "근로복지공단 인천병원", region: "인천 부평구" },
-      { name: "부천세종병원", region: "경기 부천시" },
-      { name: "시화병원", region: "경기 시흥시" },
-      { name: "센트럴병원", region: "인천 남동구" },
-      { name: "중앙대학교광명병원", region: "경기 광명시" },
-      { name: "한도병원", region: "경기 시흥시" },
-      { name: "온누리병원", region: "인천" },
-      { name: "광명성애병원 응급실", region: "경기 광명시" },
-      { name: "뉴고려병원", region: "경기 김포시" },
-      { name: "김포우리병원", region: "경기 김포시" },
-      { name: "신천연합병원", region: "경기 시흥시" }
+   { name: "인하대병원", region: "인천 미추홀구" },
+  { name: "현대유비스병원", region: "인천 미추홀구" },
+  { name: "인천보훈병원", region: "인천 미추홀구" },
+  { name: "인천기독병원", region: "인천 중구" },
+  { name: "인천백병원", region: "인천 중구" },
+  { name: "인천광역시의료원", region: "인천 동구" },
+  { name: "뉴성민병원", region: "인천 미추홀구" },
+
+  // 센트럴병원은 시흥만 사용
+  { name: "센트럴병원", region: "경기 시흥시" },
+
+  { name: "다니엘종합병원", region: "인천 남동구" },
+  { name: "부천우리병원", region: "경기 부천시" },
+  { name: "뉴대성병원", region: "인천 부평구" },
+  { name: "검단탑병원", region: "인천 서구" },
+  { name: "인천성모병원", region: "인천 부평구" },
+  { name: "비에스종합병원", region: "인천 남동구" },
+
+  { name: "가톨릭관동대학교 국제성모병원", region: "인천 서구" },
+  { name: "인천세종병원", region: "인천 계양구 작전동" },
+  { name: "한림병원 응급의료센터", region: "인천 계양구" },
+  { name: "나은병원", region: "인천 서구" },
+  { name: "나사렛국제병원", region: "인천 연수구" },
+  { name: "인천사랑병원", region: "인천 미추홀구" },
+  { name: "부천성모병원 응급의료센터", region: "경기 부천시" },
+  { name: "인천적십자병원", region: "인천 연수구" },
+  { name: "인천힘찬종합병원", region: "인천 남동구" },
+  { name: "더드림병원", region: "인천" },
+  { name: "순천향대학교 부속 부천병원", region: "경기 부천시" },
+  { name: "근로복지공단 인천병원", region: "인천 부평구" },
+  { name: "부천세종병원", region: "경기 부천시" },
+  { name: "시화병원", region: "경기 시흥시" },
+  { name: "중앙대학교광명병원", region: "경기 광명시" },
+  { name: "한도병원", region: "경기 시흥시" },
+  { name: "온누리병원", region: "인천" },
+  { name: "광명성애병원 응급실", region: "경기 광명시" },
+  { name: "뉴고려병원", region: "경기 김포시" },
+  { name: "김포우리병원", region: "경기 김포시" },
+  { name: "신천연합병원", region: "경기 시흥시" }
     ];
 
     // 병원 리스트를 Kakao Places로 검색해서 마커 + 라벨 + 소요시간
