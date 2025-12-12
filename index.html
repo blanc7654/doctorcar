@@ -464,21 +464,17 @@
     .marker-label.patient { border-color: #ff4b8b; color: #d81b60; font-weight: 800; }
 
     /* ====== GPS BANNER (MAP TAB) ====== */
-    .gps-banner {
-      margin: 10px 0 14px;
-      padding: 12px 16px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #ffb3c8, #ff6f9d) !important;
-      border: 1px solid #ff4b8b;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.09);
-    }
-
-    .gps-banner-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-      color: #b0003a;
-    }
+.gps-banner {
+  margin: 10px 0 14px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #dff7d7, #bff0b7) !important; /* ✅ 연두 */
+  border: 1px solid #59c36a;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.09);
+}
+.gps-banner-title{
+  color:#1b5e20;   /* 제목도 연두톤 */
+}
 
     .gps-instruction {
       font-size: 0.82rem;
@@ -488,6 +484,11 @@
     }
     .gps-instruction .red { color: #0b7ac4; font-weight: 800; }
     .gps-instruction .pink { color: #4a1e2b; font-weight: 800; }
+
+.gps-instruction .manual-red{
+  color:#c62828;
+  font-weight:900;
+}
 
     .btn-gps {
       display: inline-flex;
@@ -503,17 +504,32 @@
     }
     .btn-gps:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
 
-    .gps-address {
-      margin-top: 8px;
-      font-size: 0.82rem;
-      color: #3b1b25;
-      background: rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.7);
-      border-radius: 12px;
-      padding: 8px 10px;
-      display: none;
-    }
-    .gps-address b { color: #111; }
+.gps-address {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: #0b7ac4;
+  background: #e6f3fb;               /* ✅ 연파랑 배경 */
+  border: 1px solid #0b7ac4;
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: none;
+}
+.gps-address b { color: #0b7ac4; }
+
+.btn-manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #c62828;
+  background: #c62828;
+  color: #fff;
+  font-size: 0.82rem;
+  cursor: default;
+  user-select: none;
+  font-weight: 800;
+}
 
     .manual-panel {
       margin-top: 10px;
@@ -530,18 +546,19 @@
       color: #d81b60;
       margin-bottom: 6px;
     }
-    .manual-panel input {
-      width: 100%;
-      font-size: 0.9rem;
-      padding: 9px 10px;
-      border-radius: 12px;
-      border: 1px solid #e6e6e6;
-      outline: none;
-    }
-    .manual-panel input:focus {
-      border-color: #ff4b8b;
-      box-shadow: 0 0 0 3px rgba(255,75,139,0.15);
-    }
+.manual-panel input {
+  width: 100%;
+  font-size: 0.9rem;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 2px solid #ff4b8b;              /* ✅ 기본부터 핑크 테두리 */
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(255,75,139,0.08); /* ✅ “입력칸” 느낌 */
+}
+.manual-panel input:hover{
+  box-shadow: 0 0 0 3px rgba(255,75,139,0.12);
+}
     .manual-results {
       margin-top: 8px;
       border-radius: 12px;
@@ -809,8 +826,8 @@ outline: 1px solid rgba(0,0,0,0.05);
           <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
 
           <div class="gps-instruction">
-            <span class="red">GPS로 현위치를 특정하거나</span><br>
-            <span class="pink"><b>수동주소입력으로 환자발생지 특정</b></span>하면 각각 주변병원까지의 이송거리를 알 수 있습니다.
+          <span class="red">GPS로 현위치를 특정하거나</span><br>
+<b><span class="manual-red">수동주소입력으로 환자발생지 입력하면</span></b> 각각 주변병원까지의 이송거리를 알 수 있습니다.
           </div>
 
           <!-- ✅ GPS 버튼(상단 배너 삭제 → 여기만 사용) -->
@@ -823,7 +840,7 @@ outline: 1px solid rgba(0,0,0,0.05);
 
           <!-- ✅ 수동 입력칸 상시 노출 -->
           <div class="manual-panel" id="manual-panel">
-            <div class="manual-title">⭐ 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
+<div class="btn-manual">⭐ 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
             <input type="text" id="patient-input" placeholder="예: 김포공항, 인천 남동구 ○○로 12, ○○빌딩" autocomplete="off" />
             <div class="manual-results" id="patient-results"></div>
             <div style="margin-top:8px; font-size:0.78rem; color:#666;">
@@ -1477,12 +1494,11 @@ outline: 1px solid rgba(0,0,0,0.05);
       el.style.display = 'block';
     }
 
-    function formatTel(tel) {
-      const t = String(tel || '').trim();
-      if (!t || t.includes('000')) return null; // 더미/없음 숨김
-      return t;
-    }
-
+function formatTel(tel) {
+  const t = String(tel || '').trim();
+  if (!t) return null;
+  return t;
+}
     // ✅ 클릭한 대상(병원/길병원) 위치로: (현재위치/환자발생지) 각각 ETA 표시 + 아래에 전화번호
     async function showEtaInfoWindow(map, markerForOpen, toLatLng, targetName, targetTel) {
       if (CURRENT_INFO_WINDOW) {
@@ -1516,13 +1532,27 @@ outline: 1px solid rgba(0,0,0,0.05);
       // ✅ 클릭 순간에만 계산
       if (USER_POS) {
         const s1 = await fetchDriveSummary(USER_POS, toLatLng);
-        if (s1) lines.push(`<div style="margin:2px 0;">현재위치로부터 (<b>${s1.distanceKm}km</b>, <b>${s1.durationMin}분</b>)</div>`);
+if (s1) lines.push(`
+  <div style="margin:2px 0;">
+    현재위치로부터
+    <span style="white-space:nowrap;">
+      (<b>${s1.distanceKm}km</b>, <b>${s1.durationMin}분</b>)
+    </span>
+  </div>
+`);
         else lines.push(`<div style="margin:2px 0; color:#c62828;">현재위치로부터 소요시간을 불러오지 못했습니다.</div>`);
       }
 
       if (PATIENT_POS) {
         const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
-        if (s2) lines.push(`<div style="margin:2px 0;"><span style="color:#d81b60;font-weight:800;">환자발생지로부터</span> (<b>${s2.distanceKm}km</b>, <b>${s2.durationMin}분</b>)</div>`);
+if (s2) lines.push(`
+  <div style="margin:2px 0;">
+    <span style="color:#d81b60;font-weight:800;">환자발생지로부터</span>
+    <span style="white-space:nowrap;">
+      (<b>${s2.distanceKm}km</b>, <b>${s2.durationMin}분</b>)
+    </span>
+  </div>
+`);
         else lines.push(`<div style="margin:2px 0; color:#d81b60;">환자발생지로부터 소요시간을 불러오지 못했습니다.</div>`);
       }
 
