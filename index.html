@@ -732,10 +732,14 @@ outline: 1px solid rgba(0,0,0,0.05);
 }
 /* ✅ InfoWindow(클릭 팝업) 레이아웃 고정 */
 .iw-wrap{
-  max-width: 240px;      /* 팝업 폭 제한 */
-  overflow: hidden;      /* 삐져나오는 것 방지 */
+  width: 100%;
+  max-width: 240px;
+  padding: 8px 10px;     /* ✅ 여기로 이동 */
+  box-sizing: border-box;/* ✅ padding 포함 계산 */
+  overflow: hidden;
   font-size: 12px;
   line-height: 1.35;
+  display: block;        /* ✅ 필수 */
 }
 
 .iw-title{
@@ -761,9 +765,11 @@ outline: 1px solid rgba(0,0,0,0.05);
 }
 
 .iw-phone{
+  width: 100%;
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px dashed #e2e2e2;
+  box-sizing: border-box;
 }
 
 .iw-phone a{
@@ -1614,13 +1620,12 @@ const telHtml = tel ? `
 ` : ``;
 
 infoWindow.setContent(`
-  <div class="iw-wrap" style="padding:8px 10px;">
+  <div class="iw-wrap">
     <div class="iw-title">${esc(targetName || '대상')}</div>
     ${lines.join('')}
     ${telHtml}
   </div>
 `);
-
     }
 
     // ✅ 내 위치 표시 (빨간 라벨)
