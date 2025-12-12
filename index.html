@@ -486,8 +486,9 @@
       line-height: 1.35;
       margin-bottom: 10px;
     }
-    .gps-instruction .red { color: #b71c1c; font-weight: 800; }
-    .gps-instruction .pink { color: #d81b60; font-weight: 800; }
+    .gps-instruction .red { color: #0b7ac4; font-weight: 800; }
+    .gps-instruction .pink { color: #8e0038; font-weight: 900; }
+
 
     .btn-gps {
       display: inline-flex;
@@ -506,20 +507,21 @@
     .gps-address {
       margin-top: 8px;
       font-size: 0.82rem;
-      color: #3b1b25;
-      background: rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.7);
+      color: #0b3f66;
+      background: rgba(11,122,196,0.18); 
+      border: 1px solid rgba(11,122,196,0.35);
       border-radius: 12px;
       padding: 8px 10px;
       display: none;
     }
-    .gps-address b { color: #111; }
+    .gps-address b{ color:#0b7ac4; }
 
     .manual-panel {
       margin-top: 10px;
       padding: 10px 12px;
-      background: #fff;
-      border: 1px solid #ffd1e2;
+      background: linear-gradient(135deg, #ff6f9d, #ff4b8b);
+      border: 1px solid #ff4b8b;
+      color:#fff;
       border-radius: 14px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.06);
       display: block; /* ✅ 항상 보이게 */
@@ -527,7 +529,7 @@
     .manual-panel .manual-title {
       font-size: 0.85rem;
       font-weight: 800;
-      color: #d81b60;
+      color:#fff;
       margin-bottom: 6px;
     }
     .manual-panel input {
@@ -535,7 +537,7 @@
       font-size: 0.9rem;
       padding: 9px 10px;
       border-radius: 12px;
-      border: 1px solid #e6e6e6;
+      border: 2px solid #ff4b8b; 
       outline: none;
     }
     .manual-panel input:focus {
@@ -577,6 +579,61 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       white-space: nowrap;
     }
+
+/* ====== SURVEY EXPERIENCE (보라색 블록 + 펼침) ====== */
+.experience-wrapper{
+  background: linear-gradient(135deg, #6a5acd, #7b4dd6);
+  color:#fff;
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.experience-wrapper label{
+  display:block;
+  margin: 6px 0;
+  font-size: 0.9rem;
+}
+
+.experience-wrapper input{ margin-right:6px; }
+
+#doctorcar-experience-block{
+  display:none;              /* ✅ 처음엔 숨김 */
+  margin-top: 10px;
+}
+
+.experience-note{
+  font-size: 0.82rem;
+  color:#5b3fa3;
+  background:#f3efff;
+  border: 1px solid #e3d8ff;
+  padding: 8px 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.exp-sub-card{
+  background:#fff;
+  border-radius: 14px;
+  padding: 12px 12px 10px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  border: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.exp-sub-card h4{
+  font-size:0.9rem;
+  margin-bottom:6px;
+  color:#222;
+}
+
+.exp-sub-card label{
+  display:block;
+  font-size:0.88rem;
+  margin: 6px 0;
+  color:#222;
+}
+
 
     /* ====== CALL BTN FULL ====== */
     .call-btn-full {
@@ -1280,6 +1337,7 @@
     let roleOverlayOpen = false;
     let deferredPrompt = null;
     let CURRENT_INFO_WINDOW = null;
+    let LAST_TARGET = null; // ✅ 마지막으로 클릭한 병원/길병원 기억
 
     // ✅ 내 위치(GPS) / 환자발생지(수동) 상태
     let USER_POS = null;
@@ -1368,11 +1426,11 @@
       el.style.display = 'block';
     }
 
-    function formatTel(tel) {
-      const t = String(tel || '').trim();
-      if (!t || t.includes('000')) return null; // 더미/없음 숨김
-      return t;
-    }
+function formatTel(tel) {
+  const t = String(tel || '').trim();
+  if (!t) return null;
+  return t;
+}
 
     // ✅ 클릭한 대상(병원/길병원) 위치로: (현재위치/환자발생지) 각각 ETA 표시 + 아래에 전화번호
     async function showEtaInfoWindow(map, markerForOpen, toLatLng, targetName, targetTel) {
@@ -1380,6 +1438,16 @@
         CURRENT_INFO_WINDOW.close();
         CURRENT_INFO_WINDOW = null;
       }
+
+LAST_TARGET = { latLng: toLatLng, name: targetName || '대상', tel: targetTel || '' };
+
+function refreshLastTargetIfAny() {
+  if (!LAST_TARGET || !HOSPITAL_MAP) return;
+
+  // 현재 열려있는 인포윈도우가 있으면 그 자리에서 갱신되도록 "좌표로 open"
+  showEtaInfoWindow(HOSPITAL_MAP, null, LAST_TARGET.latLng, LAST_TARGET.name, LAST_TARGET.tel);
+}
+
 
       const infoWindow = new kakao.maps.InfoWindow({ removable: true });
 
@@ -1389,7 +1457,8 @@
           <div>소요시간 계산 중...</div>
         </div>
       `);
-      infoWindow.open(map, markerForOpen);
+    if (markerForOpen) infoWindow.open(map, markerForOpen);
+else infoWindow.open(map, toLatLng);
       CURRENT_INFO_WINDOW = infoWindow;
 
       if (!USER_POS && !PATIENT_POS) {
@@ -1405,17 +1474,17 @@
       const lines = [];
 
       // ✅ 클릭 순간에만 계산
-      if (USER_POS) {
-        const s1 = await fetchDriveSummary(USER_POS, toLatLng);
-        if (s1) lines.push(`<div style="margin:2px 0;">현재위치로부터 (<b>${s1.distanceKm}km</b>, <b>${s1.durationMin}분</b>)</div>`);
-        else lines.push(`<div style="margin:2px 0; color:#c62828;">현재위치로부터 소요시간을 불러오지 못했습니다.</div>`);
-      }
+if (USER_POS) {
+  const s1 = await fetchDriveSummary(USER_POS, toLatLng);
+  if (s1) lines.push(`<div style="margin:2px 0; white-space:nowrap;">현재위치로부터 (<b>${s1.distanceKm}km</b>, <b>${s1.durationMin}분</b>)</div>`);
+  else lines.push(`<div style="margin:2px 0; color:#c62828;">현재위치로부터 소요시간을 불러오지 못했습니다.</div>`);
+}
 
-      if (PATIENT_POS) {
-        const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
-        if (s2) lines.push(`<div style="margin:2px 0;"><span style="color:#d81b60;font-weight:800;">환자발생지로부터</span> (<b>${s2.distanceKm}km</b>, <b>${s2.durationMin}분</b>)</div>`);
-        else lines.push(`<div style="margin:2px 0; color:#d81b60;">환자발생지로부터 소요시간을 불러오지 못했습니다.</div>`);
-      }
+if (PATIENT_POS) {
+  const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
+  if (s2) lines.push(`<div style="margin:2px 0; white-space:nowrap;"><span style="color:#d81b60;font-weight:800;">환자발생지로부터</span> (<b>${s2.distanceKm}km</b>, <b>${s2.durationMin}분</b>)</div>`);
+  else lines.push(`<div style="margin:2px 0; color:#d81b60;">환자발생지로부터 소요시간을 불러오지 못했습니다.</div>`);
+}
 
       const tel = formatTel(targetTel);
       const telHtml = tel ? `
@@ -1501,9 +1570,10 @@
           HOSPITAL_MAP.setBounds(bounds);
 
           reverseGeocode(USER_POS, (addr) => {
-            USER_ADDR = addr;
-            showGpsAddress(addr);
-          });
+  USER_ADDR = addr;
+  showGpsAddress(addr);
+  refreshLastTargetIfAny(); // ✅ GPS 갱신 시에도 마지막 클릭 병원 자동 업데이트
+});
         },
         (err) => {
           console.warn('Geolocation 실패:', err);
@@ -1844,6 +1914,7 @@
           patientInput.value = name;
           clearPatientResults();
 
+refreshLastTargetIfAny();
           alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
         });
         patientResults.appendChild(div);
@@ -2001,6 +2072,148 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && mapModal && mapModal.style.display === 'flex') closeMapModal();
     });
+
+// ======================
+// ✅ 설문 UX/동작 복구
+// ======================
+(function initSurveyUX(){
+  const form = document.getElementById('doctorcar-survey');
+  if (!form) return;
+
+  // 1) “기타” 선택 시 입력칸 열기/닫기 공통 함수
+  function bindOtherRadio(groupName, otherValue, otherWrapId, otherInputSelector){
+    const radios = form.querySelectorAll(`input[name="${groupName}"]`);
+    const wrap = document.getElementById(otherWrapId);
+    const otherInput = wrap ? wrap.querySelector(otherInputSelector) : null;
+    if (!radios.length || !wrap || !otherInput) return;
+
+    const update = () => {
+      const checked = form.querySelector(`input[name="${groupName}"]:checked`);
+      const isOther = checked && checked.value === otherValue;
+      wrap.style.display = isOther ? 'block' : 'none';
+      otherInput.required = !!isOther;
+      if (!isOther) otherInput.value = '';
+    };
+
+    radios.forEach(r => r.addEventListener('change', update));
+    update(); // 초기 1회
+  }
+
+  // ✅ 근무기관/근무지역/방문목적 “기타” 토글
+  bindOtherRadio('org_type', 'other_org', 'org_type_other_wrap', 'input[name="org_type_other_text"]');
+  bindOtherRadio('region', 'other_region', 'region_other_wrap', 'input[name="region_other_text"]');
+  bindOtherRadio('visit_purpose', 'other', 'visit_purpose_other_wrap', 'input[name="visit_purpose_other_text"]');
+
+  // 2) 글자수 카운터
+  function bindCounter(textareaId, counterId, max){
+    const ta = document.getElementById(textareaId);
+    const ct = document.getElementById(counterId);
+    if (!ta || !ct) return;
+    const update = () => { ct.textContent = `${ta.value.length} / ${max}자`; };
+    ta.addEventListener('input', update);
+    update();
+  }
+  bindCounter('treatment_free_text', 'treatment_free_counter', 100);
+  bindCounter('improvement_free_text', 'improvement_free_counter', 100);
+
+  // 3) “닥터카 실제 이용 경험” → 예(yes)일 때만 상세 블록 펼치기
+  const expBlock = document.getElementById('doctorcar-experience-block');
+  const usedRadios = form.querySelectorAll('input[name="used_doctorcar"]');
+
+  function clearExperienceInputs(){
+    if (!expBlock) return;
+    expBlock.querySelectorAll('input[type="checkbox"]').forEach(ch => ch.checked = false);
+    expBlock.querySelectorAll('textarea').forEach(t => t.value = '');
+    // 카운터 즉시 갱신
+    const t1 = document.getElementById('treatment_free_text');
+    const c1 = document.getElementById('treatment_free_counter');
+    if (t1 && c1) c1.textContent = `${t1.value.length} / 100자`;
+  }
+
+  function updateExperienceBlock(){
+    if (!expBlock) return;
+    const v = form.querySelector('input[name="used_doctorcar"]:checked')?.value;
+    const show = (v === 'yes');
+    expBlock.style.display = show ? 'block' : 'none';
+    if (!show) clearExperienceInputs();
+  }
+
+  usedRadios.forEach(r => r.addEventListener('change', updateExperienceBlock));
+  updateExperienceBlock(); // ✅ 최초엔 숨김
+
+  // 4) 제출 시 GA 이벤트(설문 저장은 “GA 이벤트 기록” 방식)
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    // 최소값 체크는 HTML required가 해주지만, 혹시 몰라서 한 번 더
+    const org = form.querySelector('input[name="org_type"]:checked')?.value;
+    const career = form.querySelector('input[name="career_years"]:checked')?.value;
+    const region = form.querySelector('input[name="region"]:checked')?.value;
+    const purpose = form.querySelector('input[name="visit_purpose"]:checked')?.value;
+    const used = form.querySelector('input[name="used_doctorcar"]:checked')?.value;
+
+    if (!org || !career || !region || !purpose || !used) {
+      alert('필수 항목을 모두 선택해 주세요.');
+      return;
+    }
+
+    // 체크박스 값 묶기
+    const decisionImpact = Array.from(form.querySelectorAll('input[name="decision_impact"]:checked')).map(x => x.value);
+    const timeEffect = Array.from(form.querySelectorAll('input[name="time_effect"]:checked')).map(x => x.value);
+    const treatmentGood = Array.from(form.querySelectorAll('input[name="treatment_good"]:checked')).map(x => x.value);
+
+    // 기타 텍스트
+    const orgOther = form.querySelector('input[name="org_type_other_text"]')?.value?.trim() || '';
+    const regionOther = form.querySelector('input[name="region_other_text"]')?.value?.trim() || '';
+    const purposeOther = form.querySelector('input[name="visit_purpose_other_text"]')?.value?.trim() || '';
+
+    const payload = {
+      entry_channel: trafficInfo?.channel || 'unknown',
+      user_role: currentUserRole || 'unknown',
+
+      org_type: org,
+      org_type_other: orgOther,
+      career_years: career,
+      region: region,
+      region_other: regionOther,
+      visit_purpose: purpose,
+      visit_purpose_other: purposeOther,
+
+      decision_impact: decisionImpact.join('|') || '(none)',
+      decision_help_score: form.querySelector('select[name="decision_help_score"]')?.value || '',
+      used_doctorcar: used,
+
+      time_effect: timeEffect.join('|') || '(none)',
+      treatment_good: treatmentGood.join('|') || '(none)',
+      treatment_free_text: (form.querySelector('textarea[name="treatment_free_text"]')?.value || '').slice(0,100),
+
+      reuse_intent: form.querySelector('select[name="reuse_intent"]')?.value || '',
+      nps_score: form.querySelector('select[name="nps_score"]')?.value || '',
+      improvement_free_text: (form.querySelector('textarea[name="improvement_free_text"]')?.value || '').slice(0,100),
+
+      submitted_at: new Date().toISOString()
+    };
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'submit_survey_doctorcar', payload);
+    }
+
+    alert('설문 감사합니다! (제출 완료)');
+    form.reset();
+
+    // reset 후 UI 다시 정리
+    document.getElementById('org_type_other_wrap') && (document.getElementById('org_type_other_wrap').style.display='none');
+    document.getElementById('region_other_wrap') && (document.getElementById('region_other_wrap').style.display='none');
+    document.getElementById('visit_purpose_other_wrap') && (document.getElementById('visit_purpose_other_wrap').style.display='none');
+    updateExperienceBlock();
+    // 카운터 초기화
+    const c1 = document.getElementById('treatment_free_counter');
+    const c2 = document.getElementById('improvement_free_counter');
+    if (c1) c1.textContent = '0 / 100자';
+    if (c2) c2.textContent = '0 / 100자';
+  });
+})();
+
 
     window.addEventListener('load', initSecondaryHospitalsMap);
   </script>
