@@ -1606,12 +1606,6 @@ if (s2) lines.push(`
         else lines.push(`<div style="margin:2px 0; color:#d81b60;">환자발생지로부터 소요시간을 불러오지 못했습니다.</div>`);
       }
 
-      const tel = formatTel(targetTel);
-      const telHtml = tel ? `
-        <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #e2e2e2;">
-          ☎ <b>${esc(tel)}</b>
-        </div>` : ``;
-
 const tel = formatTel(targetTel);
 const telHtml = tel ? `
   <div class="iw-phone">
