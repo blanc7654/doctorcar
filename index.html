@@ -618,11 +618,12 @@
 
 /* 상단 라디오가 있는 블록(used_doctorcar)도 연보라로 */
 .experience-wrapper{
-  background: linear-gradient(135deg, var(--lavender-100), #ffffff);
-  border: 1px solid var(--lavender-200);
+  background: var(--lavender-100);   /* ✅ 단색 연보라 */
+  border: 1px solid var(--lavender-300);
   border-radius: 16px;
-  padding: 14px 14px 12px;
+  padding: 14px;
 }
+
 
 /* 제목도 연보라 */
 .experience-title{
@@ -632,6 +633,9 @@
 
 /* ✅ 예(yes) 선택 전에는 아래 상세 블록 숨김 */
 #doctorcar-experience-block{
+  background: var(--lavender-50);
+  border-radius: 18px;
+  padding: 10px;
   display: none;              /* 기본 숨김 */
   margin-top: 10px;
 }
@@ -660,7 +664,7 @@
 
 /* 각 상세 카드 */
 .exp-sub-card{
-  background: #fff;
+  background: #faf8ff;  /* 거의 흰색 + 보라기 */
   border: 1px solid var(--lavender-200);
   border-radius: 16px;
   padding: 12px 12px 10px;
