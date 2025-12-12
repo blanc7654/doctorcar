@@ -1,3 +1,7 @@
+<!-- =========================
+PART 1 / 4 : HEAD + CSS
+(이 파트 끝에 PART2가 바로 이어집니다)
+========================= -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -15,6 +19,7 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){ dataLayer.push(arguments); }
     gtag('js', new Date());
+    // 기본 page_view 자동 기록 + 디버그 모드
     gtag('config', 'G-MCKTRFREN3', { debug_mode: true });
   </script>
 
@@ -28,6 +33,15 @@
       --bg: #f5f7fb;
       --card-radius: 18px;
       --shadow-soft: 0 10px 25px rgba(0,0,0,0.06);
+
+      /* 추가 색상 */
+      --pink1: #ffb3c8;
+      --pink2: #ff6f9d;
+      --pink-border: #ff4b8b;
+      --blue-bg: #0b7ac4;
+      --blue-bg2: #0a6fb2;
+      --blue-text: #0b7ac4;
+      --danger-red: #b71c1c;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,9 +61,7 @@
       padding: 16px 16px 40px;
     }
 
-    html { scroll-behavior: smooth; }
-
-    /* ====== TOP NAV ====== */
+    /* 상단 고정 네비 */
     .top-nav {
       position: sticky;
       top: 0;
@@ -77,7 +89,6 @@
       white-space: nowrap;
       color: #333;
     }
-
     .nav-chip.primary {
       background: var(--primary);
       border-color: var(--primary);
@@ -85,14 +96,54 @@
       font-weight: 600;
     }
 
-    /* ✅ 지도 탭 핑크 테두리 */
-    .nav-chip-map{
-      border-color: #ff4b8b !important;
-      color: #d81b60 !important;
-      font-weight: 700;
+    html { scroll-behavior: smooth; }
+
+    .map-container {
+      width: 100%;
+      height: 360px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    @media (min-width: 720px) {
+      .map-container { height: 420px; }
     }
 
-    /* ====== HERO ====== */
+    /* 이미지 배너(가로 긴 스트립) */
+    .image-strip {
+      width: 100%;
+      height: 180px;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 12px 0 18px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    .image-strip::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.35));
+    }
+    .image-strip-inner {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 12px 16px;
+      color: #fff;
+    }
+    .image-strip-title { font-size: 1rem; font-weight: 600; }
+    .image-strip-subtitle { font-size: 0.8rem; opacity: 0.9; }
+    .image-strip-g1 { background-image: url("images/G1.jpg"); }
+    .image-strip-g2 { background-image: url("images/G2.jpg"); }
+    .image-strip-g3 { background-image: url("images/G3.jpg"); }
+
+    /* 히어로 영역 */
     .hero {
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: #fff;
@@ -111,7 +162,6 @@
     }
     .hero-title { font-size: 1.7rem; font-weight: 700; margin-bottom: 4px; }
     .hero-subtitle { font-size: 0.95rem; opacity: 0.95; margin-bottom: 16px; }
-
     .hero-badges {
       display: flex;
       flex-wrap: wrap;
@@ -129,8 +179,8 @@
       align-items: center;
       gap: 6px;
     }
-
     .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
     .btn-primary {
       flex: 1 1 140px;
       text-align: center;
@@ -153,9 +203,11 @@
       font-size: 0.9rem;
       padding: 9px 12px;
       opacity: 0.9;
-      background: transparent;
       cursor: pointer;
+      background: transparent;
     }
+
+    /* 설문 버튼만 밝게 보이게 */
     .btn-survey {
       background: #f0f7fb;
       color: #0b7ac4;
@@ -163,7 +215,9 @@
       opacity: 1;
     }
     .btn-survey small { color: #555; opacity: 0.9; }
-    .btn-primary small, .btn-outline small {
+
+    .btn-primary small,
+    .btn-outline small {
       display: block;
       font-size: 0.75rem;
       font-weight: 400;
@@ -171,6 +225,7 @@
       margin-top: 2px;
     }
 
+    /* 의료진 전용 경고 */
     .request-warning {
       font-size: 0.8rem;
       color: #d32f2f;
@@ -182,9 +237,9 @@
       border-left: 3px solid #c62828;
     }
 
-    /* ====== GENERAL ====== */
     main { margin-top: 10px; }
     section { margin-bottom: 20px; }
+
     .section-label {
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -198,8 +253,13 @@
       margin-bottom: 10px;
       color: #111;
     }
-    .section-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; }
+    .section-description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
 
+    /* 카드 */
     .card {
       background: #fff;
       border-radius: var(--card-radius);
@@ -243,7 +303,6 @@
       margin-top: 6px;
       color: #5b4705;
     }
-
     .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .pill {
       font-size: 0.78rem;
@@ -255,11 +314,13 @@
     }
     .pill.secondary { background: #eee; color: #555; }
 
+    /* 닥터카 역할 */
     .skills-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     .skills-tagline { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
     .skills-label { font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
     .skills-list { font-size: 0.88rem; padding-left: 16px; }
     .skills-list li { margin-bottom: 3px; }
+
     .footnote { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
 
     footer { margin-top: 26px; font-size: 0.78rem; color: var(--text-muted); text-align: center; }
@@ -272,60 +333,41 @@
       .hero-subtitle { font-size: 1rem; }
       .section-title { font-size: 1.2rem; }
       .skills-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .image-strip { height: 210px; }
     }
 
-    /* ====== IMAGE STRIP ====== */
-    .image-strip {
+    .call-btn-full {
+      display: block;
       width: 100%;
-      height: 180px;
-      border-radius: 20px;
-      overflow: hidden;
-      margin: 12px 0 18px;
-      box-shadow: var(--shadow-soft);
-      position: relative;
-      background-size: cover;
-      background-position: center center;
-      background-repeat: no-repeat;
+      text-align: center;
+      padding: 14px 12px 10px;
+      background: #ffffff;
+      border-radius: 999px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+      border: 1px solid #dfe7f5;
+      color: var(--primary);
+      text-decoration: none;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      cursor: pointer;
     }
-    .image-strip::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.35));
-    }
-    .image-strip-inner {
-      position: relative;
-      z-index: 1;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 12px 16px;
-      color: #fff;
-    }
-    .image-strip-title { font-size: 1rem; font-weight: 600; }
-    .image-strip-subtitle { font-size: 0.8rem; opacity: 0.9; }
-    .image-strip-g1 { background-image: url("images/G1.jpg"); }
-    .image-strip-g2 { background-image: url("images/G2.jpg"); }
-    .image-strip-g3 { background-image: url("images/G3.jpg"); }
-    @media (min-width: 720px) { .image-strip { height: 210px; } }
+    .call-btn-full:active { transform: scale(0.97); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+    .call-btn-full .call-icon { font-size: 1.1rem; margin-right: 4px; vertical-align: middle; }
+    .call-btn-full .call-title { font-size: 1rem; font-weight: 700; vertical-align: middle; }
+    .call-btn-full .call-sub { display: block; font-size: 0.75rem; color: #666; margin-top: 2px; }
 
-    /* ====== HERO QR ====== */
-    .hero-header-row {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
+    /* 기타 */
+    .etc-section { margin-top: 32px; }
+    .etc-text { font-size: 0.85rem; color: var(--text-main); margin-top: 0.2px; margin-bottom: 50px; line-height: 1.4; }
+    .etc-text strong { font-weight: 700; }
+    .etc-image-full { width: 100%; border-radius: 14px; margin: 14px 0; object-fit: cover; }
+    .etc-image-half { width: 50%; border-radius: 14px; height: 360px; object-fit: cover; }
+    .etc-image-amputation { width: 100%; border-radius: 14px; margin: 16px 0; height: 430px; object-fit: cover; }
+
+    /* 히어로 QR */
+    .hero-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .hero-title-block { flex: 1 1 auto; min-width: 0; }
     .hero-qr-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-    .hero-qr {
-      width: 90px; height: 90px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-      object-fit: cover;
-    }
+    .hero-qr { width: 90px; height: 90px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.18); object-fit: cover; }
     .hero-qr-buttons { display: flex; flex-direction: column; gap: 4px; }
     .hero-qr-btn.hero-qr-text {
       border: none;
@@ -365,208 +407,13 @@
       .hero-qr-btn { font-size: 0.75rem; padding: 4px 8px; }
     }
 
-    /* ====== MAP ====== */
-    .map-container {
-      width: 100%;
-      height: 360px;
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
-    }
-    @media (min-width: 720px) {
-      .map-container { height: 420px; }
-    }
-
-    .map-expand-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 30;
-      border-radius: 999px;
-      padding: 8px 12px;
-      border: 1px solid #d0d7ea;
-      background: rgba(255,255,255,0.95);
-      cursor: pointer;
-      font-size: 0.82rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      display: none;
-      user-select: none;
-    }
-    @media (min-width: 900px) {
-      .map-expand-btn { display: inline-flex; align-items: center; gap: 6px; }
-    }
-
-    #map-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-    }
-    #map-modal .modal-inner {
-      width: min(1200px, 96vw);
-      height: min(780px, 92vh);
-      background: #fff;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-    #map-modal .modal-topbar {
-      padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    #map-modal .modal-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #111;
-    }
-    #map-modal .modal-close {
-      border: 1px solid #d0d7ea;
-      background: #fff;
-      border-radius: 999px;
-      padding: 7px 12px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    #modal-map {
-      flex: 1 1 auto;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* ====== MARKER LABELS ====== */
-    .marker-label {
-      background: #ffffff;
-      border: 1px solid #d0d4e4;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 11px;
-      white-space: nowrap;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      user-select: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      -webkit-touch-callout: none;
-      cursor: pointer;
-      line-height: 1.25;
-    }
-    .marker-label.gil { border-color: #7b4dd6; color: #5b3fa3; font-weight: 700; }
-    .marker-label.user { border-color: #c62828; color: #b71c1c; font-weight: 700; }
-    .marker-label.patient { border-color: #ff4b8b; color: #d81b60; font-weight: 800; }
-
-    /* ====== GPS BANNER (MAP TAB) ====== */
-    .gps-banner {
-      margin: 10px 0 14px;
-      padding: 12px 16px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #ffb3c8, #ff6f9d) !important;
-      border: 1px solid #ff4b8b;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.09);
-    }
-
-    .gps-banner-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-      color: #b0003a;
-    }
-
-    .gps-instruction {
-      font-size: 0.82rem;
-      color: #4a1e2b;
-      line-height: 1.35;
-      margin-bottom: 10px;
-    }
-    .gps-instruction .red { color: #b71c1c; font-weight: 800; }
-    .gps-instruction .pink { color: #d81b60; font-weight: 800; }
-
-    .btn-gps {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid #0b7ac4;
-      background: #0b7ac4;
-      color: #fff;
-      font-size: 0.82rem;
-      cursor: pointer;
-    }
-    .btn-gps:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-
-    .gps-address {
-      margin-top: 8px;
-      font-size: 0.82rem;
-      color: #3b1b25;
-      background: rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.7);
-      border-radius: 12px;
-      padding: 8px 10px;
-      display: none;
-    }
-    .gps-address b { color: #111; }
-
-    .manual-panel {
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: #fff;
-      border: 1px solid #ffd1e2;
-      border-radius: 14px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-      display: block; /* ✅ 항상 보이게 */
-    }
-    .manual-panel .manual-title {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: #d81b60;
-      margin-bottom: 6px;
-    }
-    .manual-panel input {
-      width: 100%;
-      font-size: 0.9rem;
-      padding: 9px 10px;
-      border-radius: 12px;
-      border: 1px solid #e6e6e6;
-      outline: none;
-    }
-    .manual-panel input:focus {
-      border-color: #ff4b8b;
-      box-shadow: 0 0 0 3px rgba(255,75,139,0.15);
-    }
-    .manual-results {
-      margin-top: 8px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #f0f0f0;
-      display: none;
-    }
-    .manual-item {
-      padding: 10px 10px;
-      background: #fff;
-      cursor: pointer;
-      border-bottom: 1px solid #f2f2f2;
-      font-size: 0.86rem;
-      line-height: 1.25;
-    }
-    .manual-item:hover { background: #fff5f9; }
-    .manual-item:last-child { border-bottom: none; }
-    .manual-item b { display: block; font-size: 0.88rem; color: #111; }
-    .manual-item small { display: block; color: #777; margin-top: 2px; }
-
-    /* ====== TRANSFER CARDS (CRITERIA) ====== */
+    /* 외상센터 이송 기준 이미지 */
     .transfer-card { position: relative; margin: 8px 0 18px; }
     .transfer-image { width: 100%; display: block; border-radius: 14px; }
     .transfer-tag {
-      position: absolute; top: -10px; right: 12px;
+      position: absolute;
+      top: -10px;
+      right: 12px;
       padding: 4px 10px;
       font-size: 0.8rem;
       font-weight: 600;
@@ -578,61 +425,290 @@
       white-space: nowrap;
     }
 
-    /* ====== CALL BTN FULL ====== */
-    .call-btn-full {
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 14px 12px 10px;
-      background: #ffffff;
+    /* 닥터카 실제 이용 경험 */
+    .experience-wrapper { border-radius: 14px; background: #f7f2ff; border: 1px solid #e1d5ff; margin-bottom: 0; }
+    .experience-title { color: #5b3fa3; }
+    .experience-note { font-size: 0.8rem; color: #7a5ec8; margin-top: 4px; }
+    #doctorcar-experience-block {
+      display: none;
+      margin-top: -2px;
+      padding: 8px 10px 6px;
+      border-radius: 0 0 14px 14px;
+      border: 1px solid #e1d5ff;
+      border-top: none;
+      background: #fbf8ff;
+      font-size: 0.85rem;
+      color: #5b3fa3;
+    }
+    #doctorcar-experience-block .exp-sub-card { padding: 6px 0 8px; border-bottom: 1px dashed #d4c6ff; }
+    #doctorcar-experience-block .exp-sub-card:last-child { border-bottom: none; }
+    #doctorcar-experience-block h4 { font-size: 0.9rem; margin-bottom: 4px; color: #5b3fa3; }
+    #doctorcar-experience-block label { display: block; margin-bottom: 3px; }
+
+    /* ====== (요청 반영) GPS/수동입력 핑크 배너 UI ====== */
+    .gps-banner {
+      margin: 10px 0 20px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--pink1), var(--pink2)) !important;
+      border: 1px solid var(--pink-border);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.09);
+    }
+    .gps-banner-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: #8a0030;
+    }
+    .gps-banner-desc {
+      font-size: 0.82rem;
+      color: #5a2836;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .gps-banner-desc .blue {
+      color: #0b3a7a;
+      font-weight: 800; /* 교수님 요청: GPS 부분 파란 글씨 */
+    }
+    .gps-banner-desc .strong {
+      font-weight: 900; /* 교수님 요청: 수동입력 부분 진한 글씨 */
+      color: #5a2836;
+    }
+
+    .gps-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .btn-gps {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
       border-radius: 999px;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
-      border: 1px solid #dfe7f5;
-      color: var(--primary);
-      text-decoration: none;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      border: 1px solid #0b7ac4;
+      background: #0b7ac4;
+      color: #fff;
+      font-size: 0.84rem;
+      cursor: pointer;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .btn-gps:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+
+    /* 교수님 요청: 수동입력 버튼은 "GPS 버튼과 유사한 모양" + 핑크 바탕 + 흰 글씨 */
+    .btn-manual {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--pink-border);
+      background: #ff2f7d;
+      color: #fff;
+      font-size: 0.84rem;
+      cursor: pointer;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .btn-manual:active { transform: scale(0.98); }
+
+    /* 현재 위치 주소 표시: 파란 바탕 통일 */
+    .loc-pill {
+      width: 100%;
+      display: block;
+      margin-top: 6px;
+      background: linear-gradient(135deg, var(--blue-bg), var(--blue-bg2));
+      color: #fff;
+      border-radius: 14px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      line-height: 1.25;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+    .loc-pill .loc-title { font-weight: 900; margin-right: 6px; }
+    .loc-pill .loc-text { opacity: 0.95; }
+
+    /* 수동 입력 영역 */
+    .manual-wrap {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.35);
+      display: none; /* 기본 숨김 → 버튼 눌러 펼침 */
+    }
+    .manual-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .manual-input {
+      flex: 1 1 220px;
+      min-width: 180px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,255,255,0.85);
+      outline: none;
+      font-size: 0.88rem;
+      background: rgba(255,255,255,0.95);
+      /* 교수님 요청: 입력칸 티 나게 핑크 테두리 */
+      box-shadow: 0 0 0 2px rgba(255,75,139,0.35);
+    }
+    .manual-input:focus {
+      box-shadow: 0 0 0 3px rgba(255,75,139,0.55);
+    }
+    .manual-apply {
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .manual-apply:active { transform: scale(0.98); }
+    .manual-hint {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.25;
+    }
+
+    /* ====== 지도 마커 라벨 ====== */
+    .marker-label {
+      background: #ffffff;
+      border: 1px solid #d0d4e4;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -webkit-touch-callout: none;
       cursor: pointer;
     }
-    .call-btn-full:active { transform: scale(0.97); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
-    .call-btn-full .call-icon { font-size: 1.1rem; margin-right: 4px; vertical-align: middle; }
-    .call-btn-full .call-title { font-size: 1rem; font-weight: 700; vertical-align: middle; }
-    .call-btn-full .call-sub { display: block; font-size: 0.75rem; color: #666; margin-top: 2px; }
+    .marker-label.gil {
+      border-color: #7b4dd6;
+      color: #5b3fa3;
+      font-weight: 700;
+    }
 
-    /* ====== ETC (원본 유지) ====== */
-    .etc-section { margin-top: 32px; }
-    .etc-text { font-size: 0.85rem; color: var(--text-main); margin-top: 0.2px; margin-bottom: 50px; line-height: 1.4; }
-    .etc-text strong { font-weight: 700; }
-    .etc-image-full { width: 100%; border-radius: 14px; margin: 14px 0; object-fit: cover; }
-    .etc-image-half { width: 50%; border-radius: 14px; height: 360px; object-fit: cover; }
-    .etc-image-amputation { width: 100%; border-radius: 14px; margin: 16px 0; height: 430px; object-fit: cover; }
+    /* 교수님 요청: 현재 위치는 파란 글씨 + 파란 테두리 */
+    .marker-label.user {
+      border-color: #0b7ac4;
+      color: #0b7ac4;
+      font-weight: 900;
+      background: #f2f9ff;
+    }
+
+    /* 환자발생지는 빨간 글씨 유지 */
+    .marker-label.patient {
+      border-color: #c62828;
+      color: #b71c1c;
+      font-weight: 900;
+      background: #fff5f5;
+    }
+
+    /* InfoWindow 내용 줄바꿈 방지(‘11분’이 다음줄로 떨어지는 문제 방지) */
+    .iw {
+      width: 260px;
+      max-width: 260px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+    .iw .iw-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      white-space: normal; /* 제목만 줄바꿈 허용 */
+    }
+    .iw .row { display: flex; justify-content: space-between; gap: 8px; }
+    .iw .k { color: #555; }
+    .iw .v { font-weight: 900; }
+    .iw .sub { margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; }
+    .iw .phone {
+      font-weight: 900;
+      color: #0b7ac4;
+      text-decoration: underline;
+    }
   </style>
 
-  <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
+
+
+  <!-- Kakao 지도 SDK (병원 지도용) -->
   <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b9ccd41f81d72605a0882435c138dc91&libraries=services"></script>
 </head>
 
+<!-- =========================
+PART 2 / 4 : BODY 상단 + GPS 배너(요청 반영) + HERO + 본문 일부
+========================= -->
 <body>
 <div id="page-top"></div>
 
-  <!-- ✅ 상단 네비게이션 (요청 순서 반영) -->
+  <!-- 상단 네비게이션 -->
   <nav class="top-nav">
     <div class="top-nav-inner">
       <a href="#page-top" class="nav-chip primary">맨 위로</a>
-      <a href="#map" class="nav-chip nav-chip-map">지도</a>
-      <a href="#criteria" class="nav-chip">이송기준</a>
-      <a href="#intro" class="nav-chip">소개</a>
+      <a href="#intro" class="nav-chip">닥터카 소개</a>
       <a href="#who" class="nav-chip">요청 주체</a>
       <a href="#how" class="nav-chip">요청 방법</a>
       <a href="#when" class="nav-chip">요청 시점</a>
       <a href="#decision" class="nav-chip">출동 결정</a>
       <a href="#can-do" class="nav-chip">닥터카 역할</a>
+      <a href="#network-hospitals" class="nav-chip">주변병원</a>
       <a href="#survey" class="nav-chip">설문</a>
     </div>
   </nav>
 
   <div class="page">
 
-    <!-- ✅ 히어로 영역 (HERO 맨 위 유지) -->
+    <!-- 🔹 HERO 위 GPS/환자발생지 배너 (요청 반영) -->
+    <section class="gps-banner" id="gps-banner-top">
+      <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
+      <p class="gps-banner-desc">
+        <span class="blue">📍 GPS로 현위치를 특정</span>하면 <b>내 위치 기준</b>으로 근처병원/길병원 소요시간을 확인할 수 있습니다.<br>
+        <span class="strong">🧭 수동주소입력으로 환자발생지를 특정</span>하면 <b>환자발생지 기준</b> 소요시간을 바로 계산합니다.
+      </p>
+
+      <div class="gps-actions">
+        <button type="button" class="btn-gps" id="enable-gps-btn">📍 GPS로 현위치주소 찾기</button>
+        <button type="button" class="btn-manual" id="toggle-manual-btn">🧭 환자발생주소명 수동입력하기</button>
+      </div>
+
+      <!-- 현재 위치 주소(파란 바탕 통일) -->
+      <div class="loc-pill" id="current-loc-pill" style="display:none;">
+        <span class="loc-title">현재 위치</span>
+        <span class="loc-text" id="current-loc-text">주소를 불러오는 중…</span>
+      </div>
+
+      <!-- 수동입력 영역 -->
+      <div class="manual-wrap" id="manual-wrap">
+        <div class="manual-row">
+          <input
+            type="text"
+            class="manual-input"
+            id="patient-address-input"
+            placeholder="예: 인천공항, 강화경찰서, 부천시청, OO병원 응급실 앞 …"
+          />
+          <button type="button" class="manual-apply" id="apply-patient-address-btn">적용</button>
+        </div>
+        <div class="manual-hint">
+          · 주소/장소명을 입력하고 <b>적용</b>을 누르면 지도에 <b>환자발생지(빨간 라벨)</b>가 표시됩니다.<br>
+          · 이미 클릭해 둔 병원이 있으면, <b>다시 클릭하지 않아도</b> 환자발생지→병원 소요시간이 자동 갱신됩니다.
+        </div>
+      </div>
+    </section>
+
+    <!-- 히어로 영역 -->
     <header class="hero" id="top">
       <div class="hero-header-row">
         <div class="hero-title-block">
@@ -688,72 +764,12 @@
       </p>
     </header>
 
-    <!-- ✅ 지도 섹션(핑크 배너로 통합) -->
+    <div class="transfer-card">
+      <img src="images/Galgo.jpg" alt="외상센터 이송 기준" class="transfer-image" />
+      <div class="transfer-tag">외상센터 이송 기준</div>
+    </div>
+
     <main>
-
-      <section id="map">
-        <div class="section-label">Map</div>
-        <h2 class="section-title" style="margin-bottom:6px;">지도</h2>
-
-        <div class="gps-banner">
-          <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
-
-          <div class="gps-instruction">
-            <span class="red">GPS로 현위치를 특정하거나</span><br>
-            <span class="pink">수동주소입력으로 환자발생지 특정</span>하면 <b>각각</b> 주변병원까지의 이송거리를 알 수 있습니다.
-          </div>
-
-          <!-- ✅ GPS 버튼(상단 배너 삭제 → 여기만 사용) -->
-          <button type="button" class="btn-gps" id="enable-gps-map-btn">
-            📍 GPS로 현위치주소 찾기
-          </button>
-
-          <!-- ✅ 역지오코딩 주소 표시 -->
-          <div class="gps-address" id="gps-address-map"></div>
-
-          <!-- ✅ 수동 입력칸 상시 노출 -->
-          <div class="manual-panel" id="manual-panel">
-            <div class="manual-title">⭐ 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
-            <input type="text" id="patient-input" placeholder="예: 김포공항, 인천 남동구 ○○로 12, ○○빌딩" autocomplete="off" />
-            <div class="manual-results" id="patient-results"></div>
-            <div style="margin-top:8px; font-size:0.78rem; color:#666;">
-              ※ 검색 결과를 클릭하면 지도에 <b style="color:#d81b60;">⭐ 환자발생지</b>로 표시됩니다.
-            </div>
-          </div>
-        </div>
-
-        <article class="card" style="margin-top:12px;">
-          <div class="card-body">
-            <div id="secondary-hospitals-map" class="map-container">
-              <button type="button" class="map-expand-btn" id="open-map-modal-btn">
-                🗺️ 지도 크게보기
-              </button>
-            </div>
-
-            <p style="font-size:0.78rem; color:#777; margin-top:8px;">
-              ※ 본 지도는 <strong>길병원과 가까운 병원들</strong>을 소개하기 위한 것이며, 실시간 수용 가능 여부는
-              반드시 전화로 확인해 주시기 바랍니다.
-            </p>
-          </div>
-        </article>
-      </section>
-
-      <!-- ✅ 이송기준 섹션(갈고/gtp를 여기로 이동) -->
-      <section id="criteria">
-        <div class="section-label">Criteria</div>
-        <h2 class="section-title">이송기준</h2>
-
-        <div class="transfer-card">
-          <img src="images/Galgo.jpg" alt="외상센터 이송 기준" class="transfer-image" />
-          <div class="transfer-tag">외상센터 이송 기준</div>
-        </div>
-
-        <div class="transfer-card">
-          <img src="images/Gtp.jpg" alt="Trauma point 기준" class="transfer-image" />
-          <div class="transfer-tag">Trauma point 기준</div>
-        </div>
-      </section>
-
       <div class="image-strip image-strip-g2">
         <div class="image-strip-inner">
           <div class="image-strip-title">현장과 최초병원을 잇는 다리</div>
@@ -761,7 +777,7 @@
         </div>
       </div>
 
-      <!-- ✅ 소개 -->
+      <!-- 닥터카 소개 -->
       <section id="intro">
         <div class="section-label">About</div>
         <h2 class="section-title">닥터카 소개</h2>
@@ -781,6 +797,7 @@
         </article>
       </section>
 
+      <!-- 요청 주체 -->
       <section id="who">
         <div class="section-label">Who</div>
         <h2 class="section-title">닥터카 요청 주체</h2>
@@ -799,16 +816,21 @@
         </article>
       </section>
 
+      <!-- 요청 방법 -->
       <section id="how">
         <div class="section-label">How</div>
         <h2 class="section-title">닥터카 요청 방법</h2>
+
         <article class="card">
           <div class="card-header">
             <h3 class="card-title">1단계: 전화 한 통</h3>
             <span class="card-chip">24시간 365일</span>
           </div>
           <div class="card-body">
-            <p><strong>▶ 길병원 외상당직폰으로 전화주세요.</strong><br /><small>(24시간 365일 연중무휴)</small></p>
+            <p>
+              <strong>▶ 길병원 외상당직폰으로 전화주세요.</strong><br />
+              <small>(24시간 365일 연중무휴)</small>
+            </p>
 
             <button type="button" class="call-btn-full call-btn" data-tel="01062063010" data-call-target="how_doctorcar">
               <span class="call-icon">📞</span>
@@ -833,9 +855,11 @@
         </article>
       </section>
 
+      <!-- 요청 시점 -->
       <section id="when">
         <div class="section-label">When</div>
         <h2 class="section-title">닥터카 요청 시점</h2>
+
         <article class="card">
           <div class="card-header">
             <h3 class="card-title">언제 연락해야 하나요?</h3>
@@ -860,9 +884,11 @@
         </article>
       </section>
 
+      <!-- 출동 결정 -->
       <section id="decision">
         <div class="section-label">Decision</div>
         <h2 class="section-title">닥터카 출동 결정</h2>
+
         <article class="card">
           <div class="card-header">
             <h3 class="card-title">누가 출동을 결정하나요?</h3>
@@ -886,6 +912,7 @@
         </div>
       </div>
 
+      <!-- 닥터카가 할 수 있는 것 -->
       <section id="can-do">
         <div class="section-label">Scope</div>
         <h2 class="section-title">닥터카가 할 수 있는 것</h2>
@@ -960,82 +987,269 @@
         </article>
       </section>
 
-      <!-- (이하 etc/설문/푸터는 교수님 기존 그대로 유지) -->
-      <section id="etc" class="etc-section">
-        <div class="section-label">닥터카 기타</div>
-        <h2 class="section-title">닥터카; 기타</h2>
+      <!-- 닥터카 주변병원 지도 -->
+      <section id="network-hospitals">
+        <div class="section-label">Network</div>
+        <h2 class="section-title">주변 병원들 지도</h2>
 
-        <div style="display:flex; gap:10px; margin:16px 0;">
-          <img src="images/Gdoctorcaroutside.jpg" class="etc-image-half" />
-          <img src="images/Gdoctorcarinside.jpg" class="etc-image-half" />
-        </div>
-        <p class="etc-text">닥터카의 내·외부 모습입니다.</p>
-
-        <img src="images/Gamputation.jpg" class="etc-image-amputation" />
-        <p class="etc-text">
-          닥터카가 현장으로 출동하여 구조물에 끼어서 구출할 수 없는 환자를 진료하였습니다.<br>
-          구출에 시간이 오래 소요될 것으로 판단되는 경우 닥터카가 출동할 수 있습니다.
+        <p class="section-description" style="margin-bottom:8px;">
+          GPS 또는 환자발생지 수동입력을 사용하면 <b>거리/시간</b>과 <b>전화번호</b>가 함께 표시됩니다.
         </p>
 
-        <div style="display:flex; gap:10px; margin:16px 0;">
-          <img src="images/Gganghwa.jpg" class="etc-image-half" />
-          <img src="images/Ggimpo.jpg" class="etc-image-half" />
-        </div>
-        <p class="etc-text">
-          강화, 김포, 부천, 광명, 시흥 등지에서 환자 발생 시 구급대원님이 닥터카를 요청하면,<br>
-          중간 위치의 병원이나 안전한 장소에서 만나 환자를 닥터카로 인계할 수 있습니다.
-        </p>
-
-        <img src="images/Ger.jpg" class="etc-image-full" />
-        <p class="etc-text">
-          응급실 선생님들께서도 환자 접촉 시 지체 없이 연락주시길 부탁드립니다.<br>
-          Full work-up이 되지 않은 상태라도 전화주셔도 괜찮습니다.
-        </p>
-
-        <img src="images/Ggachon.jpg" class="etc-image-full" />
-        <p class="etc-text">
-          <strong>맺으며…</strong><br><br>
-          병원 전 단계의 환자 이송 문제는 개인이 해결할 수 없습니다.<br>
-          <strong>길병원 외상센터도, 지역·권역 응급센터도 혼자서는 해결할 수 없습니다.</strong><br><br>
-          모두의 관심과 거버넌스, 시스템 확립과 긴밀한 소통이 필요합니다.<br>
-          함께 힘써주신다면 반드시 더 나은 결과로 보답하겠습니다.<br><br>
-          보다 안전하고 체계적인 외상환자 이송을 위해<br>
-          길병원 외상센터 닥터카가 앞장서겠습니다.<br>
-          감사합니다.
-        </p>
+        <article class="card">
+          <div class="card-body">
+            <div id="secondary-hospitals-map" class="map-container"></div>
+            <p style="font-size:0.78rem; color:#777; margin-top:8px;">
+              ※ 본 지도는 <strong>길병원과 가까운 병원들</strong>을 소개하기 위한 것이며, 실시간 수용 가능 여부는
+              반드시 전화로 확인해 주시기 바랍니다.
+            </p>
+          </div>
+        </article>
       </section>
 
-      <section id="survey" class="etc-section">
-        <div class="section-label">Survey</div>
-        <h2 class="section-title">닥터카 웹 사용 경험 설문</h2>
-        <p class="section-description">
-          1분 정도 소요됩니다. 응답은 통계·연구 목적으로만 사용되며, 개별 응답자는 식별되지 않습니다.
-        </p>
-        <!-- 교수님 원본 설문 폼 그대로 유지 -->
-        <!-- ... -->
-      </section>
-
+<!-- =========================
+PART 3 / 4 : 기타 섹션 + 설문(복구 포함) + 오버레이들
+========================= -->
     </main>
+
+    <!-- 닥터카: 기타 -->
+    <section id="etc" class="etc-section">
+      <div class="section-label">닥터카 기타</div>
+      <h2 class="section-title">닥터카; 기타</h2>
+
+      <div style="display:flex; gap:10px; margin:16px 0;">
+        <img src="images/Gdoctorcaroutside.jpg" class="etc-image-half" />
+        <img src="images/Gdoctorcarinside.jpg" class="etc-image-half" />
+      </div>
+      <p class="etc-text">닥터카의 내·외부 모습입니다.</p>
+
+      <img src="images/Gamputation.jpg" class="etc-image-amputation" />
+      <p class="etc-text">
+        닥터카가 현장으로 출동하여 구조물에 끼어서 구출할 수 없는 환자를 진료하였습니다.<br>
+        구출에 시간이 오래 소요될 것으로 판단되는 경우 닥터카가 출동할 수 있습니다.
+      </p>
+
+      <div style="display:flex; gap:10px; margin:16px 0;">
+        <img src="images/Gganghwa.jpg" class="etc-image-half" />
+        <img src="images/Ggimpo.jpg" class="etc-image-half" />
+      </div>
+      <p class="etc-text">
+        강화, 김포, 부천, 광명, 시흥 등지에서 환자 발생 시 구급대원님이 닥터카를 요청하면,<br>
+        중간 위치의 병원이나 안전한 장소에서 만나 환자를 닥터카로 인계할 수 있습니다.
+      </p>
+
+      <img src="images/Ger.jpg" class="etc-image-full" />
+      <p class="etc-text">
+        응급실 선생님들께서도 환자 접촉 시 지체 없이 연락주시길 부탁드립니다.<br>
+        Full work-up이 되지 않은 상태라도 전화주셔도 괜찮습니다.
+      </p>
+
+      <img src="images/Ggachon.jpg" class="etc-image-full" />
+      <p class="etc-text">
+        <strong>맺으며…</strong><br><br>
+        병원 전 단계의 환자 이송 문제는 개인이 해결할 수 없습니다.<br>
+        <strong>길병원 외상센터도, 지역·권역 응급센터도 혼자서는 해결할 수 없습니다.</strong><br><br>
+        모두의 관심과 거버넌스, 시스템 확립과 긴밀한 소통이 필요합니다.<br>
+        함께 힘써주신다면 반드시 더 나은 결과로 보답하겠습니다.<br><br>
+        보다 안전하고 체계적인 외상환자 이송을 위해<br>
+        길병원 외상센터 닥터카가 앞장서겠습니다.<br>
+        감사합니다.
+      </p>
+    </section>
+
+    <!-- === 닥터카 웹 사용 경험 설문 (복구/유지) === -->
+    <section id="survey" class="etc-section">
+      <div class="section-label">Survey</div>
+      <h2 class="section-title">닥터카 웹 사용 경험 설문</h2>
+      <p class="section-description">
+        1분 정도 소요됩니다. 응답은 통계·연구 목적으로만 사용되며, 개별 응답자는 식별되지 않습니다.
+      </p>
+
+      <form id="doctorcar-survey" class="card" style="margin-top:10px;">
+        <!-- 근무기관 유형 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">근무기관 유형</h3>
+          <div>
+            <label><input type="radio" name="org_type" value="ems_fire" required> 119 구급대 / 소방서</label><br>
+            <label><input type="radio" name="org_type" value="regional_trauma"> 권역외상센터</label><br>
+            <label><input type="radio" name="org_type" value="regional_ed"> 권역응급의료센터</label><br>
+            <label><input type="radio" name="org_type" value="local_ed"> 지역응급의료센터</label><br>
+            <label><input type="radio" name="org_type" value="local_emi"> 지역응급의료기관</label><br>
+            <label><input type="radio" name="org_type" value="clinic_no_ed"> 병의원(응급실 없음)</label><br>
+            <label><input type="radio" name="org_type" value="other_org"> 기타</label>
+            <div id="org_type_other_wrap" style="display:none; margin-top:6px;">
+              <input type="text" name="org_type_other_text"
+                     placeholder="기타인 경우 근무기관 유형을 적어 주세요"
+                     style="width:100%; font-size:0.85rem; padding:6px 8px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- 임상 경력 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">임상 경력</h3>
+          <div>
+            <label><input type="radio" name="career_years" value="0-1" required> 0–1년</label><br>
+            <label><input type="radio" name="career_years" value="2-5"> 2–5년</label><br>
+            <label><input type="radio" name="career_years" value="6-10"> 6–10년</label><br>
+            <label><input type="radio" name="career_years" value="11+"> 11년 이상</label>
+          </div>
+        </div>
+
+        <!-- 근무지역 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">근무지역</h3>
+          <div>
+            <label><input type="radio" name="region" value="incheon" required> 인천</label><br>
+            <label><input type="radio" name="region" value="gyeonggi_west"> 경기 서부(김포·부천·광명·시흥 등)</label><br>
+            <label><input type="radio" name="region" value="seoul"> 서울</label><br>
+            <label><input type="radio" name="region" value="other_region"> 기타</label><br>
+            <div id="region_other_wrap" style="display:none; margin-top:6px;">
+              <input type="text" name="region_other_text"
+                     placeholder="기타인 경우 근무지역을 적어 주세요"
+                     style="width:100%; font-size:0.85rem; padding:6px 8px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- 방문 목적 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">방문 목적</h3>
+          <div>
+            <label><input type="radio" name="visit_purpose" value="real_case" required> 실제 환자 발생</label><br>
+            <label><input type="radio" name="visit_purpose" value="info_view"> 홍보물·내용 열람</label><br>
+            <label><input type="radio" name="visit_purpose" value="education_sim"> 교육·시뮬레이션</label><br>
+            <label><input type="radio" name="visit_purpose" value="other"> 기타</label><br>
+            <div id="visit_purpose_other_wrap" style="display:none; margin-top:6px;">
+              <input type="text" name="visit_purpose_other_text"
+                     placeholder="기타인 경우 내용을 적어 주세요"
+                     style="width:100%; font-size:0.85rem; padding:6px 8px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- 닥터카 웹이 의사결정에 미친 영향 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">닥터카 웹이 의사결정에 미친 영향 (복수 선택 가능)</h3>
+          <div>
+            <label><input type="checkbox" name="decision_impact" value="easier_call"> 닥터카(권역외상)에 더 쉽게 전화 하게 됨</label><br>
+            <label><input type="checkbox" name="decision_impact" value="earlier_request"> 닥터카 요청 시점이 빨라짐</label><br>
+            <label><input type="checkbox" name="decision_impact" value="hospital_selection"> 병원(전원/수용) 선정에 도움이 됨</label><br>
+            <label><input type="checkbox" name="decision_impact" value="meeting_place"> 만남 장소 결정에 도움이 됨</label><br>
+            <label><input type="checkbox" name="decision_impact" value="knowledge_gain"> 외상환자 처치 및 이송에 대한 지식이 늘게됨</label><br>
+            <label><input type="checkbox" name="decision_impact" value="no_effect"> 아직 영향 없음 / 잘 모르겠음</label>
+          </div>
+        </div>
+
+        <!-- 도움 정도 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">웹이 의사결정에 얼마나 도움이 되었는가</h3>
+          <select name="decision_help_score" required style="width:100%; padding:6px 8px; font-size:0.9rem;">
+            <option value="">선택해 주세요</option>
+            <option value="1">1 - 전혀 도움이 되지 않았다</option>
+            <option value="2">2 - 조금 도움이 되었다</option>
+            <option value="3">3 - 보통이다</option>
+            <option value="4">4 - 꽤 도움이 되었다</option>
+            <option value="5">5 - 매우 도움이 되었다</option>
+          </select>
+        </div>
+
+        <!-- 닥터카 실제 이용 경험 -->
+        <div class="card-body experience-wrapper">
+          <h3 class="card-title experience-title" style="margin-bottom:4px;">닥터카 실제 이용 경험</h3>
+          <div>
+            <label><input type="radio" name="used_doctorcar" value="yes" required> 예 (길병원 닥터카를 실제로 이용한 경험이 있다)</label><br>
+            <label><input type="radio" name="used_doctorcar" value="no"> 아니오 (아직 실제로 사용해 본 적은 없다)</label>
+          </div>
+        </div>
+
+        <div id="doctorcar-experience-block">
+          <div class="experience-note">※ 아래 항목들은 “예”를 선택한 경우에만 답변해 주세요.</div>
+
+          <div class="exp-sub-card">
+            <h4>시간 단축 체감 (복수 선택 가능)</h4>
+            <label><input type="checkbox" name="time_effect" value="shorter_contact"> 환자–의사 접촉 시간이 줄어들었다고 느낀다</label>
+            <label><input type="checkbox" name="time_effect" value="shorter_lookup"> 연락처 찾는 시간이 줄어듦</label>
+            <label><input type="checkbox" name="time_effect" value="shorter_total"> 전체 이송 시간이 단축되었다</label>
+            <label><input type="checkbox" name="time_effect" value="longer_total"> 전체 이송 시간이 오히려 늘었다</label>
+            <label><input type="checkbox" name="time_effect" value="no_change"> 잘 모르겠음 / 비슷함</label>
+          </div>
+
+          <div class="exp-sub-card">
+            <h4>어떤 처치가 도움이 되었나요? (복수 선택 가능)</h4>
+            <label><input type="checkbox" name="treatment_good" value="X"> X (Bleeding Control)</label>
+            <label><input type="checkbox" name="treatment_good" value="AB"> A,B (기도관리)</label>
+            <label><input type="checkbox" name="treatment_good" value="C"> C (Circulation; 수액/수혈/승압제)</label>
+          </div>
+
+          <div class="exp-sub-card">
+            <h4>닥터카 처치 중 좋았던 점 (있다면)</h4>
+            <textarea name="treatment_free_text" id="treatment_free_text"
+                      placeholder="예: 출혈 조절, tourniquet, 현장 처치 등 좋았던 점을 자유롭게 적어주세요. (최대 100자)"
+                      rows="3" maxlength="100"
+                      style="width:100%; font-size:0.9rem; padding:6px 8px;"></textarea>
+            <div id="treatment_free_counter" style="font-size:0.78rem; color:#666; text-align:right; margin-top:2px;">
+              0 / 100자
+            </div>
+          </div>
+        </div>
+
+        <!-- 재사용 -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px; margin-top:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">닥터카 및 웹앱 재사용 의향 (1=전혀, 5=매우 그렇다)</h3>
+          <select name="reuse_intent" required style="width:100%; padding:6px 8px; font-size:0.9rem;">
+            <option value="">선택해 주세요</option>
+            <option value="1">1 전혀 그렇지 않다</option>
+            <option value="2">2 조금 그렇다</option>
+            <option value="3">3 보통이다</option>
+            <option value="4">4 꽤 그렇다</option>
+            <option value="5">5 매우 그렇다</option>
+          </select>
+        </div>
+
+        <!-- NPS -->
+        <div class="card-body" style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+          <h3 class="card-title" style="margin-bottom:6px;">추천 의향 (0~10점, NPS)</h3>
+          <select name="nps_score" required style="width:100%; padding:6px 8px; font-size:0.9rem;">
+            <option value="">선택해 주세요</option>
+            <option value="0">0 전혀 추천하지 않겠다</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+            <option value="9">9</option><option value="10">10 적극적으로 추천하겠다</option>
+          </select>
+        </div>
+
+        <!-- 개선점 -->
+        <div class="card-body" style="margin-bottom:4px;">
+          <h3 class="card-title" style="margin-bottom:6px;">개선점 또는 실제 도움이 되었던 사례가 있다면 입력해주세요</h3>
+          <textarea name="improvement_free_text" id="improvement_free_text"
+                    placeholder="웹앱/닥터카 시스템의 개선점, 실제로 도움이 되었던 상황 등을 적어주세요. (최대 100자)"
+                    rows="3" maxlength="100"
+                    style="width:100%; font-size:0.9rem; padding:6px 8px;"></textarea>
+          <div id="improvement_free_counter" style="font-size:0.78rem; color:#666; text-align:right; margin-top:2px;">
+            0 / 100자
+          </div>
+        </div>
+
+        <!-- 제출 -->
+        <div style="text-align:center; margin-top:12px;">
+          <button type="submit"
+                  style="padding:10px 18px; border-radius:999px; border:none; background:#0b7ac4; color:#fff; font-size:0.95rem;">
+            설문 제출하기
+          </button>
+        </div>
+      </form>
+    </section>
 
     <footer style="margin-top:40px; text-align:center; font-size:0.78rem; color:#666;">
       <span>© Gachon University Gil Medical Center – Incheon Regional Trauma Center</span>
       <span>Department of Trauma Surgery · Doctor Car Team</span>
       <span>Correspondence: blanc7654@gmail.com (Jaeik Jang, MD)</span>
     </footer>
+
   </div>
 
-  <!-- ✅ 지도 크게보기 모달 -->
-  <div id="map-modal">
-    <div class="modal-inner">
-      <div class="modal-topbar">
-        <div class="modal-title">주변 병원 지도 (크게보기)</div>
-        <button type="button" class="modal-close" id="close-map-modal-btn">닫기 ✕</button>
-      </div>
-      <div id="modal-map"></div>
-    </div>
-  </div>
-
-  <!-- 출신 선택 오버레이 (원본 유지) -->
+  <!-- 출신 선택 오버레이 -->
   <div id="role-overlay" style="
     position: fixed;
     inset: 0;
@@ -1054,6 +1268,7 @@
       text-align:center;
     ">
       <h3 style="margin-bottom:12px; font-size:18px;">출신을 선택해 주세요</h3>
+
       <div style="text-align:left; margin-bottom:16px; font-size:15px; line-height:1.6;">
         <label><input type="radio" name="user_role" value="er_doctor"> 🩺 의사</label><br>
         <label><input type="radio" name="user_role" value="ems"> 🚑 구급대원</label><br>
@@ -1062,12 +1277,18 @@
           기타 (※ 의사와 구급대원 이외에는 전화 요청이 불가합니다)
         </label>
       </div>
-      <button type="button" onclick="confirmRoleAndCall()" style="width:100%; padding:10px; border-radius:999px; background:#0b7ac4; color:#fff; font-size:15px;">
+
+      <button type="button"
+              onclick="confirmRoleAndCall()"
+              style="width:100%; padding:10px; border-radius:999px; background:#0b7ac4; color:#fff; font-size:15px;">
         확인 후 전화하기
       </button>
     </div>
   </div>
 
+<!-- =========================
+PART 4 / 4 : SCRIPT 전체(기능 수정 반영: 전화번호, 자동갱신, 역지오코딩, 라벨색, 줄바꿈 문제 해결)
+========================= -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1083,19 +1304,20 @@
     let trafficInfo = null;
     let roleOverlayOpen = false;
     let deferredPrompt = null;
+
     let CURRENT_INFO_WINDOW = null;
 
-    // ✅ 내 위치(GPS) / 환자발생지(수동) 상태
-    let USER_POS = null;
-    let USER_ADDR = null;
-    let PATIENT_POS = null;
-    let PATIENT_ADDR = null;
-
+    // 지도 관련
+    let USER_POS = null;            // 현재 위치
+    let PATIENT_POS = null;         // 환자발생지
     let HOSPITAL_MAP = null;
     let USER_MARKER = null;
     let USER_LABEL = null;
     let PATIENT_MARKER = null;
     let PATIENT_LABEL = null;
+
+    // 마지막으로 클릭한 병원(자동 갱신용)
+    let LAST_HOSPITAL = null; // { name, latlng, phone }
 
     // 길병원 좌표
     const GIL_COORD = { lat: 37.448344, lng: 126.701847 };
@@ -1103,12 +1325,57 @@
     // Kakao Mobility Directions REST API 키
     const KAKAO_DIRECTIONS_KEY = '15c28ebb75dda243548737ac615a5681';
 
-    // ✅ (유틸) 안전한 텍스트 삽입
-    function esc(s) {
-      return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    // 병원 목록
+    const SECONDARY_HOSPITALS = [
+      { name: "인하대병원", region: "인천 미추홀구" },
+      { name: "현대유비스병원", region: "인천 미추홀구" },
+      { name: "인천보훈병원", region: "인천 미추홀구" },
+      { name: "인천기독병원", region: "인천 중구" },
+      { name: "인천백병원", region: "인천 중구" },
+      { name: "인천광역시의료원", region: "인천 동구" },
+      { name: "뉴성민병원", region: "인천 미추홀구" },
+      { name: "센트럴병원", region: "경기 시흥시" },
+      { name: "다니엘종합병원", region: "경기 부천시" },
+      { name: "부천우리병원", region: "경기 부천시" },
+      { name: "뉴대성병원", region: "인천 부평구" },
+      { name: "검단탑병원", region: "인천 서구" },
+      { name: "인천성모병원", region: "인천 부평구" },
+      { name: "비에스종합병원", region: "인천 강화군 강화읍" },
+      { name: "가톨릭관동대학교 국제성모병원", region: "인천 서구" },
+      { name: "인천세종병원", region: "인천 계양구 작전동" },
+      { name: "한림병원 응급의료센터", region: "인천 계양구" },
+      { name: "나은병원", region: "인천 서구" },
+      { name: "나사렛국제병원", region: "인천 연수구" },
+      { name: "인천사랑병원", region: "인천 미추홀구" },
+      { name: "부천성모병원 응급의료센터", region: "경기 부천시" },
+      { name: "인천적십자병원", region: "인천 연수구" },
+      { name: "인천힘찬종합병원", region: "인천 남동구" },
+      { name: "더드림병원", region: "인천" },
+      { name: "순천향대학교 부속 부천병원", region: "경기 부천시" },
+      { name: "근로복지공단 인천병원", region: "인천 부평구" },
+      { name: "부천세종병원", region: "경기 부천시" },
+      { name: "시화병원", region: "경기 시흥시" },
+      { name: "중앙대학교광명병원", region: "경기 광명시" },
+      { name: "한도병원", region: "경기 시흥시" },
+      { name: "온누리병원", region: "인천" },
+      { name: "광명성애병원 응급실", region: "경기 광명시" },
+      { name: "뉴고려병원", region: "경기 김포시" },
+      { name: "김포우리병원", region: "경기 김포시" },
+      { name: "신천연합병원", region: "경기 시흥시" }
+    ];
+
+    // ===== 유틸 =====
+    function safePhone(phone) {
+      const p = (phone || '').trim();
+      return p ? p : null;
     }
 
-    // ✅ Kakao Mobility Directions API로 자동차 거리/시간 요약
+    function formatPhoneHref(phone) {
+      const p = (phone || '').replace(/\s+/g, '');
+      return 'tel:' + p;
+    }
+
+    // Directions API로 거리/시간
     async function fetchDriveSummary(fromLatLng, toLatLng) {
       if (!fromLatLng || !toLatLng) return null;
 
@@ -1133,7 +1400,6 @@
         const summary = data.routes[0].summary;
         const distanceKm = (summary.distance / 1000).toFixed(1);
         const durationMin = Math.round(summary.duration / 60);
-
         return { distanceKm, durationMin };
       } catch (e) {
         console.error('Directions fetch error:', e);
@@ -1141,173 +1407,194 @@
       }
     }
 
-    // ✅ 역지오코딩: 좌표 → 주소
-    function reverseGeocode(latLng, cb) {
-      try {
+    // 역지오코딩: 좌표 → 도로명/지번 주소
+    function reverseGeocode(latlng) {
+      return new Promise((resolve) => {
+        if (!kakao.maps.services || !kakao.maps.services.Geocoder) return resolve(null);
         const geocoder = new kakao.maps.services.Geocoder();
-        geocoder.coord2Address(latLng.getLng(), latLng.getLat(), (result, status) => {
-          if (status !== kakao.maps.services.Status.OK || !result || !result.length) {
-            cb(null);
-            return;
-          }
+
+        geocoder.coord2Address(latlng.getLng(), latlng.getLat(), (result, status) => {
+          if (status !== kakao.maps.services.Status.OK || !result || !result.length) return resolve(null);
           const r = result[0];
-          const addr = (r.road_address && r.road_address.address_name) || (r.address && r.address.address_name) || null;
-          cb(addr);
+          const road = r.road_address ? r.road_address.address_name : null;
+          const jibun = r.address ? r.address.address_name : null;
+          resolve(road || jibun || null);
         });
-      } catch (e) {
-        console.warn('reverseGeocode error:', e);
-        cb(null);
-      }
+      });
     }
 
-    function showGpsAddress(addrText) {
-      const el = document.getElementById('gps-address-map');
-      if (!el) return;
+    // 수동 주소 입력 → 좌표(장소/주소 검색)
+    function geocodeAddressOrKeyword(query) {
+      return new Promise((resolve) => {
+        const q = (query || '').trim();
+        if (!q) return resolve(null);
 
-      const html = addrText
-        ? `현재 위치 주소: <b>${esc(addrText)}</b>`
-        : `현재 위치 주소를 불러오지 못했습니다.`;
-
-      el.innerHTML = html;
-      el.style.display = 'block';
+        // 1) 주소검색 우선
+        if (kakao.maps.services && kakao.maps.services.Geocoder) {
+          const geocoder = new kakao.maps.services.Geocoder();
+          geocoder.addressSearch(q, (result, status) => {
+            if (status === kakao.maps.services.Status.OK && result && result.length) {
+              const r = result[0];
+              const latlng = new kakao.maps.LatLng(r.y, r.x);
+              return resolve({ latlng, label: q });
+            }
+            // 2) 키워드(장소) 검색 fallback
+            if (kakao.maps.services && kakao.maps.services.Places) {
+              const places = new kakao.maps.services.Places();
+              places.keywordSearch(q, (data, st) => {
+                if (st === kakao.maps.services.Status.OK && data && data.length) {
+                  const p = data[0];
+                  const latlng2 = new kakao.maps.LatLng(p.y, p.x);
+                  return resolve({ latlng: latlng2, label: p.place_name || q });
+                }
+                return resolve(null);
+              });
+            } else {
+              return resolve(null);
+            }
+          });
+        } else {
+          return resolve(null);
+        }
+      });
     }
 
-    function formatTel(tel) {
-      const t = String(tel || '').trim();
-      if (!t || t.includes('000')) return null; // 더미/없음 숨김
-      return t;
+    // InfoWindow 렌더
+    function buildInfoHtml(title, mySummary, patientSummary, phone) {
+      const phoneClean = safePhone(phone);
+      const phoneHtml = phoneClean
+        ? `<div class="sub"><span class="k">전화</span> <a class="phone" href="${formatPhoneHref(phoneClean)}">${phoneClean}</a></div>`
+        : `<div class="sub"><span class="k">전화</span> <span class="v">정보 없음</span></div>`;
+
+      const myBlock = mySummary
+        ? `
+          <div class="sub">
+            <div class="iw-title">내 위치 → 병원</div>
+            <div class="row"><span class="k">거리</span><span class="v">${mySummary.distanceKm} km</span></div>
+            <div class="row"><span class="k">시간</span><span class="v">${mySummary.durationMin}분</span></div>
+          </div>
+        `
+        : `
+          <div class="sub">
+            <div class="iw-title">내 위치 → 병원</div>
+            <div style="color:#c62828;font-weight:900;">GPS(현재 위치)를 먼저 설정해 주세요.</div>
+          </div>
+        `;
+
+      const patientBlock = patientSummary
+        ? `
+          <div class="sub">
+            <div class="iw-title">환자발생지 → 병원</div>
+            <div class="row"><span class="k">거리</span><span class="v">${patientSummary.distanceKm} km</span></div>
+            <div class="row"><span class="k">시간</span><span class="v">${patientSummary.durationMin}분</span></div>
+          </div>
+        `
+        : (PATIENT_POS ? `
+          <div class="sub">
+            <div class="iw-title">환자발생지 → 병원</div>
+            <div style="color:#c62828;font-weight:900;">소요시간을 불러오지 못했습니다.</div>
+          </div>
+        ` : '');
+
+      return `
+        <div class="iw">
+          <div class="iw-title">${title}</div>
+          ${myBlock}
+          ${patientBlock}
+          ${phoneHtml}
+        </div>
+      `;
     }
 
-    // ✅ 클릭한 대상(병원/길병원) 위치로: (현재위치/환자발생지) 각각 ETA 표시 + 아래에 전화번호
-    async function showEtaInfoWindow(map, markerForOpen, toLatLng, targetName, targetTel) {
+    // 공통: 병원 클릭/라벨 클릭 시 인포윈도우 표시 + LAST_HOSPITAL 저장
+    async function openHospitalInfo(name, hospitalLatLng, phone, openAtMarkerOrLatLng) {
+      if (!HOSPITAL_MAP) return;
+
+      // 마지막 병원 저장(자동 갱신용)
+      LAST_HOSPITAL = { name, latlng: hospitalLatLng, phone: safePhone(phone) };
+
+      // 기존 닫기
       if (CURRENT_INFO_WINDOW) {
         CURRENT_INFO_WINDOW.close();
         CURRENT_INFO_WINDOW = null;
       }
 
       const infoWindow = new kakao.maps.InfoWindow({ removable: true });
+      infoWindow.setContent(`<div class="iw">소요시간 계산 중...</div>`);
 
-      infoWindow.setContent(`
-        <div style="padding:8px 10px;font-size:12px;">
-          <div style="font-weight:700;margin-bottom:4px;">${esc(targetName || '대상')}</div>
-          <div>소요시간 계산 중...</div>
-        </div>
-      `);
-      infoWindow.open(map, markerForOpen);
+      // open 대상(마커가 없으면 위치로 open)
+      if (openAtMarkerOrLatLng && openAtMarkerOrLatLng.setMap) {
+        infoWindow.open(HOSPITAL_MAP, openAtMarkerOrLatLng);
+      } else if (openAtMarkerOrLatLng && openAtMarkerOrLatLng.getLat) {
+        infoWindow.open(HOSPITAL_MAP, null, openAtMarkerOrLatLng);
+      } else {
+        infoWindow.open(HOSPITAL_MAP, null, hospitalLatLng);
+      }
+
       CURRENT_INFO_WINDOW = infoWindow;
 
-      if (!USER_POS && !PATIENT_POS) {
-        infoWindow.setContent(`
-          <div style="padding:8px 10px;font-size:12px; line-height:1.35;">
-            <div style="font-weight:700;margin-bottom:4px;">${esc(targetName || '대상')}</div>
-            <div style="color:#c62828;"><b>현재 위치(GPS)</b> 또는 <b style="color:#d81b60;">환자발생지</b>를 먼저 지정해 주세요.</div>
-          </div>
-        `);
-        return;
-      }
+      const mySummary = USER_POS ? await fetchDriveSummary(USER_POS, hospitalLatLng) : null;
+      const patientSummary = PATIENT_POS ? await fetchDriveSummary(PATIENT_POS, hospitalLatLng) : null;
 
-      const lines = [];
-
-      // ✅ 클릭 순간에만 계산
-      if (USER_POS) {
-        const s1 = await fetchDriveSummary(USER_POS, toLatLng);
-        if (s1) lines.push(`<div style="margin:2px 0;">현재위치로부터 (<b>${s1.distanceKm}km</b>, <b>${s1.durationMin}분</b>)</div>`);
-        else lines.push(`<div style="margin:2px 0; color:#c62828;">현재위치로부터 소요시간을 불러오지 못했습니다.</div>`);
-      }
-
-      if (PATIENT_POS) {
-        const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
-        if (s2) lines.push(`<div style="margin:2px 0;"><span style="color:#d81b60;font-weight:800;">환자발생지로부터</span> (<b>${s2.distanceKm}km</b>, <b>${s2.durationMin}분</b>)</div>`);
-        else lines.push(`<div style="margin:2px 0; color:#d81b60;">환자발생지로부터 소요시간을 불러오지 못했습니다.</div>`);
-      }
-
-      const tel = formatTel(targetTel);
-      const telHtml = tel ? `
-        <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #e2e2e2;">
-          ☎ <b>${esc(tel)}</b>
-        </div>` : ``;
-
-      infoWindow.setContent(`
-        <div style="padding:8px 10px;font-size:12px; line-height:1.35;">
-          <div style="font-weight:800; margin-bottom:4px;">${esc(targetName || '대상')}</div>
-          ${lines.join('')}
-          ${telHtml}
-        </div>
-      `);
+      infoWindow.setContent(buildInfoHtml(name, mySummary, patientSummary, phone));
     }
 
-    // ✅ 내 위치 표시 (빨간 라벨)
-    function renderUserOnMap(map) {
-      if (!USER_POS || !map) return;
+    // 환자발생지 업데이트 후: 마지막 병원 있으면 자동 갱신(재클릭 없이)
+    async function refreshLastHospitalInfoIfNeeded() {
+      if (!LAST_HOSPITAL || !CURRENT_INFO_WINDOW) return;
 
-      if (USER_MARKER && map === HOSPITAL_MAP) USER_MARKER.setMap(null);
-      if (USER_LABEL && map === HOSPITAL_MAP) USER_LABEL.setMap(null);
+      const { name, latlng, phone } = LAST_HOSPITAL;
+      const mySummary = USER_POS ? await fetchDriveSummary(USER_POS, latlng) : null;
+      const patientSummary = PATIENT_POS ? await fetchDriveSummary(PATIENT_POS, latlng) : null;
 
-      const m = new kakao.maps.Marker({ map, position: USER_POS });
-
-      const label = new kakao.maps.CustomOverlay({
-        position: USER_POS,
-        yAnchor: 1.4,
-        content: `<div class="marker-label user">📍 현재 위치</div>`
-      });
-      label.setMap(map);
-
-      if (map === HOSPITAL_MAP) {
-        USER_MARKER = m;
-        USER_LABEL = label;
-      }
+      CURRENT_INFO_WINDOW.setContent(buildInfoHtml(name, mySummary, patientSummary, phone));
     }
 
-    // ✅ 환자발생지 표시 (핑크 ⭐ 라벨)
-    function renderPatientOnMap(map) {
-      if (!PATIENT_POS || !map) return;
-
-      if (PATIENT_MARKER && map === HOSPITAL_MAP) PATIENT_MARKER.setMap(null);
-      if (PATIENT_LABEL && map === HOSPITAL_MAP) PATIENT_LABEL.setMap(null);
-
-      const m = new kakao.maps.Marker({ map, position: PATIENT_POS });
-
-      const label = new kakao.maps.CustomOverlay({
-        position: PATIENT_POS,
-        yAnchor: 1.4,
-        content: `<div class="marker-label patient">⭐ 환자발생지</div>`
-      });
-      label.setMap(map);
-
-      if (map === HOSPITAL_MAP) {
-        PATIENT_MARKER = m;
-        PATIENT_LABEL = label;
-      }
-    }
-
-    // ✅ GPS: 현재 위치 획득 + 지도 표시 + 주소 표시
-    function updateUserLocationOnMap() {
+    // ===== GPS: 현재 위치를 받아 지도에 표시 + 주소 표시 =====
+    async function updateUserLocationOnMap() {
       if (!navigator.geolocation) {
         alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');
         return;
       }
       if (!HOSPITAL_MAP) {
-        console.warn('HOSPITAL_MAP 이 아직 준비되지 않았습니다.');
+        alert('지도가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
 
-          renderUserOnMap(HOSPITAL_MAP);
+          if (USER_MARKER) USER_MARKER.setMap(null);
+          if (USER_LABEL) USER_LABEL.setMap(null);
 
+          USER_MARKER = new kakao.maps.Marker({ map: HOSPITAL_MAP, position: USER_POS });
+          USER_LABEL = new kakao.maps.CustomOverlay({
+            position: USER_POS,
+            yAnchor: 1.4,
+            content: `<div class="marker-label user">📍 현재 위치</div>`
+          });
+          USER_LABEL.setMap(HOSPITAL_MAP);
+
+          // bounds 확장(현재위치 + 길병원)
           const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
           const bounds = new kakao.maps.LatLngBounds();
           bounds.extend(USER_POS);
           bounds.extend(gilLatLng);
-          if (PATIENT_POS) bounds.extend(PATIENT_POS);
           HOSPITAL_MAP.setBounds(bounds);
 
-          reverseGeocode(USER_POS, (addr) => {
-            USER_ADDR = addr;
-            showGpsAddress(addr);
-          });
+          // 현재 위치 주소 표시(파란 바탕)
+          const pill = document.getElementById('current-loc-pill');
+          const txt = document.getElementById('current-loc-text');
+          if (pill && txt) {
+            pill.style.display = 'block';
+            txt.textContent = '주소를 불러오는 중…';
+            const addr = await reverseGeocode(USER_POS);
+            txt.textContent = addr ? addr : '(주소를 찾지 못했습니다)';
+          }
+
+          // 마지막 병원 인포 있으면 GPS 반영해서 갱신
+          await refreshLastHospitalInfoIfNeeded();
         },
         (err) => {
           console.warn('Geolocation 실패:', err);
@@ -1317,46 +1604,39 @@
       );
     }
 
-    // 인천·부천·광명·시흥·김포 연계 2차 병원 목록 (+ 응급실 전화 더미)
-    const SECONDARY_HOSPITALS = [
-      { name: "인하대병원", region: "인천 미추홀구", erTel: "032-000-0000" },
-      { name: "현대유비스병원", region: "인천 미추홀구", erTel: "032-000-0000" },
-      { name: "인천보훈병원", region: "인천 미추홀구", erTel: "032-000-0000" },
-      { name: "인천기독병원", region: "인천 중구", erTel: "032-000-0000" },
-      { name: "인천백병원", region: "인천 중구", erTel: "032-000-0000" },
-      { name: "인천광역시의료원", region: "인천 동구", erTel: "032-000-0000" },
-      { name: "뉴성민병원", region: "인천 미추홀구", erTel: "032-000-0000" },
-      { name: "센트럴병원", region: "경기 시흥시", erTel: "031-000-0000" },
-      { name: "다니엘종합병원", region: "경기 부천시", erTel: "032-000-0000" },
-      { name: "부천우리병원", region: "경기 부천시", erTel: "032-000-0000" },
-      { name: "뉴대성병원", region: "인천 부평구", erTel: "032-000-0000" },
-      { name: "검단탑병원", region: "인천 서구", erTel: "032-000-0000" },
-      { name: "인천성모병원", region: "인천 부평구", erTel: "032-000-0000" },
-      { name: "비에스종합병원", region: "인천 강화군 강화읍", erTel: "032-000-0000" },
-      { name: "가톨릭관동대학교 국제성모병원", region: "인천 서구", erTel: "032-000-0000" },
-      { name: "인천세종병원", region: "인천 계양구 작전동", erTel: "032-000-0000" },
-      { name: "한림병원 응급의료센터", region: "인천 계양구", erTel: "032-000-0000" },
-      { name: "나은병원", region: "인천 서구", erTel: "032-000-0000" },
-      { name: "나사렛국제병원", region: "인천 연수구", erTel: "032-000-0000" },
-      { name: "인천사랑병원", region: "인천 미추홀구", erTel: "032-000-0000" },
-      { name: "부천성모병원 응급의료센터", region: "경기 부천시", erTel: "032-000-0000" },
-      { name: "인천적십자병원", region: "인천 연수구", erTel: "032-000-0000" },
-      { name: "인천힘찬종합병원", region: "인천 남동구", erTel: "032-000-0000" },
-      { name: "더드림병원", region: "인천", erTel: "010-0000-0000" },
-      { name: "순천향대학교 부속 부천병원", region: "경기 부천시", erTel: "032-000-0000" },
-      { name: "근로복지공단 인천병원", region: "인천 부평구", erTel: "032-000-0000" },
-      { name: "부천세종병원", region: "경기 부천시", erTel: "032-000-0000" },
-      { name: "시화병원", region: "경기 시흥시", erTel: "031-000-0000" },
-      { name: "중앙대학교광명병원", region: "경기 광명시", erTel: "02-0000-0000" },
-      { name: "한도병원", region: "경기 시흥시", erTel: "031-000-0000" },
-      { name: "온누리병원", region: "인천", erTel: "032-000-0000" },
-      { name: "광명성애병원 응급실", region: "경기 광명시", erTel: "02-0000-0000" },
-      { name: "뉴고려병원", region: "경기 김포시", erTel: "031-000-0000" },
-      { name: "김포우리병원", region: "경기 김포시", erTel: "031-000-0000" },
-      { name: "신천연합병원", region: "경기 시흥시", erTel: "031-000-0000" }
-    ];
+    // ===== 환자발생지(수동) 표시 =====
+    async function setPatientLocationByQuery(query) {
+      if (!HOSPITAL_MAP) {
+        alert('지도가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+      const result = await geocodeAddressOrKeyword(query);
+      if (!result) {
+        alert('주소/장소를 찾지 못했습니다. (예: “인천공항”, “부천시청”, “OO병원” 등으로 다시 시도해 주세요)');
+        return;
+      }
 
-    // 병원 리스트를 Kakao Places로 검색해서 마커 + 라벨(전화번호는 라벨에 표시 X)
+      PATIENT_POS = result.latlng;
+
+      if (PATIENT_MARKER) PATIENT_MARKER.setMap(null);
+      if (PATIENT_LABEL) PATIENT_LABEL.setMap(null);
+
+      PATIENT_MARKER = new kakao.maps.Marker({ map: HOSPITAL_MAP, position: PATIENT_POS });
+      PATIENT_LABEL = new kakao.maps.CustomOverlay({
+        position: PATIENT_POS,
+        yAnchor: 1.4,
+        content: `<div class="marker-label patient">📍 환자발생지</div>`
+      });
+      PATIENT_LABEL.setMap(HOSPITAL_MAP);
+
+      // 화면에서 보이게 중심 이동
+      HOSPITAL_MAP.panTo(PATIENT_POS);
+
+      // 마지막 병원 인포윈도우 자동 갱신(재클릭 필요 없음)
+      await refreshLastHospitalInfoIfNeeded();
+    }
+
+    // ===== 병원 마커 생성 (Places 검색 결과에서 전화번호까지 확보) =====
     function addSecondaryHospitalMarkers(kakaoMap) {
       if (!window.kakao || !kakao.maps || !kakao.maps.services) return;
 
@@ -1367,32 +1647,32 @@
         const keyword = `${hospital.region} ${hospital.name}`;
 
         places.keywordSearch(keyword, (data, status) => {
-          if (status !== kakao.maps.services.Status.OK || !data.length) {
+          if (status !== kakao.maps.services.Status.OK || !data || !data.length) {
             console.warn("병원 검색 실패:", hospital.name, status);
             return;
           }
 
           const place = data[0];
           const position = new kakao.maps.LatLng(place.y, place.x);
+          const phone = place.phone || ''; // ✅ 전화번호 확보
 
           const marker = new kakao.maps.Marker({ map: kakaoMap, position });
 
-          const labelHtml = `
-            <div class="marker-label"
-                 onclick="window._onTargetClick(${position.getLat()}, ${position.getLng()}, '${esc(hospital.name)}', '${esc(hospital.erTel || '')}')">
-              ${esc(hospital.name)}
-            </div>
-          `;
-
+          // 라벨 클릭도 동일 동작(전화번호 포함)
           const label = new kakao.maps.CustomOverlay({
             position,
             yAnchor: 1.4,
-            content: labelHtml
+            content: `
+              <div class="marker-label"
+                   onclick="window._onHospitalLabelClick('${hospital.name.replace(/'/g,"\\'")}', ${position.getLat()}, ${position.getLng()}, '${(phone||'').replace(/'/g,"\\'")}')">
+                ${hospital.name}
+              </div>`
           });
           label.setMap(kakaoMap);
 
+          // 마커 클릭: 내 위치/환자발생지 둘 다 계산 가능
           kakao.maps.event.addListener(marker, "click", () => {
-            showEtaInfoWindow(kakaoMap, marker, position, hospital.name, hospital.erTel);
+            openHospitalInfo(hospital.name, position, phone, marker);
           });
 
           bounds.extend(position);
@@ -1401,13 +1681,15 @@
       });
     }
 
-    // 접속 채널 분류(원본 유지)
+    // 접속 채널 분류
     function classifyTraffic() {
       let channel = 'direct_or_unknown';
       let rawRef = document.referrer || '';
+
       try {
         const url = new URL(window.location.href);
         const src = url.searchParams.get('src') || url.searchParams.get('utm_source');
+
         if (src) {
           const s = src.toLowerCase();
           if (s.includes('qr')) channel = 'qr';
@@ -1418,11 +1700,16 @@
           const ua = navigator.userAgent || '';
           if (/kakao/i.test(rawRef) || /kakaotalk/i.test(ua)) channel = 'kakao';
           else if (rawRef) {
-            try { channel = 'referral_' + (new URL(rawRef)).hostname; }
-            catch (e) { channel = 'referral_other'; }
+            try {
+              const refUrl = new URL(rawRef);
+              channel = 'referral_' + refUrl.hostname;
+            } catch (e) {
+              channel = 'referral_other';
+            }
           } else channel = 'direct_or_unknown';
         }
       } catch (e) {}
+
       return { channel, rawRef: rawRef || '(none)' };
     }
 
@@ -1431,7 +1718,6 @@
       if (overlay) overlay.style.display = 'none';
       roleOverlayOpen = false;
     }
-
     function openRoleOverlay() {
       const overlay = document.getElementById('role-overlay');
       if (overlay) {
@@ -1448,7 +1734,10 @@
       let selectedRole = null;
       radios.forEach(r => { if (r.checked) selectedRole = r.value; });
 
-      if (!selectedRole) { alert('출신(의사 / 구급대원 / 기타)을 선택해 주세요.'); return; }
+      if (!selectedRole) {
+        alert('출신(의사 / 구급대원 / 기타)을 선택해 주세요.');
+        return;
+      }
 
       currentUserRole = selectedRole;
 
@@ -1489,40 +1778,41 @@
       window.location.href = 'tel:' + tel;
     }
 
-    // ========= DOM 바인딩 =========
-
+    // ===== 초기 GA4 채널 =====
     trafficInfo = classifyTraffic();
     if (typeof gtag === 'function') {
       gtag('set', 'user_properties', { entry_channel: trafficInfo.channel });
       gtag('event', 'classify_visit', {
         entry_channel: trafficInfo.channel,
-        raw_referrer: (trafficInfo.rawRef || '').substring(0, 200)
+        raw_referrer: trafficInfo.rawRef.substring(0, 200)
       });
     }
 
+    // ===== 버튼 바인딩 =====
+    // 링크 복사
     const qrCopyBtn = document.getElementById('qr-copy-btn');
     if (qrCopyBtn) {
       qrCopyBtn.addEventListener('click', function () {
-        const copy = async () => {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(doctorcarUrl);
-          } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = doctorcarUrl;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-          }
-        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(doctorcarUrl).then(() => alert('닥터카 안내 링크가 복사되었습니다.'))
+            .catch(() => alert('복사에 실패했습니다. 수동으로 복사해 주세요.'));
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = doctorcarUrl;
+          document.body.appendChild(textarea);
+          textarea.select();
+          try { document.execCommand('copy'); alert('닥터카 안내 링크가 복사되었습니다.'); }
+          catch (e) { alert('복사에 실패했습니다.'); }
+          document.body.removeChild(textarea);
+        }
 
-        copy().then(() => alert('닥터카 안내 링크가 복사되었습니다.'))
-             .catch(() => alert('복사에 실패했습니다. 수동으로 복사해 주세요.'));
-
-        if (typeof gtag === 'function') gtag('event', 'copy_qr_link', { entry_channel: trafficInfo?.channel || 'unknown' });
+        if (typeof gtag === 'function') {
+          gtag('event', 'copy_qr_link', { entry_channel: trafficInfo ? trafficInfo.channel : 'unknown' });
+        }
       });
     }
 
+    // PWA 설치
     const installBtn = document.getElementById('installPwaBtn');
     if (installBtn) {
       window.addEventListener('beforeinstallprompt', (e) => {
@@ -1539,24 +1829,32 @@
         const { outcome } = await deferredPrompt.userChoice;
 
         if (typeof gtag === 'function') {
-          gtag('event', 'click_pwa_install', { outcome, entry_channel: trafficInfo?.channel || 'unknown' });
+          gtag('event', 'click_pwa_install', {
+            outcome,
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
+          });
         }
         deferredPrompt = null;
       });
     }
 
+    // PC 바로가기 버튼(모바일 숨김)
     const pcShortcutBtn = document.getElementById('pc-shortcut-btn');
     if (pcShortcutBtn) {
       if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
         pcShortcutBtn.style.display = 'none';
       } else {
         pcShortcutBtn.addEventListener('click', function () {
-          if (typeof gtag === 'function') gtag('event', 'download_pc_shortcut', { entry_channel: trafficInfo?.channel || 'unknown' });
+          if (typeof gtag === 'function') {
+            gtag('event', 'download_pc_shortcut', { entry_channel: trafficInfo ? trafficInfo.channel : 'unknown' });
+          }
         });
       }
     }
 
-    document.querySelectorAll('.call-btn').forEach(btn => {
+    // 전화 버튼 공통
+    const callButtons = document.querySelectorAll('.call-btn');
+    callButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         const tel = btn.getAttribute('data-tel') || '01062063010';
         const target = btn.getAttribute('data-call-target') || 'unknown';
@@ -1565,27 +1863,170 @@
       });
     });
 
+    // 설문 배너 클릭 → 설문 섹션 이동 + GA
     const openSurveyBtn = document.getElementById('open-survey-btn');
     if (openSurveyBtn) {
       openSurveyBtn.addEventListener('click', function () {
+        const nowIso = new Date().toISOString();
         if (typeof gtag === 'function') {
           gtag('event', 'click_survey_banner', {
             user_role: currentUserRole || 'unknown',
-            survey_click_time: new Date().toISOString(),
-            entry_channel: trafficInfo?.channel || 'unknown'
+            survey_click_time: nowIso,
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
           });
         }
-        document.getElementById('survey')?.scrollIntoView({ behavior: 'smooth' });
+        const surveySection = document.getElementById('survey');
+        if (surveySection) surveySection.scrollIntoView({ behavior: 'smooth' });
       });
     }
 
+    // 경험 블록 토글
+    const usedYes = document.querySelector('input[name="used_doctorcar"][value="yes"]');
+    const usedNo  = document.querySelector('input[name="used_doctorcar"][value="no"]');
+    const experienceBlock = document.getElementById('doctorcar-experience-block');
+
+    function updateExperienceBlock() {
+      if (!experienceBlock) return;
+      if (usedYes && usedYes.checked) {
+        experienceBlock.style.display = 'block';
+      } else {
+        experienceBlock.style.display = 'none';
+        const insideInputs = experienceBlock.querySelectorAll('input[type="checkbox"], textarea');
+        insideInputs.forEach(el => {
+          if (el.type === 'checkbox') el.checked = false;
+          else if (el.tagName === 'TEXTAREA') el.value = '';
+        });
+      }
+    }
+    if (usedYes) usedYes.addEventListener('change', updateExperienceBlock);
+    if (usedNo)  usedNo.addEventListener('change', updateExperienceBlock);
+    updateExperienceBlock();
+
+    // 글자수 카운터
+    const treatmentFree = document.getElementById('treatment_free_text');
+    const treatmentCounter = document.getElementById('treatment_free_counter');
+    const improvementFree = document.getElementById('improvement_free_text');
+    const improvementCounter = document.getElementById('improvement_free_counter');
+
+    function bindCounter(textarea, counter) {
+      if (!textarea || !counter) return;
+      const update = () => counter.textContent = textarea.value.length + ' / 100자';
+      textarea.addEventListener('input', update);
+      update();
+    }
+    bindCounter(treatmentFree, treatmentCounter);
+    bindCounter(improvementFree, improvementCounter);
+
+    // 기타 입력 토글들
+    function updateOrgTypeOther() {
+      const wrap = document.getElementById('org_type_other_wrap');
+      const input = document.querySelector('input[name="org_type_other_text"]');
+      if (!wrap) return;
+      const selected = document.querySelector('input[name="org_type"]:checked');
+      if (selected && selected.value === 'other_org') wrap.style.display = 'block';
+      else { wrap.style.display = 'none'; if (input) input.value = ''; }
+    }
+    document.querySelectorAll('input[name="org_type"]').forEach(r => r.addEventListener('change', updateOrgTypeOther));
+    updateOrgTypeOther();
+
+    function updateRegionOther() {
+      const wrap = document.getElementById('region_other_wrap');
+      const input = document.querySelector('input[name="region_other_text"]');
+      if (!wrap) return;
+      const selected = document.querySelector('input[name="region"]:checked');
+      if (selected && selected.value === 'other_region') wrap.style.display = 'block';
+      else { wrap.style.display = 'none'; if (input) input.value = ''; }
+    }
+    document.querySelectorAll('input[name="region"]').forEach(r => r.addEventListener('change', updateRegionOther));
+    updateRegionOther();
+
+    function updateVisitPurposeOther() {
+      const wrap = document.getElementById('visit_purpose_other_wrap');
+      const input = document.querySelector('input[name="visit_purpose_other_text"]');
+      if (!wrap) return;
+      const selected = document.querySelector('input[name="visit_purpose"]:checked');
+      if (selected && selected.value === 'other') wrap.style.display = 'block';
+      else { wrap.style.display = 'none'; if (input) input.value = ''; }
+    }
+    document.querySelectorAll('input[name="visit_purpose"]').forEach(r => r.addEventListener('change', updateVisitPurposeOther));
+    updateVisitPurposeOther();
+
+    // 설문 제출 → GA4 이벤트
+    const doctorcarSurvey = document.getElementById('doctorcar-survey');
+    if (doctorcarSurvey) {
+      doctorcarSurvey.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const orgType = (doctorcarSurvey.querySelector('input[name="org_type"]:checked') || {}).value || '';
+        const orgTypeOther = (doctorcarSurvey.querySelector('input[name="org_type_other_text"]') || {}).value.trim();
+        const careerYears = (doctorcarSurvey.querySelector('input[name="career_years"]:checked') || {}).value || '';
+        const region = (doctorcarSurvey.querySelector('input[name="region"]:checked') || {}).value || '';
+        const regionOther = (doctorcarSurvey.querySelector('input[name="region_other_text"]') || {}).value.trim();
+        const usedDoctorcar = (doctorcarSurvey.querySelector('input[name="used_doctorcar"]:checked') || {}).value || '';
+        const visitPurpose = (doctorcarSurvey.querySelector('input[name="visit_purpose"]:checked') || {}).value || '';
+        const visitPurposeOther = (doctorcarSurvey.querySelector('input[name="visit_purpose_other_text"]') || {}).value.trim();
+
+        const impactChecked = doctorcarSurvey.querySelectorAll('input[name="decision_impact"]:checked');
+        const decisionImpact = impactChecked.length ? Array.from(impactChecked).map(el => el.value).join(',') : 'none';
+
+        const decisionHelpScore = (doctorcarSurvey.decision_help_score || {}).value || '';
+
+        const timeChecked = doctorcarSurvey.querySelectorAll('input[name="time_effect"]:checked');
+        const timeEffect = timeChecked.length ? Array.from(timeChecked).map(el => el.value).join(',') : 'none';
+
+        const treatChecked = doctorcarSurvey.querySelectorAll('input[name="treatment_good"]:checked');
+        const treatmentGood = treatChecked.length ? Array.from(treatChecked).map(el => el.value).join(',') : 'none';
+
+        const treatmentFreeRaw = (doctorcarSurvey.querySelector('textarea[name="treatment_free_text"]') || {}).value || '';
+        const improvementFreeRaw = (doctorcarSurvey.querySelector('textarea[name="improvement_free_text"]') || {}).value || '';
+
+        const payload = {
+          user_role: currentUserRole || 'unknown',
+          org_type: orgType,
+          org_type_other: orgTypeOther.substring(0, 50),
+          career_years: careerYears,
+          region: region,
+          region_other: regionOther.substring(0, 50),
+          used_doctorcar: usedDoctorcar,
+          visit_purpose: visitPurpose,
+          visit_purpose_other: visitPurposeOther.substring(0, 50),
+          decision_impact: decisionImpact,
+          decision_help_score: decisionHelpScore,
+          time_effect: timeEffect,
+          treatment_good: treatmentGood,
+          treatment_free_text_100: treatmentFreeRaw.substring(0, 100),
+          reuse_intent: (doctorcarSurvey.reuse_intent || {}).value || '',
+          nps_score: (doctorcarSurvey.nps_score || {}).value || '',
+          improvement_free_text_100: improvementFreeRaw.substring(0, 100),
+          entry_channel: trafficInfo ? trafficInfo.channel : 'unknown',
+          survey_submit_time: new Date().toISOString()
+        };
+
+        console.log('GA4 submit_survey_doctorcar payload = ', payload);
+        if (typeof gtag === 'function') gtag('event', 'submit_survey_doctorcar', payload);
+
+        alert('응답해 주셔서 감사합니다.');
+        doctorcarSurvey.reset();
+        updateExperienceBlock();
+        updateOrgTypeOther();
+        updateRegionOther();
+        updateVisitPurposeOther();
+        if (treatmentCounter) treatmentCounter.textContent = '0 / 100자';
+        if (improvementCounter) improvementCounter.textContent = '0 / 100자';
+      });
+    }
+
+    // 뒤로가기/ESC/바깥 클릭 닫기
     window.addEventListener('popstate', function () {
       const overlay = document.getElementById('role-overlay');
       if (roleOverlayOpen && overlay && overlay.style.display !== 'none') closeRoleOverlay();
     });
+
     const roleOverlay = document.getElementById('role-overlay');
     if (roleOverlay) {
-      roleOverlay.addEventListener('click', function (e) { if (e.target === roleOverlay) closeRoleOverlay(); });
+      roleOverlay.addEventListener('click', function (e) {
+        if (e.target === roleOverlay) closeRoleOverlay();
+      });
     }
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
@@ -1594,118 +2035,82 @@
       }
     });
 
-    // ✅ 지도 섹션 GPS 버튼(여기만)
-    const enableGpsMapBtn = document.getElementById('enable-gps-map-btn');
-    if (enableGpsMapBtn) {
-      enableGpsMapBtn.addEventListener('click', function () {
-        if (typeof gtag === 'function') gtag('event', 'click_enable_gps_map', { entry_channel: trafficInfo?.channel || 'unknown' });
-        updateUserLocationOnMap();
-        document.getElementById('map')?.scrollIntoView({ behavior: 'smooth' });
+    // ===== (요청 반영) 핑크 배너 버튼들 =====
+    const enableGpsBtn = document.getElementById('enable-gps-btn');
+    if (enableGpsBtn) {
+      enableGpsBtn.addEventListener('click', async function () {
+        if (typeof gtag === 'function') {
+          gtag('event', 'click_enable_gps_top', { entry_channel: trafficInfo ? trafficInfo.channel : 'unknown' });
+        }
+        await updateUserLocationOnMap();
+
+        const mapSection = document.getElementById('network-hospitals');
+        if (mapSection) mapSection.scrollIntoView({ behavior: 'smooth' });
       });
     }
 
-    // ✅ 수동 환자발생지 자동완성
-    const manualPanel = document.getElementById('manual-panel');
-    const patientInput = document.getElementById('patient-input');
-    const patientResults = document.getElementById('patient-results');
-
-    let patientPlaces = null;
-
-    function clearPatientResults() {
-      if (!patientResults) return;
-      patientResults.innerHTML = '';
-      patientResults.style.display = 'none';
-    }
-
-    function renderPatientResults(list) {
-      if (!patientResults) return;
-      patientResults.innerHTML = '';
-      if (!list || !list.length) {
-        patientResults.style.display = 'none';
-        return;
-      }
-
-      list.slice(0, 6).forEach(item => {
-        const name = item.place_name || item.address_name || '결과';
-        const addr = item.road_address_name || item.address_name || '';
-        const div = document.createElement('div');
-        div.className = 'manual-item';
-        div.innerHTML = `<b>${esc(name)}</b><small>${esc(addr)}</small>`;
-        div.addEventListener('click', () => {
-          const lat = parseFloat(item.y);
-          const lng = parseFloat(item.x);
-          PATIENT_POS = new kakao.maps.LatLng(lat, lng);
-          PATIENT_ADDR = addr || name;
-
-          renderPatientOnMap(HOSPITAL_MAP);
-
-          const bounds = new kakao.maps.LatLngBounds();
-          bounds.extend(new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng));
-          bounds.extend(PATIENT_POS);
-          if (USER_POS) bounds.extend(USER_POS);
-          HOSPITAL_MAP.setBounds(bounds);
-
-          patientInput.value = name;
-          clearPatientResults();
-
-          alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
-        });
-        patientResults.appendChild(div);
+    const manualWrap = document.getElementById('manual-wrap');
+    const toggleManualBtn = document.getElementById('toggle-manual-btn');
+    if (toggleManualBtn && manualWrap) {
+      toggleManualBtn.addEventListener('click', function () {
+        const show = manualWrap.style.display !== 'block';
+        manualWrap.style.display = show ? 'block' : 'none';
       });
-
-      patientResults.style.display = 'block';
     }
 
-    if (patientInput) {
-      patientPlaces = new kakao.maps.services.Places();
-
-      let t = null;
-      patientInput.addEventListener('input', () => {
+    const applyPatientBtn = document.getElementById('apply-patient-address-btn');
+    const patientInput = document.getElementById('patient-address-input');
+    if (applyPatientBtn && patientInput) {
+      applyPatientBtn.addEventListener('click', async function () {
         const q = patientInput.value.trim();
-        if (t) clearTimeout(t);
-        if (q.length < 2) { clearPatientResults(); return; }
+        if (!q) { alert('환자발생지 주소/장소명을 입력해 주세요.'); return; }
+        await setPatientLocationByQuery(q);
 
-        t = setTimeout(() => {
-          patientPlaces.keywordSearch(q, (data, status) => {
-            if (status !== kakao.maps.services.Status.OK || !data || !data.length) {
-              clearPatientResults();
-              return;
-            }
-            renderPatientResults(data);
+        if (typeof gtag === 'function') {
+          gtag('event', 'set_patient_location_manual', {
+            query_len: q.length,
+            entry_channel: trafficInfo ? trafficInfo.channel : 'unknown'
           });
-        }, 250);
+        }
+
+        const mapSection = document.getElementById('network-hospitals');
+        if (mapSection) mapSection.scrollIntoView({ behavior: 'smooth' });
       });
 
-      document.addEventListener('click', (e) => {
-        if (!manualPanel) return;
-        if (manualPanel.contains(e.target)) return;
-        clearPatientResults();
+      // 엔터로도 적용
+      patientInput.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyPatientBtn.click();
+        }
       });
     }
 
-    // ✅ 라벨 클릭 공용(병원/길병원)
-    window._onTargetClick = function(lat, lng, name, tel) {
+    // ===== 라벨 클릭 핸들러(전화번호 포함) =====
+    window._onHospitalLabelClick = function(name, lat, lng, phone) {
       if (!HOSPITAL_MAP) return;
       const pos = new kakao.maps.LatLng(lat, lng);
-      const dummyMarker = new kakao.maps.Marker({ position: pos });
-      showEtaInfoWindow(HOSPITAL_MAP, dummyMarker, pos, name || '대상', tel || '');
+      openHospitalInfo(name, pos, phone, pos);
     };
 
-    // 병원 지도 초기화
+    window._onGilLabelClick = function(lat, lng) {
+      if (!HOSPITAL_MAP) return;
+      const gilPos = new kakao.maps.LatLng(lat, lng);
+      openHospitalInfo('💜 길병원', gilPos, '', gilPos);
+    };
+
+    // ===== 지도 초기화 =====
     function initSecondaryHospitalsMap() {
       const mapContainer = document.getElementById('secondary-hospitals-map');
       if (!mapContainer) return;
 
       function createMap() {
         const center = new kakao.maps.LatLng(37.48, 126.74);
-        const hospitalMap = new kakao.maps.Map(mapContainer, { center, level: 8 });
-        console.log('병원 지도 생성 완료');
-
+        const mapOptions = { center: center, level: 8 };
+        const hospitalMap = new kakao.maps.Map(mapContainer, mapOptions);
         HOSPITAL_MAP = hospitalMap;
 
-        // 길병원 마커 + 라벨(클릭 시 ETA)
         const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
-
         const gilMarker = new kakao.maps.Marker({ map: hospitalMap, position: gilLatLng });
 
         const gilLabel = new kakao.maps.CustomOverlay({
@@ -1713,14 +2118,14 @@
           yAnchor: 1.4,
           content: `
             <div class="marker-label gil"
-                 onclick="window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, '길병원', '')">
+                 onclick="window._onGilLabelClick(${GIL_COORD.lat}, ${GIL_COORD.lng})">
               💜 길병원
             </div>`
         });
         gilLabel.setMap(hospitalMap);
 
         kakao.maps.event.addListener(gilMarker, 'click', function () {
-          showEtaInfoWindow(hospitalMap, gilMarker, gilLatLng, '길병원', '');
+          openHospitalInfo('💜 길병원', gilLatLng, '', gilMarker);
         });
 
         addSecondaryHospitalMarkers(hospitalMap);
@@ -1734,77 +2139,6 @@
 
       createMap();
     }
-
-    // ✅ 지도 크게보기(PC만)
-    const openModalBtn = document.getElementById('open-map-modal-btn');
-    const mapModal = document.getElementById('map-modal');
-    const closeModalBtn = document.getElementById('close-map-modal-btn');
-    let MODAL_MAP = null;
-
-    function isMobileUA() {
-      return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    }
-
-    function openMapModal() {
-      if (isMobileUA()) return;
-      if (!mapModal) return;
-      mapModal.style.display = 'flex';
-
-      if (!MODAL_MAP) {
-        const container = document.getElementById('modal-map');
-        const center = HOSPITAL_MAP ? HOSPITAL_MAP.getCenter() : new kakao.maps.LatLng(37.48, 126.74);
-        MODAL_MAP = new kakao.maps.Map(container, { center, level: 7 });
-
-        const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
-        const gilMarker = new kakao.maps.Marker({ map: MODAL_MAP, position: gilLatLng });
-
-        const gilLabel = new kakao.maps.CustomOverlay({
-          position: gilLatLng,
-          yAnchor: 1.4,
-          content: `
-            <div class="marker-label gil"
-                 onclick="(function(){ window._onTargetClick(${GIL_COORD.lat}, ${GIL_COORD.lng}, '길병원', ''); })()">
-              💜 길병원
-            </div>`
-        });
-        gilLabel.setMap(MODAL_MAP);
-
-        kakao.maps.event.addListener(gilMarker, 'click', function () {
-          showEtaInfoWindow(MODAL_MAP, gilMarker, gilLatLng, '길병원', '');
-        });
-
-        addSecondaryHospitalMarkers(MODAL_MAP);
-
-        if (USER_POS) renderUserOnMap(MODAL_MAP);
-        if (PATIENT_POS) renderPatientOnMap(MODAL_MAP);
-      } else {
-        if (USER_POS) renderUserOnMap(MODAL_MAP);
-        if (PATIENT_POS) renderPatientOnMap(MODAL_MAP);
-        setTimeout(() => MODAL_MAP.relayout(), 50);
-      }
-    }
-
-    function closeMapModal() {
-      if (!mapModal) return;
-      mapModal.style.display = 'none';
-    }
-
-    if (openModalBtn) {
-      if (isMobileUA()) {
-        openModalBtn.style.display = 'none';
-      } else {
-        openModalBtn.addEventListener('click', openMapModal);
-      }
-    }
-    if (closeModalBtn) closeModalBtn.addEventListener('click', closeMapModal);
-    if (mapModal) {
-      mapModal.addEventListener('click', (e) => {
-        if (e.target === mapModal) closeMapModal();
-      });
-    }
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && mapModal && mapModal.style.display === 'flex') closeMapModal();
-    });
 
     window.addEventListener('load', initSecondaryHospitalsMap);
   </script>
