@@ -605,6 +605,90 @@
     .etc-image-full { width: 100%; border-radius: 14px; margin: 14px 0; object-fit: cover; }
     .etc-image-half { width: 50%; border-radius: 14px; height: 360px; object-fit: cover; }
     .etc-image-amputation { width: 100%; border-radius: 14px; margin: 16px 0; height: 430px; object-fit: cover; }
+
+/* ====== SURVEY: EXPERIENCE (연보라 통일 + 기본 숨김) ====== */
+:root{
+  --lavender-50:#f6f2ff;
+  --lavender-100:#ede6ff;
+  --lavender-200:#dccfff;
+  --lavender-300:#c6b0ff;
+  --lavender-600:#6a3bd9;
+  --lavender-700:#5229b4;
+}
+
+/* 상단 라디오가 있는 블록(used_doctorcar)도 연보라로 */
+.experience-wrapper{
+  background: linear-gradient(135deg, var(--lavender-100), #ffffff);
+  border: 1px solid var(--lavender-200);
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+}
+
+/* 제목도 연보라 */
+.experience-title{
+  color: var(--lavender-700);
+  font-weight: 800;
+}
+
+/* ✅ 예(yes) 선택 전에는 아래 상세 블록 숨김 */
+#doctorcar-experience-block{
+  display: none;              /* 기본 숨김 */
+  margin-top: 10px;
+}
+
+/* “쪼르륵” 애니메이션용: 열릴 때 적용될 클래스 */
+#doctorcar-experience-block.is-open{
+  display: block;
+  animation: expSlideDown 180ms ease-out;
+}
+
+@keyframes expSlideDown{
+  from{ opacity: 0; transform: translateY(-6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* 안내 문구(※ 아래 항목...) */
+.experience-note{
+  background: var(--lavender-50);
+  border: 1px dashed var(--lavender-200);
+  color: #4a3a7a;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  margin-bottom: 10px;
+}
+
+/* 각 상세 카드 */
+.exp-sub-card{
+  background: #fff;
+  border: 1px solid var(--lavender-200);
+  border-radius: 16px;
+  padding: 12px 12px 10px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  margin-bottom: 10px;
+}
+
+.exp-sub-card h4{
+  font-size: 0.88rem;
+  margin-bottom: 8px;
+  color: var(--lavender-700);
+  font-weight: 800;
+}
+
+.exp-sub-card label{
+  display: block;
+  margin: 6px 0;
+  font-size: 0.9rem;
+}
+
+/* textarea/입력도 연보라 포커스 */
+#treatment_free_text:focus,
+#improvement_free_text:focus{
+  outline: none;
+  border-color: var(--lavender-300);
+  box-shadow: 0 0 0 3px rgba(198,176,255,0.22);
+}
+
   </style>
 
   <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
@@ -2003,6 +2087,42 @@
     });
 
     window.addEventListener('load', initSecondaryHospitalsMap);
+
+
+// ====== 설문: 닥터카 실제 이용 경험(예/아니오) → 아래 블록 토글 ======
+(function initDoctorcarExperienceToggle(){
+  const block = document.getElementById('doctorcar-experience-block');
+  const radios = document.querySelectorAll('input[name="used_doctorcar"]');
+
+  if (!block || !radios || !radios.length) return;
+
+  function setBlock(open){
+    if (open) {
+      block.classList.add('is-open');
+      block.style.display = 'block';
+    } else {
+      block.classList.remove('is-open');
+      block.style.display = 'none';
+
+      // ✅ 아니오로 바꾸면, 예에 해당하는 하위 입력값들 초기화(원하시면 이 부분 빼도 됨)
+      block.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+      const tt = block.querySelector('textarea[name="treatment_free_text"]');
+      if (tt) { tt.value = ''; document.getElementById('treatment_free_counter') && (document.getElementById('treatment_free_counter').textContent = '0 / 100자'); }
+    }
+  }
+
+  // 초기 상태 반영(새로고침 시)
+  const checked = document.querySelector('input[name="used_doctorcar"]:checked');
+  setBlock(checked && checked.value === 'yes');
+
+  // 변경 이벤트
+  radios.forEach(r => {
+    r.addEventListener('change', () => {
+      setBlock(r.value === 'yes' && r.checked);
+    });
+  });
+})();
+
   </script>
 </body>
 </html>
