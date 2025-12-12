@@ -702,6 +702,23 @@
   box-shadow: 0 0 0 3px rgba(198,176,255,0.22);
 }
 
+/* ====== 정보 섹션: 살짝 떠보이게 ====== */
+.info-section{
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(91,47,214,0.12);   /* 보라 기운 아주 약하게 */
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+
+  /* 살짝 떠보이는 핵심 */
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.06),
+    0 1px 3px rgba(0,0,0,0.04);
+
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+
   </style>
 
   <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
