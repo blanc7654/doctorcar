@@ -486,8 +486,8 @@
       line-height: 1.35;
       margin-bottom: 10px;
     }
-    .gps-instruction .red { color: #b71c1c; font-weight: 800; }
-    .gps-instruction .pink { color: #d81b60; font-weight: 800; }
+    .gps-instruction .red { color: #0b7ac4; font-weight: 800; }
+    .gps-instruction .pink { color: #4a1e2b; font-weight: 800; }
 
     .btn-gps {
       display: inline-flex;
@@ -704,18 +704,14 @@
 
 /* ====== 정보 섹션: 살짝 떠보이게 ====== */
 .info-section{
-  background: rgba(255,255,255,0.75);
-  border: 1px solid rgba(91,47,214,0.12);   /* 보라 기운 아주 약하게 */
-  border-radius: 16px;
+  background: rgba(255,255,255,0.9);   /* 배경을 조금 더 흰쪽으로 */
+border: 1.5px solid rgba(91,47,214,0.35);  border-radius: 14px;
   padding: 16px 18px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+outline: 1px solid rgba(0,0,0,0.05);
 
-  /* 살짝 떠보이는 핵심 */
   box-shadow:
-    0 4px 10px rgba(0,0,0,0.06),
-    0 1px 3px rgba(0,0,0,0.04);
-
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+    0 3px 6px rgba(0,0,0,0.06);  /* 퍼지지 않는 그림자 */
 }
 
 
@@ -814,7 +810,7 @@
 
           <div class="gps-instruction">
             <span class="red">GPS로 현위치를 특정하거나</span><br>
-            <span class="pink">수동주소입력으로 환자발생지 특정</span>하면 <b>각각</b> 주변병원까지의 이송거리를 알 수 있습니다.
+            <span class="pink"><b>수동주소입력으로 환자발생지 특정</b></span>하면 각각 주변병원까지의 이송거리를 알 수 있습니다.
           </div>
 
           <!-- ✅ GPS 버튼(상단 배너 삭제 → 여기만 사용) -->
@@ -876,8 +872,7 @@
       </div>
 
       <!-- ✅ 소개 -->
-      <section id="intro">
-        <div class="section-label">About</div>
+<section id="intro" class="info-section">        <div class="section-label">About</div>
         <h2 class="section-title">닥터카 소개</h2>
         <article class="card">
           <div class="card-header">
@@ -895,7 +890,7 @@
         </article>
       </section>
 
-      <section id="who">
+<section id="who" class="info-section">
         <div class="section-label">Who</div>
         <h2 class="section-title">닥터카 요청 주체</h2>
         <article class="card">
@@ -913,7 +908,7 @@
         </article>
       </section>
 
-      <section id="how">
+<section id="how" class="info-section">
         <div class="section-label">How</div>
         <h2 class="section-title">닥터카 요청 방법</h2>
         <article class="card">
@@ -947,7 +942,7 @@
         </article>
       </section>
 
-      <section id="when">
+<section id="when" class="info-section">
         <div class="section-label">When</div>
         <h2 class="section-title">닥터카 요청 시점</h2>
         <article class="card">
@@ -974,7 +969,7 @@
         </article>
       </section>
 
-      <section id="decision">
+<section id="decision" class="info-section">
         <div class="section-label">Decision</div>
         <h2 class="section-title">닥터카 출동 결정</h2>
         <article class="card">
@@ -1000,7 +995,7 @@
         </div>
       </div>
 
-      <section id="can-do">
+<section id="can-do" class="info-section">
         <div class="section-label">Scope</div>
         <h2 class="section-title">닥터카가 할 수 있는 것</h2>
         <p class="section-description">
