@@ -802,6 +802,98 @@ outline: 1px solid rgba(0,0,0,0.05);
   font-weight: 900;
 }
 
+/* ====== ETA POPUP (CustomOverlay) ====== */
+.eta-pop{
+  width: 220px;
+  max-width: 220px;
+  background:#fff;
+  border:1px solid #d0d4e4;
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+  overflow:hidden;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.eta-pop-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 10px;
+  border-bottom:1px solid #f0f0f0;
+}
+
+.eta-pop-title{
+  font-weight:900;
+  font-size:12.5px;
+  color:#111;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.eta-pop-close{
+  border:1px solid #d0d7ea;
+  background:#fff;
+  border-radius: 999px;
+  padding:2px 8px;
+  cursor:pointer;
+  font-size:12px;
+  line-height:1.2;
+}
+
+.eta-pop-body{ padding:8px 10px; }
+
+.eta-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:4px 0;
+}
+.eta-left{
+  flex: 1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-weight:900;
+}
+.eta-right{
+  flex:0 0 auto;
+  white-space:nowrap;
+  font-weight:900;
+}
+
+.eta-from-gps{
+  color:#0b7ac4;
+  border:1px solid #0b7ac4;
+  background:#e6f3fb;
+  padding:1px 6px;
+  border-radius:999px;
+}
+.eta-from-patient{
+  color:#d81b60;
+  border:1px solid #ff4b8b;
+  background:#fff0f6;
+  padding:1px 6px;
+  border-radius:999px;
+}
+
+.eta-phone{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px dashed #e2e2e2;
+}
+.eta-phone a{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-weight:900;
+}
+
 
   </style>
 
@@ -1569,6 +1661,103 @@ function formatTel(tel) {
   if (!t) return null;
   return t;
 }
+
+// ✅ CustomOverlay 기반 ETA 팝업
+let CURRENT_ETA_OVERLAY = null;
+
+function closeEtaOverlay(){
+  if (CURRENT_ETA_OVERLAY) {
+    CURRENT_ETA_OVERLAY.setMap(null);
+    CURRENT_ETA_OVERLAY = null;
+  }
+}
+
+async function showEtaPopup(map, toLatLng, targetName, targetTel) {
+  closeEtaOverlay();
+
+  const baseHtml = `
+    <div class="eta-pop">
+      <div class="eta-pop-head">
+        <div class="eta-pop-title">${esc(targetName || '대상')}</div>
+        <button class="eta-pop-close" onclick="window._closeEtaPopup()">닫기</button>
+      </div>
+      <div class="eta-pop-body">소요시간 계산 중...</div>
+    </div>
+  `;
+
+  const overlay = new kakao.maps.CustomOverlay({
+    position: toLatLng,
+    yAnchor: 1.25,
+    content: baseHtml,
+    clickable: true
+  });
+
+  overlay.setMap(map);
+  CURRENT_ETA_OVERLAY = overlay;
+
+  window._closeEtaPopup = closeEtaOverlay;
+
+  if (!USER_POS && !PATIENT_POS) {
+    overlay.setContent(`
+      <div class="eta-pop">
+        <div class="eta-pop-head">
+          <div class="eta-pop-title">${esc(targetName || '대상')}</div>
+          <button class="eta-pop-close" onclick="window._closeEtaPopup()">닫기</button>
+        </div>
+        <div class="eta-pop-body" style="color:#c62828;font-weight:900;">
+          현재 위치(GPS) 또는 환자발생지를 먼저 지정해 주세요.
+        </div>
+      </div>
+    `);
+    return;
+  }
+
+  const lines = [];
+
+  if (USER_POS) {
+    const s1 = await fetchDriveSummary(USER_POS, toLatLng);
+    if (s1) lines.push(`
+      <div class="eta-row">
+        <div class="eta-left eta-from-gps">현재위치로부터</div>
+        <div class="eta-right">(${s1.distanceKm}km, ${s1.durationMin}분)</div>
+      </div>
+    `);
+    else lines.push(`<div style="margin:4px 0;color:#c62828;font-weight:900;">현재위치 계산 실패</div>`);
+  }
+
+  if (PATIENT_POS) {
+    const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
+    if (s2) lines.push(`
+      <div class="eta-row">
+        <div class="eta-left eta-from-patient">환자발생지로부터</div>
+        <div class="eta-right">(${s2.distanceKm}km, ${s2.durationMin}분)</div>
+      </div>
+    `);
+    else lines.push(`<div style="margin:4px 0;color:#d81b60;font-weight:900;">환자발생지 계산 실패</div>`);
+  }
+
+  const tel = formatTel(targetTel);
+  const telHtml = tel ? `
+    <div class="eta-phone">
+      ☎ <a href="tel:${esc(tel)}">${esc(tel)}</a>
+    </div>
+  ` : ``;
+
+  overlay.setContent(`
+    <div class="eta-pop">
+      <div class="eta-pop-head">
+        <div class="eta-pop-title">${esc(targetName || '대상')}</div>
+        <button class="eta-pop-close" onclick="window._closeEtaPopup()">닫기</button>
+      </div>
+      <div class="eta-pop-body">
+        ${lines.join('')}
+        ${telHtml}
+      </div>
+    </div>
+  `);
+}
+
+
     // ✅ 클릭한 대상(병원/길병원) 위치로: (현재위치/환자발생지) 각각 ETA 표시 + 아래에 전화번호
     async function showEtaInfoWindow(map, markerForOpen, toLatLng, targetName, targetTel) {
       if (CURRENT_INFO_WINDOW) {
@@ -1794,8 +1983,9 @@ infoWindow.setContent(`
           label.setMap(kakaoMap);
 
           kakao.maps.event.addListener(marker, "click", () => {
-            showEtaInfoWindow(kakaoMap, marker, position, hospital.name, hospital.erTel);
-          });
+	  showEtaPopup(kakaoMap, position, hospital.name, hospital.erTel);
+	  });
+
 
           bounds.extend(position);
           kakaoMap.setBounds(bounds);
@@ -2087,11 +2277,11 @@ infoWindow.setContent(`
 
     // ✅ 라벨 클릭 공용(병원/길병원)
     window._onTargetClick = function(lat, lng, name, tel) {
-      if (!HOSPITAL_MAP) return;
-      const pos = new kakao.maps.LatLng(lat, lng);
-      const dummyMarker = new kakao.maps.Marker({ position: pos });
-      showEtaInfoWindow(HOSPITAL_MAP, dummyMarker, pos, name || '대상', tel || '');
-    };
+  if (!HOSPITAL_MAP) return;
+  const pos = new kakao.maps.LatLng(lat, lng);
+  showEtaPopup(HOSPITAL_MAP, pos, name || '대상', tel || '');
+};
+
 
     // 병원 지도 초기화
     function initSecondaryHospitalsMap() {
@@ -2122,8 +2312,9 @@ infoWindow.setContent(`
         gilLabel.setMap(hospitalMap);
 
         kakao.maps.event.addListener(gilMarker, 'click', function () {
-          showEtaInfoWindow(hospitalMap, gilMarker, gilLatLng, '길병원', '');
-        });
+  showEtaPopup(hospitalMap, gilLatLng, '길병원', '');
+});
+
 
         addSecondaryHospitalMarkers(hospitalMap);
       }
@@ -2172,8 +2363,10 @@ infoWindow.setContent(`
         gilLabel.setMap(MODAL_MAP);
 
         kakao.maps.event.addListener(gilMarker, 'click', function () {
-          showEtaInfoWindow(MODAL_MAP, gilMarker, gilLatLng, '길병원', '');
-        });
+  showEtaPopup(MODAL_MAP, gilLatLng, '길병원', '');
+});
+
+
 
         addSecondaryHospitalMarkers(MODAL_MAP);
 
