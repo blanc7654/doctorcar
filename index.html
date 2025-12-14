@@ -1574,7 +1574,7 @@ outline: 1px solid rgba(0,0,0,0.05);
     let USER_ADDR = null;
     let PATIENT_POS = null;
     let PATIENT_ADDR = null;
-
+    let GPS_PENDING = false;
     let HOSPITAL_MAP = null;
     let USER_MARKER = null;
     let USER_LABEL = null;
@@ -1878,9 +1878,11 @@ infoWindow.setContent(`
         return;
       }
       if (!HOSPITAL_MAP) {
-        console.warn('HOSPITAL_MAP 이 아직 준비되지 않았습니다.');
-        return;
-      }
+  GPS_PENDING = true;
+  alert('지도를 불러오는 중입니다. 지도 준비되면 자동으로 현재 위치를 다시 시도합니다.');
+  return;
+}
+
 
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -2294,6 +2296,13 @@ infoWindow.setContent(`
         console.log('병원 지도 생성 완료');
 
         HOSPITAL_MAP = hospitalMap;
+
+// ✅ 첫 클릭이 너무 빨랐으면 지도 준비 직후 자동으로 GPS 다시 시도
+if (GPS_PENDING) {
+  GPS_PENDING = false;
+  updateUserLocationOnMap();
+}
+
 
         // 길병원 마커 + 라벨(클릭 시 ETA)
         const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
