@@ -420,7 +420,7 @@
       padding: 10px 12px;
       border-bottom: 1px solid #eee;
       display: flex;
-      align-items: center;
+      align-items: flex-start; 
       justify-content: space-between;
       gap: 10px;
     }
@@ -429,6 +429,30 @@
       font-size: 0.95rem;
       color: #111;
     }
+
+#map-modal-controls .gps-address{
+  display: block;     /* 모달에서는 항상 보이게 (원하시면 유지/변경 가능) */
+}
+
+#map-modal-controls .manual-panel{
+  margin-top: 0;
+}
+
+/* ✅ “진짜 전체화면” 상태 (브라우저 Fullscreen API 사용)에서도 꽉 차게 */
+#map-modal.fullscreen .modal-inner{
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+}
+
+#map-modal-controls{
+  flex: 1 1 auto;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
     #map-modal .modal-close {
       border: 1px solid #d0d7ea;
       background: #fff;
@@ -1513,6 +1537,9 @@ outline: 1px solid rgba(0,0,0,0.05);
     <div class="modal-inner">
       <div class="modal-topbar">
         <div class="modal-title">주변 병원 지도 (크게보기)</div>
+  <div id="map-modal-controls"></div>
+  <div style="display:flex; gap:8px; align-items:center;">
+	<button type="button" class="modal-close" id="fullscreen-map-modal-btn">전체화면 ⛶</button>
         <button type="button" class="modal-close" id="close-map-modal-btn">닫기 ✕</button>
       </div>
       <div id="modal-map"></div>
@@ -2343,6 +2370,46 @@ if (GPS_PENDING) {
     const closeModalBtn = document.getElementById('close-map-modal-btn');
     let MODAL_MAP = null;
 
+// ✅ (추가) 모달로 옮길 컨트롤 원래 부모 저장
+const MODAL_CONTROLS = document.getElementById('map-modal-controls');
+const gpsBtnEl = document.getElementById('enable-gps-map-btn');
+const gpsAddrEl = document.getElementById('gps-address-map');
+const manualPanelEl = document.getElementById('manual-panel');
+
+// 원래 자리(복귀용): gps-banner 안쪽으로 다시 넣을 거라서 컨테이너 잡아둠
+const gpsBannerEl = document.querySelector('#map .gps-banner');
+
+// 원래 부모/순서 기억해두기 (정확히 원위치 복귀)
+const _orig = {
+  gpsBtnParent: gpsBtnEl?.parentNode || null,
+  gpsBtnNext: gpsBtnEl?.nextSibling || null,
+  gpsAddrParent: gpsAddrEl?.parentNode || null,
+  gpsAddrNext: gpsAddrEl?.nextSibling || null,
+  manualParent: manualPanelEl?.parentNode || null,
+  manualNext: manualPanelEl?.nextSibling || null
+};
+
+function moveControlsIntoModal(){
+  if (!MODAL_CONTROLS) return;
+
+  // 모달 컨트롤 영역 비우기(중복 방지)
+  MODAL_CONTROLS.innerHTML = '';
+
+  // gps-banner 안의 UI를 모달로 “이동”
+  if (gpsBtnEl) MODAL_CONTROLS.appendChild(gpsBtnEl);
+  if (gpsAddrEl) MODAL_CONTROLS.appendChild(gpsAddrEl);
+  if (manualPanelEl) MODAL_CONTROLS.appendChild(manualPanelEl);
+}
+
+function restoreControlsFromModal(){
+  // 원래 자리로 “복귀”
+  if (_orig.gpsBtnParent && gpsBtnEl) _orig.gpsBtnParent.insertBefore(gpsBtnEl, _orig.gpsBtnNext);
+  if (_orig.gpsAddrParent && gpsAddrEl) _orig.gpsAddrParent.insertBefore(gpsAddrEl, _orig.gpsAddrNext);
+  if (_orig.manualParent && manualPanelEl) _orig.manualParent.insertBefore(manualPanelEl, _orig.manualNext);
+}
+
+
+
     function isMobileUA() {
       return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     }
@@ -2351,6 +2418,7 @@ if (GPS_PENDING) {
       if (isMobileUA()) return;
       if (!mapModal) return;
       mapModal.style.display = 'flex';
+      moveControlsIntoModal();
 
       if (!MODAL_MAP) {
         const container = document.getElementById('modal-map');
@@ -2384,12 +2452,16 @@ if (GPS_PENDING) {
       } else {
         if (USER_POS) renderUserOnMap(MODAL_MAP);
         if (PATIENT_POS) renderPatientOnMap(MODAL_MAP);
-        setTimeout(() => MODAL_MAP.relayout(), 50);
+        setTimeout(() => {
+	MODAL_MAP.relayout();
+	MODAL_MAP.setCenter(MODAL_MAP.getCenter());
+	}, 80);
       }
     }
 
     function closeMapModal() {
       if (!mapModal) return;
+	restoreControlsFromModal();
       mapModal.style.display = 'none';
     }
 
@@ -2401,6 +2473,42 @@ if (GPS_PENDING) {
       }
     }
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeMapModal);
+// ✅ (추가) 전체화면 버튼
+const fullscreenBtn = document.getElementById('fullscreen-map-modal-btn');
+
+function toggleFullscreen(){
+  if (!mapModal) return;
+  const inner = mapModal.querySelector('.modal-inner');
+  if (!inner) return;
+
+  // 이미 전체화면이면 종료
+  if (document.fullscreenElement) {
+    document.exitFullscreen?.();
+    mapModal.classList.remove('fullscreen');
+    setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 80);
+    return;
+  }
+
+  // 전체화면 진입
+  inner.requestFullscreen?.().then(() => {
+    mapModal.classList.add('fullscreen');
+    setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 120);
+  }).catch(() => {
+    // 일부 환경에서 requestFullscreen 실패할 수 있음
+    alert('이 브라우저에서는 전체화면이 제한될 수 있습니다.');
+  });
+}
+
+if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+// 전체화면 상태 변화 감지해서 클래스 정리
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    mapModal?.classList.remove('fullscreen');
+    setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 80);
+  }
+});
+
     if (mapModal) {
       mapModal.addEventListener('click', (e) => {
         if (e.target === mapModal) closeMapModal();
