@@ -802,64 +802,6 @@ outline: 1px solid rgba(0,0,0,0.05);
   font-weight: 900;
 }
 
-/* ====== 1~3 단계 문구 색/볼드 ====== */
-.step-blue{ color:#0b7ac4; font-weight:900; }
-.step-red{ color:#c62828; font-weight:900; }
-.step-green{ color:#1b5e20; font-weight:900; }
-
-/* ====== 지도 좌상단 안내문(초록) ====== */
-.map-hint{
-  position:absolute;
-  left:10px; top:10px;
-  z-index:40;
-  background: rgba(255,255,255,0.95);
-  border:1px solid #59c36a;
-  color:#1b5e20;
-  font-weight:900;
-  padding:6px 10px;
-  border-radius:999px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.12);
-  font-size:0.82rem;
-}
-
-/* ====== 지도 위 결과 패널 ====== */
-.map-result-panel{
-  margin-bottom:10px;
-  padding:12px 12px;
-  border-radius:16px;
-  background:#ffffff;
-  border:1px solid #e5e8f3;
-  box-shadow:0 6px 16px rgba(0,0,0,0.08);
-}
-.map-result-panel .sel-title{
-  font-weight:900;
-  margin-bottom:8px;
-}
-.sel-row{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  margin:4px 0;
-  font-size:0.88rem;
-}
-.sel-label{ font-weight:900; }
-.sel-label.blue{ color:#0b7ac4; }
-.sel-label.red{ color:#c62828; }
-.sel-value{ font-weight:800; color:#111; white-space:nowrap; }
-
-.btn-gil-check{
-  width:100%;
-  margin-top:10px;
-  border:none;
-  border-radius:999px;
-  padding:10px 12px;
-  background:#0b7ac4;
-  color:#fff;
-  font-weight:900;
-  cursor:pointer;
-}
-.btn-gil-check:active{ transform:scale(0.99); }
-
 
   </style>
 
@@ -952,22 +894,16 @@ outline: 1px solid rgba(0,0,0,0.05);
         <h2 class="section-title" style="margin-bottom:6px;">지도</h2>
 
         <div class="gps-banner">
+          <div class="gps-banner-title">근처병원까지 소요시간 찾아보기</div>
 
           <div class="gps-instruction">
- 	  <div>
-	  <b class="step-blue">1. GPS로 현위치를 특정하거나</b>
- 	  </div>
-	  <div>
-	  <b class="step-red">2. 수동주소입력으로 환자발생지 입력</b>한 후,
-	  </div>
-	  <div>
-	  <b class="step-green">3. 지도위의 병원명을 클릭</b>하면, 이송시간을 알 수 있습니다.
-	  </div>
-	 </div>
+          <span class="red">GPS로 현위치를 특정하거나</span><br>
+<b><span class="manual-red">수동주소입력으로 환자발생지 입력하면</span></b> 각각 주변병원까지의 이송거리를 알 수 있습니다.
+          </div>
 
           <!-- ✅ GPS 버튼(상단 배너 삭제 → 여기만 사용) -->
           <button type="button" class="btn-gps" id="enable-gps-map-btn">
-            1. GPS로 현위치주소 찾기
+            📍 GPS로 현위치주소 찾기
           </button>
 
           <!-- ✅ 역지오코딩 주소 표시 -->
@@ -975,46 +911,18 @@ outline: 1px solid rgba(0,0,0,0.05);
 
           <!-- ✅ 수동 입력칸 상시 노출 -->
           <div class="manual-panel" id="manual-panel">
-<div class="btn-manual">2. 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
+<div class="btn-manual">⭐ 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
             <input type="text" id="patient-input" placeholder="예: 김포공항, 인천 남동구 ○○로 12, ○○빌딩" autocomplete="off" />
             <div class="manual-results" id="patient-results"></div>
             <div style="margin-top:8px; font-size:0.78rem; color:#666;">
-              ※ 검색 결과를 클릭하면 지도에 <b style="color:#d81b60;"> 환자발생지</b>로 표시됩니다.
+              ※ 검색 결과를 클릭하면 지도에 <b style="color:#d81b60;">⭐ 환자발생지</b>로 표시됩니다.
             </div>
           </div>
         </div>
 
         <article class="card" style="margin-top:12px;">
           <div class="card-body">
-<div class="map-result-panel" id="selected-hospital-panel" style="display:none;">
-  <div class="sel-title" id="sel-hospital-title">선택된병원 : -</div>
-
-  <div class="sel-row">
-    <span class="sel-label blue">GPS(현위치)로부터</span>
-    <span class="sel-value" id="sel-from-gps">-</span>
-  </div>
-
-  <div class="sel-row">
-    <span class="sel-label red">환자발생지(gps)로부터</span>
-    <span class="sel-value" id="sel-from-patient">-</span>
-  </div>
-
-  <button type="button" class="btn-gil-check" id="check-gil-eta-btn">
-    길병원까지의 이송시간 확인하기
-  </button>
-
-  <div class="sel-row" id="gil-from-gps-row" style="display:none;">
-    <span class="sel-label blue">GPS(현위치)로부터 길병원까지</span>
-    <span class="sel-value" id="gil-from-gps">-</span>
-  </div>
-
-  <div class="sel-row" id="gil-from-patient-row" style="display:none;">
-    <span class="sel-label red">환자발생지(gps)로부터 길병원까지</span>
-    <span class="sel-value" id="gil-from-patient">-</span>
-  </div>
-</div>
             <div id="secondary-hospitals-map" class="map-container">
-	    <div class="map-hint">3. 원하시는 병원명을 클릭하세요.</div>
               <button type="button" class="map-expand-btn" id="open-map-modal-btn">
                 🗺️ 지도 크게보기
               </button>
@@ -1626,42 +1534,6 @@ outline: 1px solid rgba(0,0,0,0.05);
       }
     }
 
-function setText(id, text){
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
-}
-
-async function updateSelectedHospitalPanel(targetName, targetTel, toLatLng){
-  const panel = document.getElementById('selected-hospital-panel');
-  if (!panel) return;
-
-  // 제목: 선택된병원 : 00병원 (010-0000-0000)
-  const tel = formatTel(targetTel);
-  const title = `선택된병원 : ${targetName || '-'}${tel ? ` (${tel})` : ''}`;
-  setText('sel-hospital-title', title);
-
-  // 기본 표시 초기화
-  setText('sel-from-gps', USER_POS ? '계산 중...' : '(미설정)');
-  setText('sel-from-patient', PATIENT_POS ? '계산 중...' : '(미설정)');
-  document.getElementById('gil-from-gps-row') && (document.getElementById('gil-from-gps-row').style.display='none');
-  document.getElementById('gil-from-patient-row') && (document.getElementById('gil-from-patient-row').style.display='none');
-
-  panel.style.display = 'block';
-
-  // GPS → 선택병원
-  if (USER_POS) {
-    const s1 = await fetchDriveSummary(USER_POS, toLatLng);
-    setText('sel-from-gps', s1 ? `${s1.durationMin}분, ${s1.distanceKm}km` : '불러오기 실패');
-  }
-
-  // 환자발생지 → 선택병원
-  if (PATIENT_POS) {
-    const s2 = await fetchDriveSummary(PATIENT_POS, toLatLng);
-    setText('sel-from-patient', s2 ? `${s2.durationMin}분, ${s2.distanceKm}km` : '불러오기 실패');
-  }
-}
-
-
     // ✅ 역지오코딩: 좌표 → 주소
     function reverseGeocode(latLng, cb) {
       try {
@@ -1924,7 +1796,6 @@ infoWindow.setContent(`
 
           kakao.maps.event.addListener(marker, "click", () => {
             showEtaInfoWindow(kakaoMap, marker, position, hospital.name, hospital.erTel);
-updateSelectedHospitalPanel(hospital.name, hospital.erTel, position);
           });
 
           bounds.extend(position);
@@ -2136,33 +2007,6 @@ updateSelectedHospitalPanel(hospital.name, hospital.erTel, position);
       });
     }
 
-const checkGilBtn = document.getElementById('check-gil-eta-btn');
-if (checkGilBtn) {
-  checkGilBtn.addEventListener('click', async () => {
-    const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
-
-    // GPS → 길병원
-    if (USER_POS) {
-      const s = await fetchDriveSummary(USER_POS, gilLatLng);
-      document.getElementById('gil-from-gps-row').style.display = 'flex';
-      setText('gil-from-gps', s ? `${s.durationMin}분, ${s.distanceKm}km` : '불러오기 실패');
-    }
-
-    // 환자발생지 → 길병원
-    if (PATIENT_POS) {
-      const s2 = await fetchDriveSummary(PATIENT_POS, gilLatLng);
-      document.getElementById('gil-from-patient-row').style.display = 'flex';
-      setText('gil-from-patient', s2 ? `${s2.durationMin}분, ${s2.distanceKm}km` : '불러오기 실패');
-    }
-
-    // 둘 다 없으면 안내
-    if (!USER_POS && !PATIENT_POS) {
-      alert('먼저 1) GPS 또는 2) 환자발생지를 지정해 주세요.');
-    }
-  });
-}
-
-
     // ✅ 수동 환자발생지 자동완성
     const manualPanel = document.getElementById('manual-panel');
     const patientInput = document.getElementById('patient-input');
@@ -2248,7 +2092,6 @@ if (checkGilBtn) {
       const pos = new kakao.maps.LatLng(lat, lng);
       const dummyMarker = new kakao.maps.Marker({ position: pos });
       showEtaInfoWindow(HOSPITAL_MAP, dummyMarker, pos, name || '대상', tel || '');
-updateSelectedHospitalPanel(name || '대상', tel || '', pos);
     };
 
     // 병원 지도 초기화
