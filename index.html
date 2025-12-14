@@ -1947,23 +1947,34 @@ infoWindow.setContent(`
 
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+       (pos) => {
+  USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
 
-          renderUserOnMap(HOSPITAL_MAP);
+  const mapsToUpdate = [];
+  if (HOSPITAL_MAP) mapsToUpdate.push(HOSPITAL_MAP);
+  if (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) mapsToUpdate.push(MODAL_MAP);
 
-          const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
-          const bounds = new kakao.maps.LatLngBounds();
-          bounds.extend(USER_POS);
-          bounds.extend(gilLatLng);
-          if (PATIENT_POS) bounds.extend(PATIENT_POS);
-          HOSPITAL_MAP.setBounds(bounds);
+  mapsToUpdate.forEach(mp => {
+    renderUserOnMap(mp);
 
-          reverseGeocode(USER_POS, (addr) => {
-            USER_ADDR = addr;
-            showGpsAddress(addr);
-          });
-        },
+    const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
+    const bounds = new kakao.maps.LatLngBounds();
+    bounds.extend(gilLatLng);
+    bounds.extend(USER_POS);
+    if (PATIENT_POS) bounds.extend(PATIENT_POS);
+    mp.setBounds(bounds);
+  });
+
+  reverseGeocode(USER_POS, (addr) => {
+    USER_ADDR = addr;
+    showGpsAddress(addr);
+  });
+
+  if (mapModal && mapModal.style.display === 'flex') {
+    relayoutModalMap();
+  }
+},
+
         (err) => {
           console.warn('Geolocation 실패:', err);
           alert('위치 정보를 불러오지 못했습니다. 브라우저 설정에서 위치 권한을 확인해 주세요.');
@@ -2340,11 +2351,19 @@ infoWindow.setContent(`
     }
 
     // ✅ 라벨 클릭 공용(병원/길병원)
-    window._onTargetClick = function(lat, lng, name, tel) {
-  if (!HOSPITAL_MAP) return;
+function getActiveMap(){
+  // 모달이 열려 있고 MODAL_MAP이 있으면 그걸 우선
+  if (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) return MODAL_MAP;
+  return HOSPITAL_MAP;
+}
+
+window._onTargetClick = function(lat, lng, name, tel) {
+  const map = getActiveMap();
+  if (!map) return;
   const pos = new kakao.maps.LatLng(lat, lng);
-  showEtaPopup(HOSPITAL_MAP, pos, name || '대상', tel || '');
+  showEtaPopup(map, pos, name || '대상', tel || '');
 };
+
 
 
     // 병원 지도 초기화
@@ -2498,6 +2517,7 @@ function restoreControlsFromModal(){
 
     function closeMapModal() {
       if (!mapModal) return;
+	closeEtaOverlay();     
 	restoreControlsFromModal();
       mapModal.style.display = 'none';
     }
