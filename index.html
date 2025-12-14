@@ -439,19 +439,52 @@
 }
 
 /* ✅ “진짜 전체화면” 상태 (브라우저 Fullscreen API 사용)에서도 꽉 차게 */
+
+/* ✅ 모달 내부 레이아웃: 위(topbar) + 아래(body) */
+#map-modal .modal-inner{
+  width: min(1200px, 96vw);
+  height: min(780px, 92vh);
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ 본문: 좌측 컨트롤 + 우측 지도 */
+#map-modal .modal-body{
+  flex: 1 1 auto;
+  min-height: 0;              /* ⭐ 중요: 지도 높이 계산 */
+  display: flex;
+}
+
+#map-modal-controls{
+  width: 320px;
+  max-width: 42vw;
+  flex: 0 0 auto;
+  padding: 12px;
+  border-right: 1px solid #eee;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#modal-map{
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;              /* ⭐ 중요 */
+}
+
+/* ✅ “진짜 전체화면” */
 #map-modal.fullscreen .modal-inner{
   width: 100vw;
   height: 100vh;
   border-radius: 0;
 }
 
-#map-modal-controls{
-  flex: 1 1 auto;
-  min-width: 260px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
     #map-modal .modal-close {
       border: 1px solid #d0d7ea;
@@ -461,11 +494,7 @@
       cursor: pointer;
       font-size: 0.85rem;
     }
-    #modal-map {
-      flex: 1 1 auto;
-      width: 100%;
-      height: 100%;
-    }
+
 
     /* ====== MARKER LABELS ====== */
     .marker-label {
@@ -1532,19 +1561,25 @@ outline: 1px solid rgba(0,0,0,0.05);
     </footer>
   </div>
 
-  <!-- ✅ 지도 크게보기 모달 -->
-  <div id="map-modal">
-    <div class="modal-inner">
-      <div class="modal-topbar">
-        <div class="modal-title">주변 병원 지도 (크게보기)</div>
-  <div id="map-modal-controls"></div>
-  <div style="display:flex; gap:8px; align-items:center;">
-	<button type="button" class="modal-close" id="fullscreen-map-modal-btn">전체화면 ⛶</button>
+<!-- ✅ 지도 크게보기 모달 -->
+<div id="map-modal">
+  <div class="modal-inner">
+    <div class="modal-topbar">
+      <div class="modal-title">주변 병원 지도 (크게보기)</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button type="button" class="modal-close" id="fullscreen-map-modal-btn">전체화면 ⛶</button>
         <button type="button" class="modal-close" id="close-map-modal-btn">닫기 ✕</button>
       </div>
+    </div>
+
+    <!-- ✅ 여기부터가 본문: 좌측 컨트롤 / 우측 지도 -->
+    <div class="modal-body">
+      <div id="map-modal-controls"></div>
       <div id="modal-map"></div>
     </div>
   </div>
+</div>
+
 
   <!-- 출신 선택 오버레이 (원본 유지) -->
   <div id="role-overlay" style="
@@ -2425,6 +2460,8 @@ function restoreControlsFromModal(){
         const center = HOSPITAL_MAP ? HOSPITAL_MAP.getCenter() : new kakao.maps.LatLng(37.48, 126.74);
         MODAL_MAP = new kakao.maps.Map(container, { center, level: 7 });
 
+	setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 80);
+
         const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
         const gilMarker = new kakao.maps.Marker({ map: MODAL_MAP, position: gilLatLng });
 
@@ -2473,6 +2510,20 @@ function restoreControlsFromModal(){
       }
     }
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeMapModal);
+
+function relayoutModalMap(){
+  if (!MODAL_MAP) return;
+  setTimeout(() => {
+    MODAL_MAP.relayout();
+    MODAL_MAP.setCenter(MODAL_MAP.getCenter());
+    setTimeout(() => {
+      MODAL_MAP.relayout();
+      MODAL_MAP.setCenter(MODAL_MAP.getCenter());
+    }, 150);
+  }, 80);
+}
+
+
 // ✅ (추가) 전체화면 버튼
 const fullscreenBtn = document.getElementById('fullscreen-map-modal-btn');
 
@@ -2481,20 +2532,17 @@ function toggleFullscreen(){
   const inner = mapModal.querySelector('.modal-inner');
   if (!inner) return;
 
-  // 이미 전체화면이면 종료
   if (document.fullscreenElement) {
     document.exitFullscreen?.();
     mapModal.classList.remove('fullscreen');
-    setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 80);
+    relayoutModalMap();
     return;
   }
 
-  // 전체화면 진입
   inner.requestFullscreen?.().then(() => {
     mapModal.classList.add('fullscreen');
-    setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 120);
+    relayoutModalMap();
   }).catch(() => {
-    // 일부 환경에서 requestFullscreen 실패할 수 있음
     alert('이 브라우저에서는 전체화면이 제한될 수 있습니다.');
   });
 }
@@ -2505,7 +2553,7 @@ if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', () => {
   if (!document.fullscreenElement) {
     mapModal?.classList.remove('fullscreen');
-    setTimeout(() => MODAL_MAP && MODAL_MAP.relayout(), 80);
+    relayoutModalMap();
   }
 });
 
