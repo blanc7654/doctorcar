@@ -2507,95 +2507,95 @@ function setPatientMarker(latLng, address) {
 }
 
 
-    // ✅ 수동 환자발생지 자동완성
-    const manualPanel = document.getElementById('manual-panel');
-    const patientInput = document.getElementById('patient-input');
-    const patientResults = document.getElementById('patient-results');
+// ✅ 수동 환자발생지 자동완성
+const manualPanel = document.getElementById('manual-panel');
+const patientInput = document.getElementById('patient-input');
+const patientResults = document.getElementById('patient-results');
 
-    let patientPlaces = null;
+let patientPlaces = null;
 
-    function clearPatientResults() {
-      if (!patientResults) return;
-      patientResults.innerHTML = '';
-      patientResults.style.display = 'none';
-    }
+function ensureKakaoPlacesReady() {
+  if (patientPlaces) return true;
+  if (!window.kakao || !kakao.maps || !kakao.maps.services) return false;
+  patientPlaces = new kakao.maps.services.Places();
+  return true;
+}
 
-    function renderPatientResults(list) {
-      if (!patientResults) return;
-      patientResults.innerHTML = '';
-      if (!list || !list.length) {
-        patientResults.style.display = 'none';
+function clearPatientResults() {
+  if (!patientResults) return;
+  patientResults.innerHTML = '';
+  patientResults.style.display = 'none';
+}
+
+function renderPatientResults(list) {
+  if (!patientResults) return;
+  patientResults.innerHTML = '';
+  if (!list || !list.length) { patientResults.style.display = 'none'; return; }
+
+  list.slice(0, 6).forEach(item => {
+    const name = item.place_name || item.address_name || '결과';
+    const addr = item.road_address_name || item.address_name || '';
+    const div = document.createElement('div');
+    div.className = 'manual-item';
+    div.innerHTML = `<b>${esc(name)}</b><small>${esc(addr)}</small>`;
+
+    div.addEventListener('click', () => {
+      if (!window.kakao || !kakao.maps) return;
+
+      const lat = parseFloat(item.y);
+      const lng = parseFloat(item.x);
+      PATIENT_POS = new kakao.maps.LatLng(lat, lng);
+      PATIENT_ADDR = addr || name;
+
+      renderPatientOnMap(HOSPITAL_MAP);
+
+      const bounds = new kakao.maps.LatLngBounds();
+      bounds.extend(new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng));
+      bounds.extend(PATIENT_POS);
+      if (USER_POS) bounds.extend(USER_POS);
+      HOSPITAL_MAP && HOSPITAL_MAP.setBounds(bounds);
+
+      patientInput.value = name;
+      clearPatientResults();
+
+      alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
+    });
+
+    patientResults.appendChild(div);
+  });
+
+  patientResults.style.display = 'block';
+}
+
+if (patientInput) {
+  let t = null;
+  patientInput.addEventListener('input', () => {
+    const q = patientInput.value.trim();
+    if (t) clearTimeout(t);
+    if (q.length < 2) { clearPatientResults(); return; }
+
+    t = setTimeout(() => {
+      if (!ensureKakaoPlacesReady()) {
+        console.warn('Kakao SDK not ready yet');
         return;
       }
-
-      list.slice(0, 6).forEach(item => {
-        const name = item.place_name || item.address_name || '결과';
-        const addr = item.road_address_name || item.address_name || '';
-        const div = document.createElement('div');
-        div.className = 'manual-item';
-        div.innerHTML = `<b>${esc(name)}</b><small>${esc(addr)}</small>`;
-        div.addEventListener('click', () => {
-          const name = item.place_name || item.address_name || '결과';
-  const addr = item.road_address_name || item.address_name || '';
-
-  const lat = parseFloat(item.y);
-  const lng = parseFloat(item.x);
-  const latLng = new kakao.maps.LatLng(lat, lng);
-
-  setPatientMarker(latLng, addr);
-
-  patientInput.value = name;
-  clearPatientResults();
-
-  alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
-});
-
-
-          renderPatientOnMap(HOSPITAL_MAP);
-
-          const bounds = new kakao.maps.LatLngBounds();
-          bounds.extend(new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng));
-          bounds.extend(PATIENT_POS);
-          if (USER_POS) bounds.extend(USER_POS);
-          HOSPITAL_MAP.setBounds(bounds);
-
-          patientInput.value = name;
+      patientPlaces.keywordSearch(q, (data, status) => {
+        if (status !== kakao.maps.services.Status.OK || !data || !data.length) {
           clearPatientResults();
-
-          alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
-        });
-        patientResults.appendChild(div);
+          return;
+        }
+        renderPatientResults(data);
       });
+    }, 250);
+  });
 
-      patientResults.style.display = 'block';
-    }
+  document.addEventListener('click', (e) => {
+    if (!manualPanel) return;
+    if (manualPanel.contains(e.target)) return;
+    clearPatientResults();
+  });
+}
 
-    if (patientInput) {
-      patientPlaces = new kakao.maps.services.Places();
-
-      let t = null;
-      patientInput.addEventListener('input', () => {
-        const q = patientInput.value.trim();
-        if (t) clearTimeout(t);
-        if (q.length < 2) { clearPatientResults(); return; }
-
-        t = setTimeout(() => {
-          patientPlaces.keywordSearch(q, (data, status) => {
-            if (status !== kakao.maps.services.Status.OK || !data || !data.length) {
-              clearPatientResults();
-              return;
-            }
-            renderPatientResults(data);
-          });
-        }, 250);
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!manualPanel) return;
-        if (manualPanel.contains(e.target)) return;
-        clearPatientResults();
-      });
-    }
 
     // ✅ 라벨 클릭 공용(병원/길병원)
 function getActiveMap(){
