@@ -1139,7 +1139,7 @@ outline: 1px solid rgba(0,0,0,0.05);
 </div>
   <input id="share-mech" placeholder="기전" />
 <input id="share-bp" placeholder="혈압" />
-  <input id="share-pin" placeholder="PIN (1119)" type="password" />
+  <input id="share-pin" placeholder="PIN" type="password" />
 
   <button id="share-submit"
     style="margin-top:6px;
@@ -2311,10 +2311,7 @@ if (shareSubmitBtn) {
   shareSubmitBtn.addEventListener('click', async () => {
 
  const avpuEl = document.getElementById('share-avpu');
-  if (!avpuEl || !avpuEl.value) {
-    alert('AVPU를 선택해주세요.');
-    return;
-  }
+ const avpu = (avpuEl && avpuEl.value) ? avpuEl.value : "";   // 미선택이면 ""
  
 
     const pin = document.getElementById('share-pin')?.value?.trim();
