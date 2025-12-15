@@ -947,11 +947,57 @@ outline: 1px solid rgba(0,0,0,0.05);
   font-weight:900;
 }
 
+.avpu-wrap { margin-top:8px; }
+.avpu-label { font-weight:800; margin-bottom:6px; }
+
+.avpu-buttons {
+  display:flex;
+  gap:8px;
+}
+
+.avpu-btn {
+  flex:1;
+  padding:10px 0;
+  border-radius:999px;
+  border:2px solid #ddd;
+  background:#fff;
+  font-weight:900;
+  font-size:0.9rem;
+  cursor:pointer;
+}
+
+.avpu-btn.active {
+  border-color:#d81b60;
+  background:#fff0f6;
+  color:#d81b60;
+}
+
 
   </style>
 
   <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
   <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b9ccd41f81d72605a0882435c138dc91&libraries=services"></script>
+
+<!-- Firebase (Compat) SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  // 1) 여기 콘솔에서 복사한 firebaseConfig 그대로 붙이시면 됩니다.
+  const firebaseConfig = {
+    apiKey: "AIzaSyCLTWD_G5ys3f6E6CaKx21BZwSiCCuWaRQ",
+    authDomain: "doctorcar-4bbba.firebaseapp.com",
+    projectId: "doctorcar-4bbba",
+    storageBucket: "doctorcar-4bbba.firebasestorage.app",
+    messagingSenderId: "79072528424",
+    appId: "1:79072528424:web:8da40289ed16277dc34d1d"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+
 </head>
 
 <body>
@@ -1056,7 +1102,7 @@ outline: 1px solid rgba(0,0,0,0.05);
 
           <!-- ✅ 수동 입력칸 상시 노출 -->
           <div class="manual-panel" id="manual-panel">
-<div class="btn-manual">⭐ 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
+	  <div class="btn-manual">⭐ 환자발생 주소명 수동 입력하기 (자동완성에서 선택 필수)</div>
             <input type="text" id="patient-input" placeholder="예: 김포공항, 인천 남동구 ○○로 12, ○○빌딩" autocomplete="off" />
             <div class="manual-results" id="patient-results"></div>
             <div style="margin-top:8px; font-size:0.78rem; color:#666;">
@@ -1064,6 +1110,51 @@ outline: 1px solid rgba(0,0,0,0.05);
             </div>
           </div>
         </div>
+
+<button id="open-share-panel"
+  style="margin-top:8px;
+         width:100%;
+         padding:8px;
+         border-radius:999px;
+         border:1px solid #ff4b8b;
+         background:#fff0f6;
+         color:#d81b60;
+         font-weight:800;">
+  📤 환자발생 정보 공유하기
+</button>
+
+<div id="share-panel" style="display:none; margin-top:10px;">
+  <input id="share-age" placeholder="나이" />
+  <input id="share-sex" placeholder="성별" />
+  <div class="avpu-wrap">
+  <div class="avpu-label">의식 (AVPU)</div>
+  <div class="avpu-buttons" id="avpu-buttons">
+    <button type="button" class="avpu-btn" data-val="A">A</button>
+    <button type="button" class="avpu-btn" data-val="V">V</button>
+    <button type="button" class="avpu-btn" data-val="P">P</button>
+    <button type="button" class="avpu-btn" data-val="U">U</button>
+  </div>
+  <!-- 실제 값 저장용 (기존 로직 호환) -->
+  <input type="hidden" id="share-avpu" />
+</div>
+  <input id="share-mech" placeholder="기전" />
+<input id="share-bp" placeholder="혈압" />
+  <input id="share-pin" placeholder="PIN (1119)" type="password" />
+
+  <button id="share-submit"
+    style="margin-top:6px;
+           width:100%;
+           padding:8px;
+           border-radius:999px;
+           background:#0b7ac4;
+           color:#fff;
+           font-weight:800;">
+    공유하기
+  </button>
+</div>
+
+
+
 
         <article class="card" style="margin-top:12px;">
           <div class="card-body">
@@ -1079,6 +1170,13 @@ outline: 1px solid rgba(0,0,0,0.05);
             </p>
           </div>
         </article>
+
+<!-- ✅ 여기 추가 -->
+<article class="card" id="patient-event-list-card">
+  <div class="card-title">📋 최근 환자발생 (실시간)</div>
+  <div id="patient-event-items" style="margin-top:8px;"></div>
+</article>
+
       </section>
 
       <!-- ✅ 이송기준 섹션(갈고/gtp를 여기로 이동) -->
@@ -1630,6 +1728,7 @@ outline: 1px solid rgba(0,0,0,0.05);
     let roleOverlayOpen = false;
     let deferredPrompt = null;
     let CURRENT_INFO_WINDOW = null;
+    let LAST_SHARED_EVENT_ID = null;
 
     // ✅ 내 위치(GPS) / 환자발생지(수동) 상태
     let USER_POS = null;
@@ -2174,7 +2273,95 @@ function updateUserLocationOnMap() {
       window.location.href = 'tel:' + tel;
     }
 
+// ===== 공유 패널 열기/닫기 =====
+const shareBtn = document.getElementById('open-share-panel');
+const sharePanel = document.getElementById('share-panel');
+
+shareBtn.addEventListener('click', () => {
+  const isOpen = sharePanel.style.display === 'block';
+  sharePanel.style.display = isOpen ? 'none' : 'block';
+});
+
     // ========= DOM 바인딩 =========
+
+// ===== AVPU 버튼 처리 (버튼화) =====
+const avpuButtonsWrap = document.getElementById('avpu-buttons');
+const avpuHiddenInput = document.getElementById('share-avpu');
+
+function setAvpu(val){
+  // active UI
+  document.querySelectorAll('.avpu-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+  // hidden value
+  if (avpuHiddenInput) avpuHiddenInput.value = val || '';
+}
+
+if (avpuButtonsWrap) {
+  avpuButtonsWrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.avpu-btn');
+    if (!btn) return;
+    setAvpu(btn.dataset.val);
+  });
+}
+
+// ===== 환자발생 공유하기 =====
+const shareSubmitBtn = document.getElementById('share-submit');
+
+if (shareSubmitBtn) {
+  shareSubmitBtn.addEventListener('click', async () => {
+    // ✅ AVPU 선택 확인(여기에서!)
+    const avpuVal = (document.getElementById('share-avpu')?.value || '').trim();
+    if (!avpuVal) {
+      alert('AVPU를 선택해주세요.');
+      return;
+    }
+
+    const pin = document.getElementById('share-pin')?.value?.trim();
+    if (pin !== '1119') {
+      alert('PIN이 올바르지 않습니다.');
+      return;
+    }
+
+    if (!PATIENT_POS) {
+      alert('환자발생지를 먼저 입력해주세요.');
+      return;
+    }
+
+    const data = {
+      lat: PATIENT_POS.getLat(),
+      lng: PATIENT_POS.getLng(),
+      address: PATIENT_ADDR || '',
+      age: document.getElementById('share-age')?.value || '',
+      sex: document.getElementById('share-sex')?.value || '',
+      avpu: avpuVal,
+      mechanism: document.getElementById('share-mech')?.value || '',
+      bp: document.getElementById('share-bp')?.value || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+      const docRef = await db.collection('patientEvents').add(data);
+      LAST_SHARED_EVENT_ID = docRef.id;
+
+      alert('환자발생 정보가 공유되었습니다.');
+
+      // 입력 초기화
+      document.getElementById('share-panel').style.display = 'none';
+      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-pin']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+      // ✅ AVPU 버튼 active도 초기화
+      setAvpu('');
+
+    } catch (e) {
+      console.error(e);
+      alert('공유 중 오류가 발생했습니다.');
+    }
+  });
+}
+
+
 
     trafficInfo = classifyTraffic();
     if (typeof gtag === 'function') {
@@ -2289,6 +2476,40 @@ function updateUserLocationOnMap() {
       });
     }
 
+// ✅ 환자발생지 세팅 (수동입력/공유 공용)
+function setPatientMarker(latLng, address) {
+  if (!latLng) return;
+
+  // 1) 전역은 LatLng 그대로 유지 (다른 로직들과 타입 통일)
+  PATIENT_POS = latLng;
+  PATIENT_ADDR = address || null;
+
+  // 2) 병원 지도에 표시
+  if (HOSPITAL_MAP) {
+    renderPatientOnMap(HOSPITAL_MAP);
+
+    const bounds = new kakao.maps.LatLngBounds();
+    bounds.extend(new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng));
+    bounds.extend(PATIENT_POS);
+    if (USER_POS) bounds.extend(USER_POS);
+    HOSPITAL_MAP.setBounds(bounds);
+  }
+
+  // 3) 모달이 열려있으면 모달 지도에도 표시
+  if (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) {
+    renderPatientOnMap(MODAL_MAP);
+
+    const b2 = new kakao.maps.LatLngBounds();
+    b2.extend(new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng));
+    b2.extend(PATIENT_POS);
+    if (USER_POS) b2.extend(USER_POS);
+    MODAL_MAP.setBounds(b2);
+
+    relayoutModalMap();
+  }
+}
+
+
     // ✅ 수동 환자발생지 자동완성
     const manualPanel = document.getElementById('manual-panel');
     const patientInput = document.getElementById('patient-input');
@@ -2317,10 +2538,21 @@ function updateUserLocationOnMap() {
         div.className = 'manual-item';
         div.innerHTML = `<b>${esc(name)}</b><small>${esc(addr)}</small>`;
         div.addEventListener('click', () => {
-          const lat = parseFloat(item.y);
-          const lng = parseFloat(item.x);
-          PATIENT_POS = new kakao.maps.LatLng(lat, lng);
-          PATIENT_ADDR = addr || name;
+          const name = item.place_name || item.address_name || '결과';
+  const addr = item.road_address_name || item.address_name || '';
+
+  const lat = parseFloat(item.y);
+  const lng = parseFloat(item.x);
+  const latLng = new kakao.maps.LatLng(lat, lng);
+
+  setPatientMarker(latLng, addr);
+
+  patientInput.value = name;
+  clearPatientResults();
+
+  alert('환자발생지가 지도에 표시되었습니다. 병원/길병원 라벨(또는 마커)을 클릭하면 소요시간과 전화번호가 표시됩니다.');
+});
+
 
           renderPatientOnMap(HOSPITAL_MAP);
 
@@ -2395,6 +2627,87 @@ window._onTargetClick = function(lat, lng, name, tel) {
         console.log('병원 지도 생성 완료');
 
         HOSPITAL_MAP = hospitalMap;
+
+
+// ✅ 실시간 환자발생 리스트 (최근 10건)
+db.collection('patientEvents')
+  .orderBy('createdAt', 'desc')
+  .limit(10)
+  .onSnapshot(snapshot => {
+
+let firstSnapshot = true;
+
+// 🔔 처음 로딩 시에는 알림 안 띄움
+    if (firstSnapshot) {
+      firstSnapshot = false;
+    } else {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const id = change.doc.id;
+
+          // ❌ 내가 방금 올린 건 제외
+          if (id === LAST_SHARED_EVENT_ID) return;
+
+          showPatientToast();
+        }
+      });
+
+    const box = document.getElementById('patient-event-items');
+    box.innerHTML = '';
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+
+      const wrapper = document.createElement('div');
+      wrapper.style.borderBottom = '1px dashed #ddd';
+      wrapper.style.padding = '8px 6px';
+
+      // 🔹 한 줄 요약
+      const summary = document.createElement('div');
+      summary.style.cursor = 'pointer';
+      summary.style.fontWeight = '700';
+      summary.innerHTML = `
+        ${d.address || '(주소 없음)'}
+        <div style="font-size:0.75rem;color:#666;">
+          ${d.createdAt?.toDate?.().toLocaleString() || ''}
+        </div>
+      `;
+
+      // 🔸 상세정보 (처음엔 숨김)
+      const detail = document.createElement('div');
+      detail.style.display = 'none';
+      detail.style.marginTop = '6px';
+      detail.style.fontSize = '0.8rem';
+      detail.style.color = '#444';
+
+      detail.innerHTML = `
+        나이: ${d.age || '-'} /
+        성별: ${d.sex || '-'} <br/>
+        AVPU: ${d.avpu || '-'} /
+        혈압: ${d.bp || '-'} <br/>
+        기전: ${d.mechanism || '-'}
+      `;
+
+      // 👉 클릭 동작
+      summary.addEventListener('click', () => {
+
+        // 1️⃣ 지도에 환자발생지 표시 (기존 기능 재사용)
+        setPatientMarker(
+          new kakao.maps.LatLng(d.lat, d.lng),
+          d.address
+        );
+
+        // 2️⃣ accordion toggle
+        const opened = detail.style.display === 'block';
+        detail.style.display = opened ? 'none' : 'block';
+      });
+
+      wrapper.appendChild(summary);
+      wrapper.appendChild(detail);
+      box.appendChild(wrapper);
+    });
+  });
+
 
 
         // 길병원 마커 + 라벨(클릭 시 ETA)
@@ -2661,6 +2974,46 @@ document.addEventListener('fullscreenchange', () => {
 })();
 
 
+function showPatientToast() {
+  const toast = document.getElementById('patient-toast');
+  if (!toast) return;
+
+  toast.style.display = 'block';
+
+  // 📱 모바일이면 진동
+  if (navigator.vibrate) {
+    navigator.vibrate(200);
+  }
+
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 3000);
+}
+
   </script>
+
+
+
+
+<!-- 🔔 실시간 환자 알림 토스트 -->
+<div id="patient-toast"
+  style="
+    position:fixed;
+    top:16px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#d81b60;
+    color:#fff;
+    padding:10px 14px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:0.85rem;
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    display:none;
+    z-index:100000;
+  ">
+  🚑 새로운 환자 발생 정보가 공유되었습니다
+</div>
+
 </body>
 </html>
