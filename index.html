@@ -1124,22 +1124,86 @@ outline: 1px solid rgba(0,0,0,0.05);
 </button>
 
 <div id="share-panel" style="display:none; margin-top:10px;">
-  <input id="share-age" placeholder="나이" />
-  <input id="share-sex" placeholder="성별" />
-  <div class="avpu-wrap">
-  <div class="avpu-label">의식 (AVPU)</div>
-  <div class="avpu-buttons" id="avpu-buttons">
-    <button type="button" class="avpu-btn" data-val="A">A</button>
-    <button type="button" class="avpu-btn" data-val="V">V</button>
-    <button type="button" class="avpu-btn" data-val="P">P</button>
-    <button type="button" class="avpu-btn" data-val="U">U</button>
+
+  <!-- ✅ 나이군: 기존 id=share-age 유지 (select로 변경) -->
+  <select id="share-age" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
+    <option value="">나이군 선택</option>
+    <option value="0~12개월">0~12개월</option>
+    <option value="12개월~7세">12개월~7세</option>
+    <option value="8~18세">8~18세</option>
+    <option value="19~64세">19~64세</option>
+    <option value="65세~">65세~</option>
+  </select>
+
+  <!-- ✅ 성별: 기존 id=share-sex 유지 (radio -> hidden에 저장) -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">성별</div>
+    <div style="display:flex; gap:10px;">
+      <button type="button" class="seg-btn" data-target="share-sex" data-val="M">M</button>
+      <button type="button" class="seg-btn" data-target="share-sex" data-val="F">F</button>
+    </div>
+    <input type="hidden" id="share-sex" />
   </div>
-  <!-- 실제 값 저장용 (기존 로직 호환) -->
-  <input type="hidden" id="share-avpu" />
-</div>
-  <input id="share-mech" placeholder="기전" />
-<input id="share-bp" placeholder="혈압" />
-  <input id="share-pin" placeholder="PIN" type="password" />
+
+  <!-- ✅ 의식(AVPU): 교수님 기존 그대로 -->
+  <div class="avpu-wrap">
+    <div class="avpu-label">의식 (AVPU)</div>
+    <div class="avpu-buttons" id="avpu-buttons">
+      <button type="button" class="avpu-btn" data-val="A">A</button>
+      <button type="button" class="avpu-btn" data-val="V">V</button>
+      <button type="button" class="avpu-btn" data-val="P">P</button>
+      <button type="button" class="avpu-btn" data-val="U">U</button>
+    </div>
+    <input type="hidden" id="share-avpu" />
+  </div>
+
+  <!-- ✅ 기전: 기존 id=share-mech 유지 (select로 변경) -->
+  <select id="share-mech" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
+    <option value="">기전 선택</option>
+    <option value="Stab">Stab</option>
+    <option value="추락">추락</option>
+    <option value="낙상">낙상</option>
+    <option value="보행자">보행자</option>
+    <option value="자동차탑승자">자동차탑승자</option>
+    <option value="오토바이탑승자">오토바이탑승자</option>
+    <option value="작업중사고">작업중사고</option>
+  </select>
+
+  <!-- ✅ 다친 부위(복수): 새로 추가 -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">다친 부위(복수선택)</div>
+    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
+      <label><input type="checkbox" name="share-injury" value="두부"> 두부</label>
+      <label><input type="checkbox" name="share-injury" value="머리"> 머리</label>
+      <label><input type="checkbox" name="share-injury" value="가슴"> 가슴</label>
+      <label><input type="checkbox" name="share-injury" value="복부골반"> 복부골반</label>
+      <label><input type="checkbox" name="share-injury" value="팔"> 팔</label>
+      <label><input type="checkbox" name="share-injury" value="다리"> 다리</label>
+    </div>
+  </div>
+
+  <!-- ✅ 혈압: 기존 id=share-bp 유지 (radio -> hidden에 저장) -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">혈압(SBP)</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="90이상">90이상</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="90미만">90미만</button>
+    </div>
+    <input type="hidden" id="share-bp" />
+  </div>
+
+  <!-- ✅ SpO2: 새로 추가 -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">산소포화도(SpO₂)</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="90이상">90이상</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="90미만">90미만</button>
+    </div>
+    <input type="hidden" id="share-spo2" />
+  </div>
+
+  <input id="share-pin" placeholder="PIN" type="password"
+         style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;" />
 
   <button id="share-submit"
     style="margin-top:6px;
@@ -1152,6 +1216,7 @@ outline: 1px solid rgba(0,0,0,0.05);
     공유하기
   </button>
 </div>
+
 
 
 
@@ -2325,34 +2390,54 @@ if (shareSubmitBtn) {
       return;
     }
 
-    const data = {
-      lat: PATIENT_POS.getLat(),
-      lng: PATIENT_POS.getLng(),
-      address: PATIENT_ADDR || '',
-      age: document.getElementById('share-age')?.value || '',
-      sex: document.getElementById('share-sex')?.value || '',
-      avpu: document.getElementById('share-avpu')?.value || '',
-      mechanism: document.getElementById('share-mech')?.value || '',
-	bp: document.getElementById('share-bp')?.value || '',
+const data = {
+  lat: PATIENT_POS.getLat(),
+  lng: PATIENT_POS.getLng(),
+  address: PATIENT_ADDR || '',
 
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+  // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
+  age: document.getElementById('share-age')?.value || '',
+  sex: document.getElementById('share-sex')?.value || '',
+  avpu: document.getElementById('share-avpu')?.value || '',
+  mechanism: document.getElementById('share-mech')?.value || '',
+  bp: document.getElementById('share-bp')?.value || '',
+  spo2: document.getElementById('share-spo2')?.value || '',
 
-    try {
-      const docRef = await db.collection('patientEvents').add(data);
-	LAST_SHARED_EVENT_ID = docRef.id;
+  // 다친부위(복수선택)
+  injuries: Array.from(document.querySelectorAll('input[name="share-injury"]:checked'))
+    .map(el => el.value),
 
-      alert('환자발생 정보가 공유되었습니다.');
+  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+};
 
-      // 입력 초기화
-      document.getElementById('share-panel').style.display = 'none';
-      ['share-age','share-sex','share-avpu','share-mech','share-pin']
-        .forEach(id => document.getElementById(id).value = '');
+try {
+  const docRef = await db.collection('patientEvents').add(data);
+  LAST_SHARED_EVENT_ID = docRef.id;
 
-    } catch (e) {
-      console.error(e);
-      alert('공유 중 오류가 발생했습니다.');
-    }
+  alert('환자발생 정보가 공유되었습니다.');
+
+  // 입력/선택 초기화
+  document.getElementById('share-panel').style.display = 'none';
+
+  // hidden 값 비우기(추가된 항목 포함)
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+  // 버튼 active 전부 해제(AVPU 포함)
+  document.querySelectorAll('#share-panel .active')
+    .forEach(btn => btn.classList.remove('active'));
+
+  // 체크박스 해제(다친부위)
+  document.querySelectorAll('input[name="share-injury"]')
+    .forEach(chk => chk.checked = false);
+
+} catch (e) {
+  console.error(e);
+  alert('공유 중 오류가 발생했습니다.');
+}
   });
 }
 
@@ -2693,26 +2778,30 @@ db.collection('patientEvents')
       detail.style.fontSize = '0.82rem';
       detail.style.color = '#444';
       detail.style.lineHeight = '1.4';
-      detail.innerHTML = `
-        <div>나이: <b>${esc(d.age || '')}</b></div>
-        <div>성별: <b>${esc(d.sex || '')}</b></div>
-        <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
-        <div>혈압: <b>${esc(d.bp || '')}</b></div>
-        <div>기전: <b>${esc(d.mechanism || '')}</b></div>
-        <div style="margin-top:6px;">
-          <button type="button" style="
-            width:100%;
-            padding:8px;
-            border-radius:999px;
-            border:1px solid #ff4b8b;
-            background:#fff0f6;
-            color:#d81b60;
-            font-weight:800;
-            cursor:pointer;">
-            ⭐ 이 환자발생지로 지도 표시
-          </button>
-        </div>
-      `;
+     detail.innerHTML = `
+  <div>나이: <b>${esc(d.age || '')}</b></div>
+  <div>성별: <b>${esc(d.sex || '')}</b></div>
+  <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
+  <div>혈압: <b>${esc(d.bp || '')}</b></div>
+  <div>산소포화도: <b>${esc(d.spo2 || '')}</b></div>
+  <div>기전: <b>${esc(d.mechanism || '')}</b></div>
+  <div>다친부위: <b>${esc((d.injuries || []).join(', '))}</b></div>
+
+  <div style="margin-top:6px;">
+    <button type="button" style="
+      width:100%;
+      padding:8px;
+      border-radius:999px;
+      border:1px solid #ff4b8b;
+      background:#fff0f6;
+      color:#d81b60;
+      font-weight:800;
+      cursor:pointer;">
+      ⭐ 이 환자발생지로 지도 표시
+    </button>
+  </div>
+`;
+
 
       // 요약 클릭 → 상세 토글
       summary.addEventListener('click', () => {
@@ -3041,6 +3130,42 @@ function showPatientToast() {
   ">
   🚑 새로운 환자 발생 정보가 공유되었습니다
 </div>
+
+<script>
+  // seg-btn (M/F, SBP, SpO2 등) 클릭 시 hidden input에 값 저장 + 버튼 활성화 표시
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".seg-btn");
+    if (!btn) return;
+
+    const targetId = btn.dataset.target;
+    const val = btn.dataset.val;
+
+    const hidden = document.getElementById(targetId);
+    if (hidden) hidden.value = val;
+
+    // 같은 target 그룹 버튼들 active 토글
+    const siblings = document.querySelectorAll(`.seg-btn[data-target="${targetId}"]`);
+    siblings.forEach(b => {
+      b.style.background = "#fff";
+      b.style.border = "1px solid #ffd1e1";
+      b.style.color = "#d81b60";
+      b.style.fontWeight = "800";
+      b.style.borderRadius = "999px";
+      b.style.padding = "8px 12px";
+    });
+
+    btn.style.background = "#ff4b8b";
+    btn.style.border = "1px solid #ff4b8b";
+    btn.style.color = "#fff";
+  });
+
+  // 공유하기 눌렀을 때, 다친부위 체크값을 문자열로 만들어서 공유 텍스트에 붙이고 싶으면
+  // (기존 share-submit handler 안에서 아래 한 줄만 쓰면 됩니다)
+  window.getShareInjuryAreas = function() {
+    return [...document.querySelectorAll('input[name="share-injury"]:checked')].map(x => x.value);
+  };
+</script>
+
 
 </body>
 </html>
