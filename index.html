@@ -2625,6 +2625,26 @@ window._onTargetClick = function(lat, lng, name, tel) {
 
         HOSPITAL_MAP = hospitalMap;
 
+
+
+// ✅ 간단 토스트 (없으면 에러나니 최소 구현)
+function showPatientToast(msg = '새 환자발생 정보가 등록되었습니다.') {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.position = 'fixed';
+  t.style.left = '50%';
+  t.style.bottom = '18px';
+  t.style.transform = 'translateX(-50%)';
+  t.style.background = 'rgba(0,0,0,0.78)';
+  t.style.color = '#fff';
+  t.style.padding = '10px 12px';
+  t.style.borderRadius = '999px';
+  t.style.fontSize = '13px';
+  t.style.zIndex = '999999';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
 let firstSnapshot = true;
 
 // ✅ 실시간 환자발생 리스트 (최근 10건)
@@ -2633,27 +2653,26 @@ db.collection('patientEvents')
   .limit(10)
   .onSnapshot(snapshot => {
 
-
-// 🔔 처음 로딩 시에는 알림 안 띄움
+    // 🔔 처음 로딩 시에는 알림 안 띄움
     if (firstSnapshot) {
       firstSnapshot = false;
     } else {
       snapshot.docChanges().forEach(change => {
         if (change.type === 'added') {
           const id = change.doc.id;
-
           // ❌ 내가 방금 올린 건 제외
           if (id === LAST_SHARED_EVENT_ID) return;
-
           showPatientToast();
         }
       });
+    }
 
     const box = document.getElementById('patient-event-items');
+    if (!box) return;
     box.innerHTML = '';
 
     snapshot.forEach(doc => {
-      const d = doc.data();
+      const d = doc.data() || {};
 
       const wrapper = document.createElement('div');
       wrapper.style.borderBottom = '1px dashed #ddd';
@@ -2662,10 +2681,10 @@ db.collection('patientEvents')
       // 🔹 한 줄 요약
       const summary = document.createElement('div');
       summary.style.cursor = 'pointer';
-      summary.style.fontWeight = '700';
+      summary.style.fontWeight = '800';
       summary.innerHTML = `
-        ${d.address || '(주소 없음)'}
-        <div style="font-size:0.75rem;color:#666;">
+        ${esc(d.address || '(주소 없음)')}
+        <div style="font-size:0.75rem;color:#666;margin-top:2px;">
           ${d.createdAt?.toDate?.().toLocaleString() || ''}
         </div>
       `;
@@ -2674,30 +2693,44 @@ db.collection('patientEvents')
       const detail = document.createElement('div');
       detail.style.display = 'none';
       detail.style.marginTop = '6px';
-      detail.style.fontSize = '0.8rem';
+      detail.style.fontSize = '0.82rem';
       detail.style.color = '#444';
-
+      detail.style.lineHeight = '1.4';
       detail.innerHTML = `
-        나이: ${d.age || '-'} /
-        성별: ${d.sex || '-'} <br/>
-        AVPU: ${d.avpu || '-'} /
-        혈압: ${d.bp || '-'} <br/>
-        기전: ${d.mechanism || '-'}
+        <div>나이: <b>${esc(d.age || '')}</b></div>
+        <div>성별: <b>${esc(d.sex || '')}</b></div>
+        <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
+        <div>혈압: <b>${esc(d.bp || '')}</b></div>
+        <div>기전: <b>${esc(d.mechanism || '')}</b></div>
+        <div style="margin-top:6px;">
+          <button type="button" style="
+            width:100%;
+            padding:8px;
+            border-radius:999px;
+            border:1px solid #ff4b8b;
+            background:#fff0f6;
+            color:#d81b60;
+            font-weight:800;
+            cursor:pointer;">
+            ⭐ 이 환자발생지로 지도 표시
+          </button>
+        </div>
       `;
 
-      // 👉 클릭 동작
+      // 요약 클릭 → 상세 토글
       summary.addEventListener('click', () => {
-
-        // 1️⃣ 지도에 환자발생지 표시 (기존 기능 재사용)
-        setPatientMarker(
-          new kakao.maps.LatLng(d.lat, d.lng),
-          d.address
-        );
-
-        // 2️⃣ accordion toggle
-        const opened = detail.style.display === 'block';
-        detail.style.display = opened ? 'none' : 'block';
+        detail.style.display = (detail.style.display === 'none') ? 'block' : 'none';
       });
+
+      // 버튼 클릭 → 해당 좌표로 환자발생지 세팅
+      const btn = detail.querySelector('button');
+      if (btn && typeof d.lat === 'number' && typeof d.lng === 'number') {
+        btn.addEventListener('click', () => {
+          const pos = new kakao.maps.LatLng(d.lat, d.lng);
+          setPatientMarker(pos, d.address || '');
+          showPatientToast('지도에 환자발생지를 표시했습니다.');
+        });
+      }
 
       wrapper.appendChild(summary);
       wrapper.appendChild(detail);
