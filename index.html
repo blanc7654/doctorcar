@@ -1636,7 +1636,6 @@ outline: 1px solid rgba(0,0,0,0.05);
     let USER_ADDR = null;
     let PATIENT_POS = null;
     let PATIENT_ADDR = null;
-    let GPS_PENDING = false;
     let HOSPITAL_MAP = null;
     let USER_MARKER = null;
     let USER_LABEL = null;
@@ -1933,55 +1932,74 @@ infoWindow.setContent(`
       }
     }
 
-    // ✅ GPS: 현재 위치 획득 + 지도 표시 + 주소 표시
-    function updateUserLocationOnMap() {
-      if (!navigator.geolocation) {
-        alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');
-        return;
+// ✅ GPS: 현재 위치 획득 + 지도 표시 + 주소 표시
+let GEO_IN_FLIGHT = false;
+let PENDING_POS = null;
+
+function updateUserLocationOnMap() {
+  if (!navigator.geolocation) {
+    alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');
+    return;
+  }
+
+  // 연타 방지(중복 호출)
+  if (GEO_IN_FLIGHT) return;
+  GEO_IN_FLIGHT = true;
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      GEO_IN_FLIGHT = false;
+
+      USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      PENDING_POS = USER_POS; // 지도 준비 전이면 여기 저장됨
+
+      // ✅ 지도 준비 전이어도 위치는 잡아둠 (첫 클릭 무반응 제거)
+      const mapsToUpdate = [];
+      if (HOSPITAL_MAP) mapsToUpdate.push(HOSPITAL_MAP);
+      if (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) mapsToUpdate.push(MODAL_MAP);
+
+      mapsToUpdate.forEach(mp => {
+        renderUserOnMap(mp);
+
+        const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
+        const bounds = new kakao.maps.LatLngBounds();
+        bounds.extend(gilLatLng);
+        bounds.extend(USER_POS);
+        if (PATIENT_POS) bounds.extend(PATIENT_POS);
+        mp.setBounds(bounds);
+      });
+
+      reverseGeocode(USER_POS, (addr) => {
+        USER_ADDR = addr;
+        showGpsAddress(addr);
+      });
+
+      if (mapModal && mapModal.style.display === 'flex') relayoutModalMap();
+    },
+    (err) => {
+      GEO_IN_FLIGHT = false;
+      console.warn('Geolocation 실패:', err);
+
+      // ✅ 코드별 메시지(권한꼬임/timeout/불가 구분)
+      if (err.code === 1) {
+        alert('위치 권한이 차단되어 있습니다. (PERMISSION_DENIED)\n브라우저/휴대폰 설정에서 이 사이트 위치 권한을 “허용”으로 바꿔 주세요.');
+      } else if (err.code === 2) {
+        alert('현재 위치를 가져올 수 없습니다. (POSITION_UNAVAILABLE)\nGPS/네트워크 상태를 확인해 주세요.');
+      } else if (err.code === 3) {
+        alert('위치 확인 시간이 초과되었습니다. (TIMEOUT)\n실내/절전모드면 늦게 잡힐 수 있어요. 다시 한 번 눌러 주세요.');
+      } else {
+        alert('위치 정보를 불러오지 못했습니다. 브라우저 설정에서 위치 권한을 확인해 주세요.');
       }
-      if (!HOSPITAL_MAP) {
-  GPS_PENDING = true;
-  alert('지도를 불러오는 중입니다. 지도 준비되면 자동으로 현재 위치를 다시 시도합니다.');
-  return;
+    },
+    {
+      enableHighAccuracy: false, // ✅ 첫 fix 빨리 잡히게
+      timeout: 20000,            // ✅ 10초→20초
+      maximumAge: 60000          // ✅ 1분 캐시 허용(두번째에 되던 걸 첫번째로 당김)
+    }
+  );
 }
 
 
-      navigator.geolocation.getCurrentPosition(
-       (pos) => {
-  USER_POS = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-
-  const mapsToUpdate = [];
-  if (HOSPITAL_MAP) mapsToUpdate.push(HOSPITAL_MAP);
-  if (mapModal && mapModal.style.display === 'flex' && MODAL_MAP) mapsToUpdate.push(MODAL_MAP);
-
-  mapsToUpdate.forEach(mp => {
-    renderUserOnMap(mp);
-
-    const gilLatLng = new kakao.maps.LatLng(GIL_COORD.lat, GIL_COORD.lng);
-    const bounds = new kakao.maps.LatLngBounds();
-    bounds.extend(gilLatLng);
-    bounds.extend(USER_POS);
-    if (PATIENT_POS) bounds.extend(PATIENT_POS);
-    mp.setBounds(bounds);
-  });
-
-  reverseGeocode(USER_POS, (addr) => {
-    USER_ADDR = addr;
-    showGpsAddress(addr);
-  });
-
-  if (mapModal && mapModal.style.display === 'flex') {
-    relayoutModalMap();
-  }
-},
-
-        (err) => {
-          console.warn('Geolocation 실패:', err);
-          alert('위치 정보를 불러오지 못했습니다. 브라우저 설정에서 위치 권한을 확인해 주세요.');
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    }
 
     // 인천·부천·광명·시흥·김포 연계 2차 병원 목록 (+ 응급실 전화 더미)
     const SECONDARY_HOSPITALS = [
@@ -2377,12 +2395,6 @@ window._onTargetClick = function(lat, lng, name, tel) {
         console.log('병원 지도 생성 완료');
 
         HOSPITAL_MAP = hospitalMap;
-
-// ✅ 첫 클릭이 너무 빨랐으면 지도 준비 직후 자동으로 GPS 다시 시도
-if (GPS_PENDING) {
-  GPS_PENDING = false;
-  updateUserLocationOnMap();
-}
 
 
         // 길병원 마커 + 라벨(클릭 시 ETA)
