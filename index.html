@@ -2284,38 +2284,38 @@ shareBtn.addEventListener('click', () => {
 
     // ========= DOM 바인딩 =========
 
-// ===== AVPU 버튼 처리 (버튼화) =====
-const avpuButtonsWrap = document.getElementById('avpu-buttons');
+// ===== AVPU 버튼 처리 =====
+const avpuButtons = document.querySelectorAll('.avpu-btn');
 const avpuHiddenInput = document.getElementById('share-avpu');
 
-function setAvpu(val){
-  // active UI
-  document.querySelectorAll('.avpu-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === val);
-  });
-  // hidden value
-  if (avpuHiddenInput) avpuHiddenInput.value = val || '';
-}
+avpuButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    // 1️⃣ 전체 비활성화
+    avpuButtons.forEach(b => b.classList.remove('active'));
 
-if (avpuButtonsWrap) {
-  avpuButtonsWrap.addEventListener('click', (e) => {
-    const btn = e.target.closest('.avpu-btn');
-    if (!btn) return;
-    setAvpu(btn.dataset.val);
+    // 2️⃣ 선택 버튼 활성화
+    btn.classList.add('active');
+
+    // 3️⃣ 값 저장 (기존 Firestore 로직 그대로 사용)
+    avpuHiddenInput.value = btn.dataset.val;
   });
-}
+});
+
+
 
 // ===== 환자발생 공유하기 =====
 const shareSubmitBtn = document.getElementById('share-submit');
 
+
 if (shareSubmitBtn) {
   shareSubmitBtn.addEventListener('click', async () => {
-    // ✅ AVPU 선택 확인(여기에서!)
-    const avpuVal = (document.getElementById('share-avpu')?.value || '').trim();
-    if (!avpuVal) {
-      alert('AVPU를 선택해주세요.');
-      return;
-    }
+
+ const avpuEl = document.getElementById('share-avpu');
+  if (!avpuEl || !avpuEl.value) {
+    alert('AVPU를 선택해주세요.');
+    return;
+  }
+ 
 
     const pin = document.getElementById('share-pin')?.value?.trim();
     if (pin !== '1119') {
@@ -2334,25 +2334,23 @@ if (shareSubmitBtn) {
       address: PATIENT_ADDR || '',
       age: document.getElementById('share-age')?.value || '',
       sex: document.getElementById('share-sex')?.value || '',
-      avpu: avpuVal,
+      avpu: document.getElementById('share-avpu')?.value || '',
       mechanism: document.getElementById('share-mech')?.value || '',
-      bp: document.getElementById('share-bp')?.value || '',
+	bp: document.getElementById('share-bp')?.value || '',
+
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
     try {
       const docRef = await db.collection('patientEvents').add(data);
-      LAST_SHARED_EVENT_ID = docRef.id;
+	LAST_SHARED_EVENT_ID = docRef.id;
 
       alert('환자발생 정보가 공유되었습니다.');
 
       // 입력 초기화
       document.getElementById('share-panel').style.display = 'none';
-      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-pin']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-
-      // ✅ AVPU 버튼 active도 초기화
-      setAvpu('');
+      ['share-age','share-sex','share-avpu','share-mech','share-pin']
+        .forEach(id => document.getElementById(id).value = '');
 
     } catch (e) {
       console.error(e);
@@ -2360,7 +2358,6 @@ if (shareSubmitBtn) {
     }
   });
 }
-
 
 
     trafficInfo = classifyTraffic();
@@ -2628,6 +2625,7 @@ window._onTargetClick = function(lat, lng, name, tel) {
 
         HOSPITAL_MAP = hospitalMap;
 
+let firstSnapshot = true;
 
 // ✅ 실시간 환자발생 리스트 (최근 10건)
 db.collection('patientEvents')
@@ -2635,7 +2633,6 @@ db.collection('patientEvents')
   .limit(10)
   .onSnapshot(snapshot => {
 
-let firstSnapshot = true;
 
 // 🔔 처음 로딩 시에는 알림 안 띄움
     if (firstSnapshot) {
