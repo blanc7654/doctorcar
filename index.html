@@ -1156,9 +1156,10 @@ outline: 1px solid rgba(0,0,0,0.05);
   <!-- ✅ 성별: 기존 id=share-sex 유지 (radio -> hidden에 저장) -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">성별</div>
-    <div style="display:flex; gap:10px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-sex" data-val="M">M</button>
       <button type="button" class="seg-btn" data-target="share-sex" data-val="F">F</button>
+      <button type="button" class="seg-btn" data-target="share-sex" data-val="확인불가">확인불가</button>
     </div>
     <input type="hidden" id="share-sex" />
   </div>
@@ -1209,16 +1210,20 @@ outline: 1px solid rgba(0,0,0,0.05);
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90이상">90이상</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90미만">90미만</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="uncheckable">uncheckable</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="CPR">CPR</button>
     </div>
     <input type="hidden" id="share-bp" />
   </div>
 
-  <!-- ✅ SpO2: 새로 추가 -->
+    <!-- ✅ SpO2: 새로 추가 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">산소포화도(SpO₂)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="90이상">90이상</button>
-      <button type="button" class="seg-btn" data-target="share-spo2" data-val="90미만">90미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70이상 90미만">70이상 90미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70미만">70미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="uncheckable">uncheckable</button>
     </div>
     <input type="hidden" id="share-spo2" />
   </div>
