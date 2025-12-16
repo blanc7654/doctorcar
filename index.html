@@ -1131,46 +1131,35 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">공유 위치 선택</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button type="button" class="seg-btn" data-target="share-loc" data-val="patient">⭐ 환자발생지</button>
       <button type="button" class="seg-btn" data-target="share-loc" data-val="gps">📍 내 GPS</button>
+      <button type="button" class="seg-btn" data-target="share-loc" data-val="patient">⭐ 환자발생지</button>
+      
     </div>
     <input type="hidden" id="share-loc" value="patient" />
     <div id="share-loc-hint" style="font-size:0.78rem; color:#666; margin-top:6px; line-height:1.35;"></div>
   </div>
 
 
-  
-  <!-- ✅ 올린사람 -->
+    <!-- ✅ 나이군 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
-    <div style="font-weight:800; margin-bottom:6px;">올린사람</div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button type="button" class="seg-btn" data-target="share-uploader" data-val="119상황실">119상황실</button>
-      <button type="button" class="seg-btn" data-target="share-uploader" data-val="구급차">구급차</button>
-      <button type="button" class="seg-btn" data-target="share-uploader" data-val="길병원">길병원</button>
-    </div>
-    <input type="hidden" id="share-uploader" />
-  </div>
-
-<!-- ✅ 나이군: 기존 id=share-age 유지 (select로 변경) -->
-  <select id="share-age" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
-    <option value="">나이군 선택</option>
+    <div style="font-weight:900; margin-bottom:6px;">나이군</div>
+    <select id="share-age" style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fff; font-weight:900;">
+      <option value="">나이군 선택</option>
     <option value="0~12개월">0~12개월</option>
     <option value="12개월~7세">12개월~7세</option>
     <option value="8~18세">8~18세</option>
     <option value="19~64세">19~64세</option>
     <option value="65세~">65세~</option>
-  </select>
+    </select>
+  </div>
 
   <!-- ✅ 성별: 기존 id=share-sex 유지 (radio -> hidden에 저장) -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">성별</div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px;">
       <button type="button" class="seg-btn" data-target="share-sex" data-val="M">M</button>
       <button type="button" class="seg-btn" data-target="share-sex" data-val="F">F</button>
-      <button type="button" class="seg-btn" data-target="share-sex" data-val="확인불가">확인불가</button>
     </div>
-</div>
     <input type="hidden" id="share-sex" />
   </div>
 
@@ -1186,9 +1175,11 @@ outline: 1px solid rgba(0,0,0,0.05);
     <input type="hidden" id="share-avpu" />
   </div>
 
-  <!-- ✅ 기전: 기존 id=share-mech 유지 (select로 변경) -->
-  <select id="share-mech" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
-    <option value="">기전 선택</option>
+    <!-- ✅ 기전 -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:900; margin-bottom:6px;">기전</div>
+    <select id="share-mech" style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fff; font-weight:900;">
+      <option value="">기전 선택</option>
     <option value="Stab">Stab</option>
     <option value="추락">추락</option>
     <option value="낙상">낙상</option>
@@ -1196,7 +1187,8 @@ outline: 1px solid rgba(0,0,0,0.05);
     <option value="자동차탑승자">자동차탑승자</option>
     <option value="오토바이탑승자">오토바이탑승자</option>
     <option value="작업중사고">작업중사고</option>
-  </select>
+    </select>
+  </div>
 
   <!-- ✅ 다친 부위(복수): 새로 추가 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
@@ -1215,13 +1207,9 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">혈압(SBP)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90이상">90이상</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90미만">90미만</button>
-      <button type="button" class="seg-btn" data-target="share-bp" data-val="uncheckable">uncheckable</button>
-      <button type="button" class="seg-btn" data-target="share-bp" data-val="CPR">CPR</button>
     </div>
-</div>
     <input type="hidden" id="share-bp" />
   </div>
 
@@ -1229,18 +1217,19 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">산소포화도(SpO₂)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="90이상">90이상</button>
-      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70이상 90미만">70이상 90미만</button>
-      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70미만">70미만</button>
-      <button type="button" class="seg-btn" data-target="share-spo2" data-val="uncheckable">uncheckable</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="90미만">90미만</button>
     </div>
-</div>
     <input type="hidden" id="share-spo2" />
   </div>
 
-  <input id="share-pin" placeholder="PIN" type="password"
-         style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;" />
+    <!-- ✅ PIN(가시성 강화) -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:900; margin-bottom:6px;">PIN</div>
+    <input id="share-pin" placeholder="PIN 입력" type="password"
+           style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fffbe8; font-weight:900; letter-spacing:1px;" />
+  </div>
+
 
   <button id="share-submit"
     style="margin-top:6px;
@@ -2408,36 +2397,14 @@ if (shareBtn && sharePanel) {
     const isOpen = sharePanel.style.display === 'block';
 
     if (!isOpen) {
-      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-uploader','share-pin']
+      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
         .forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
 
-      // ✅ seg-btn(성별/혈압/SpO2/올린사람/공유위치) 버튼 스타일 초기화
-      document.querySelectorAll('#share-panel .seg-btn').forEach(b => {
-        b.classList.remove('active');
-        b.style.background = "#fff";
-        b.style.border = "1px solid #ffd1e1";
-        b.style.color = "#d81b60";
-        b.style.fontWeight = "800";
-        b.style.borderRadius = "999px";
-        b.style.padding = "8px 12px";
-      });
-
-      // ✅ 공유 위치 기본값: 환자발생지
-      const locHidden = document.getElementById('share-loc');
-      if (locHidden) locHidden.value = 'patient';
-      const locDefaultBtn = document.querySelector('#share-panel .seg-btn[data-target="share-loc"][data-val="patient"]');
-      if (locDefaultBtn) {
-        locDefaultBtn.classList.add('active');
-        locDefaultBtn.style.background = "#ff4b8b";
-        locDefaultBtn.style.border = "1px solid #ff4b8b";
-        locDefaultBtn.style.color = "#fff";
-      }
-
-      // ✅ AVPU(active) 초기화
-      document.querySelectorAll('#share-panel .avpu-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#share-panel .active')
+        .forEach(btn => btn.classList.remove('active'));
 
       document.querySelectorAll('input[name="share-injury"]')
         .forEach(chk => chk.checked = false);
@@ -2516,9 +2483,6 @@ const data = {
   lng: locPos.getLng(),
   address: locAddr || '',
 
-  // 선택형
-  uploader: document.getElementById('share-uploader')?.value || '',
-
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
   age: document.getElementById('share-age')?.value || '',
   sex: document.getElementById('share-sex')?.value || '',
@@ -2544,36 +2508,16 @@ try {
   document.getElementById('share-panel').style.display = 'none';
 
   // hidden 값 비우기(추가된 항목 포함)
-  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-uploader','share-pin']
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
 
-  // ✅ seg-btn 버튼 스타일 초기화
-  document.querySelectorAll('#share-panel .seg-btn').forEach(b => {
-    b.classList.remove('active');
-    b.style.background = "#fff";
-    b.style.border = "1px solid #ffd1e1";
-    b.style.color = "#d81b60";
-    b.style.fontWeight = "800";
-    b.style.borderRadius = "999px";
-    b.style.padding = "8px 12px";
-  });
+  // 버튼 active 전부 해제(AVPU 포함)
+  document.querySelectorAll('#share-panel .active')
+    .forEach(btn => btn.classList.remove('active'));
 
-  // ✅ 공유 위치 기본값: 환자발생지
-  const locHidden2 = document.getElementById('share-loc');
-  if (locHidden2) locHidden2.value = 'patient';
-  const locDefaultBtn2 = document.querySelector('#share-panel .seg-btn[data-target="share-loc"][data-val="patient"]');
-  if (locDefaultBtn2) {
-    locDefaultBtn2.classList.add('active');
-    locDefaultBtn2.style.background = "#ff4b8b";
-    locDefaultBtn2.style.border = "1px solid #ff4b8b";
-    locDefaultBtn2.style.color = "#fff";
-  }
-
-  // ✅ AVPU(active) 초기화
-  document.querySelectorAll('#share-panel .avpu-btn').forEach(b => b.classList.remove('active'));
   // 체크박스 해제(다친부위)
   document.querySelectorAll('input[name="share-injury"]')
     .forEach(chk => chk.checked = false);
@@ -2873,72 +2817,6 @@ function showPatientToast(msg = '새 환자발생 정보가 등록되었습니�
   setTimeout(() => t.remove(), 2200);
 }
 
-
-// ===== 앱 켜져 있을 때 알림(토스트 + 진동 + (가능하면) 소리) =====
-// ⚠️ 소리는 모바일/크롬 정책상 "사용자 첫 터치/클릭 이후"에만 재생될 수 있습니다.
-let __patientAudioCtx = null;
-let __patientAudioUnlocked = false;
-
-function __unlockPatientAudio() {
-  try {
-    if (__patientAudioUnlocked) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    __patientAudioCtx = new AC();
-    // iOS/모바일에서 resume 필요할 수 있음
-    if (typeof __patientAudioCtx.resume === 'function') __patientAudioCtx.resume();
-    __patientAudioUnlocked = true;
-  } catch (e) {
-    // 무시
-  }
-}
-window.addEventListener('pointerdown', __unlockPatientAudio, { once: true, passive: true });
-window.addEventListener('keydown', __unlockPatientAudio, { once: true });
-
-function __playPatientBeep() {
-  if (!__patientAudioUnlocked || !__patientAudioCtx) return;
-
-  const ctx = __patientAudioCtx;
-  const now = ctx.currentTime;
-
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-  gain.connect(ctx.destination);
-
-  // 2번 짧게 삑-삑
-  const beep = (t) => {
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, t);
-    osc.connect(gain);
-    osc.start(t);
-    osc.stop(t + 0.16);
-  };
-  beep(now);
-  beep(now + 0.22);
-}
-
-function triggerInAppPatientAlert(d) {
-  // "앱 켜져 있을 때"만: 화면이 백그라운드면 알림 스킵
-  if (document.hidden) return;
-
-  const uploader = (d && d.uploader) ? `(${d.uploader}) ` : '';
-  const addr = (d && d.address) ? String(d.address).trim() : '';
-  const msg = addr ? `🚨 새 환자발생 ${uploader}${addr}` : `🚨 새 환자발생 ${uploader}`.trim();
-
-  showPatientToast(msg);
-
-  try {
-    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-  } catch (e) {}
-
-  try { __playPatientBeep(); } catch (e) {}
-}
-
-const ALERTED_PATIENT_EVENT_IDS = new Set();
-
 let firstSnapshot = true;
 
 // ✅ 실시간 환자발생 리스트 (최근 10건)
@@ -2947,31 +2825,21 @@ db.collection('patientEvents')
   .limit(10)
   .onSnapshot(snapshot => {
 
-    // 🔔 처음 로딩 시에는 알림 안 띄움 (대신, 이미 떠 있는 10건은 "알림 처리 완료"로 기록)
-if (firstSnapshot) {
-  firstSnapshot = false;
-  snapshot.forEach(doc => ALERTED_PATIENT_EVENT_IDS.add(doc.id));
-} else {
-  snapshot.docChanges().forEach(change => {
-    if (change.type !== 'added') return;
-    const id = change.doc.id;
-
-    // ❌ 내가 방금 올린 건 제외
-    if (id === LAST_SHARED_EVENT_ID) {
-      ALERTED_PATIENT_EVENT_IDS.add(id);
-      return;
+    // 🔔 처음 로딩 시에는 알림 안 띄움
+    if (firstSnapshot) {
+      firstSnapshot = false;
+    } else {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const id = change.doc.id;
+          // ❌ 내가 방금 올린 건 제외
+          if (id === LAST_SHARED_EVENT_ID) return;
+          showPatientToast();
+        }
+      });
     }
 
-    // ✅ 중복 알림 방지(리로드/재연결 등)
-    if (ALERTED_PATIENT_EVENT_IDS.has(id)) return;
-    ALERTED_PATIENT_EVENT_IDS.add(id);
-
-    const d = change.doc.data() || {};
-    triggerInAppPatientAlert(d);
-  });
-}
-
-const box = document.getElementById('patient-event-items');
+    const box = document.getElementById('patient-event-items');
     if (!box) return;
     box.innerHTML = '';
 
@@ -2989,9 +2857,8 @@ const box = document.getElementById('patient-event-items');
       const locTag = (d.locType === 'gps') ? '📍GPS' : '⭐수동';
       const locColor = (d.locType === 'gps') ? '#0b7ac4' : '#ff4b8b';
       summary.innerHTML = `
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; align-items:center;">
           <span style="font-weight:900; color:${locColor};">${locTag}</span>
-          ${d.uploader ? `<span style="font-size:0.72rem; font-weight:900; background:#f1f3f5; color:#333; padding:2px 8px; border-radius:999px;">${esc(d.uploader)}</span>` : ``}
           <span>${esc(d.address || '(주소 없음)')}</span>
         </div>
         <div style="font-size:0.75rem;color:#666;margin-top:2px;">
@@ -3008,7 +2875,6 @@ const box = document.getElementById('patient-event-items');
       detail.style.lineHeight = '1.4';
      detail.innerHTML = `
   <div>공유종류: <b>${esc(d.locType === 'gps' ? 'GPS' : '수동')}</b></div>
-  <div>올린사람: <b>${esc(d.uploader || '')}</b></div>
   <div>나이: <b>${esc(d.age || '')}</b></div>
   <div>성별: <b>${esc(d.sex || '')}</b></div>
   <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
@@ -3376,7 +3242,6 @@ function showPatientToast() {
     // 같은 target 그룹 버튼들 active 토글
     const siblings = document.querySelectorAll(`.seg-btn[data-target="${targetId}"]`);
     siblings.forEach(b => {
-      b.classList.remove('active');
       b.style.background = "#fff";
       b.style.border = "1px solid #ffd1e1";
       b.style.color = "#d81b60";
@@ -3385,7 +3250,6 @@ function showPatientToast() {
       b.style.padding = "8px 12px";
     });
 
-    btn.classList.add('active');
     btn.style.background = "#ff4b8b";
     btn.style.border = "1px solid #ff4b8b";
     btn.style.color = "#fff";
