@@ -1131,42 +1131,35 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">공유 위치 선택</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button type="button" class="seg-btn" data-target="share-loc" data-val="patient">⭐ 환자발생지</button>
       <button type="button" class="seg-btn" data-target="share-loc" data-val="gps">📍 내 GPS</button>
+      <button type="button" class="seg-btn" data-target="share-loc" data-val="patient">⭐ 환자발생지</button>
+      
     </div>
     <input type="hidden" id="share-loc" value="patient" />
     <div id="share-loc-hint" style="font-size:0.78rem; color:#666; margin-top:6px; line-height:1.35;"></div>
   </div>
 
 
-  <!-- ✅ 올린사람 -->
+    <!-- ✅ 나이군 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
-    <div style="font-weight:800; margin-bottom:6px;">올린사람</div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button type="button" class="seg-btn" data-target="share-uploader" data-val="119상황실">119상황실</button>
-      <button type="button" class="seg-btn" data-target="share-uploader" data-val="구급대">구급대</button>
-      <button type="button" class="seg-btn" data-target="share-uploader" data-val="길병원">길병원</button>
-    </div>
-    <input type="hidden" id="share-uploader" />
-  </div>
-
-
-  <!-- ✅ 나이군: 기존 id=share-age 유지 (select로 변경) -->
-  <select id="share-age" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
-    <option value="">나이군 선택</option>
+    <div style="font-weight:900; margin-bottom:6px;">나이군</div>
+    <select id="share-age" style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fff; font-weight:900;">
+      <option value="">나이군 선택</option>
     <option value="0~12개월">0~12개월</option>
     <option value="12개월~7세">12개월~7세</option>
     <option value="8~18세">8~18세</option>
     <option value="19~64세">19~64세</option>
     <option value="65세~">65세~</option>
-  </select>
+    </select>
+  </div>
 
   <!-- ✅ 성별: 기존 id=share-sex 유지 (radio -> hidden에 저장) -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">성별</div>
-    <div style="display:flex; gap:10px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-sex" data-val="M">M</button>
       <button type="button" class="seg-btn" data-target="share-sex" data-val="F">F</button>
+      <button type="button" class="seg-btn" data-target="share-sex" data-val="확인불가">확인불가</button>
     </div>
     <input type="hidden" id="share-sex" />
   </div>
@@ -1183,9 +1176,11 @@ outline: 1px solid rgba(0,0,0,0.05);
     <input type="hidden" id="share-avpu" />
   </div>
 
-  <!-- ✅ 기전: 기존 id=share-mech 유지 (select로 변경) -->
-  <select id="share-mech" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
-    <option value="">기전 선택</option>
+    <!-- ✅ 기전 -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:900; margin-bottom:6px;">기전</div>
+    <select id="share-mech" style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fff; font-weight:900;">
+      <option value="">기전 선택</option>
     <option value="Stab">Stab</option>
     <option value="추락">추락</option>
     <option value="낙상">낙상</option>
@@ -1193,7 +1188,8 @@ outline: 1px solid rgba(0,0,0,0.05);
     <option value="자동차탑승자">자동차탑승자</option>
     <option value="오토바이탑승자">오토바이탑승자</option>
     <option value="작업중사고">작업중사고</option>
-  </select>
+    </select>
+  </div>
 
   <!-- ✅ 다친 부위(복수): 새로 추가 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
@@ -1214,22 +1210,31 @@ outline: 1px solid rgba(0,0,0,0.05);
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90이상">90이상</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90미만">90미만</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="uncheckable">uncheckable</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="CPR">CPR</button>
     </div>
     <input type="hidden" id="share-bp" />
   </div>
 
-  <!-- ✅ SpO2: 새로 추가 -->
+    <!-- ✅ SpO2: 새로 추가 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">산소포화도(SpO₂)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="90이상">90이상</button>
-      <button type="button" class="seg-btn" data-target="share-spo2" data-val="90미만">90미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70이상 90미만">70이상 90미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70미만">70미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="uncheckable">uncheckable</button>
     </div>
     <input type="hidden" id="share-spo2" />
   </div>
 
-  <input id="share-pin" placeholder="PIN" type="password"
-         style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;" />
+    <!-- ✅ PIN(가시성 강화) -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:900; margin-bottom:6px;">PIN</div>
+    <input id="share-pin" placeholder="PIN 입력" type="password"
+           style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fffbe8; font-weight:900; letter-spacing:1px;" />
+  </div>
+
 
   <button id="share-submit"
     style="margin-top:6px;
@@ -1849,11 +1854,7 @@ outline: 1px solid rgba(0,0,0,0.05);
       const hintEl = document.getElementById('share-loc-hint');
       if (!hintEl) return;
 
-      const locType = document.getElementById('share-loc')?.value || '';
-    if (!locType) {
-      alert('공유 위치(내 GPS 또는 환자발생지)를 선택해 주세요.');
-      return;
-    }
+      const locType = document.getElementById('share-loc')?.value || 'patient';
 
       if (locType === 'gps') {
         if (!USER_POS) {
@@ -2401,23 +2402,13 @@ if (shareBtn && sharePanel) {
     const isOpen = sharePanel.style.display === 'block';
 
     if (!isOpen) {
-      ['share-loc','share-uploader','share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
         .forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
 
-      
-      // ✅ 버튼 active 전부 해제(SEG/AVPU 포함)
-      document.querySelectorAll('#share-panel .active').forEach(b => b.classList.remove('active'));
-
-      // ✅ 복수선택 체크박스 해제
-      document.querySelectorAll('input[name="share-injury"]').forEach(cb => cb.checked = false);
-
-      // ✅ 힌트 초기화
-      const hint = document.getElementById('share-loc-hint');
-      if (hint) hint.textContent = '내 GPS 또는 환자발생지를 선택해 주세요.';
-document.querySelectorAll('#share-panel .active')
+      document.querySelectorAll('#share-panel .active')
         .forEach(btn => btn.classList.remove('active'));
 
       document.querySelectorAll('input[name="share-injury"]')
@@ -2470,18 +2461,7 @@ if (shareSubmitBtn) {
       return;
     }
 
-    const uploader = document.getElementById('share-uploader')?.value || '';
-    if (!uploader) {
-      alert('올린사람(119상황실/구급대/길병원)을 선택해 주세요.');
-      return;
-    }
-
-
-    const locType = document.getElementById('share-loc')?.value || '';
-    if (!locType) {
-      alert('공유 위치(내 GPS 또는 환자발생지)를 선택해 주세요.');
-      return;
-    }
+    const locType = document.getElementById('share-loc')?.value || 'patient';
 
     let locPos = null;
     let locAddr = '';
@@ -2508,8 +2488,6 @@ const data = {
   lng: locPos.getLng(),
   address: locAddr || '',
 
-  uploader: uploader,
-
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
   age: document.getElementById('share-age')?.value || '',
   sex: document.getElementById('share-sex')?.value || '',
@@ -2535,7 +2513,7 @@ try {
   document.getElementById('share-panel').style.display = 'none';
 
   // hidden 값 비우기(추가된 항목 포함)
-  ['share-loc','share-uploader','share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
@@ -2544,14 +2522,6 @@ try {
   // 버튼 active 전부 해제(AVPU 포함)
   document.querySelectorAll('#share-panel .active')
     .forEach(btn => btn.classList.remove('active'));
-
-  // ✅ 복수선택 체크박스 해제
-  document.querySelectorAll('input[name="share-injury"]').forEach(cb => cb.checked = false);
-
-  // ✅ 힌트 초기화
-  const hint2 = document.getElementById('share-loc-hint');
-  if (hint2) hint2.textContent = '';
-
 
   // 체크박스 해제(다친부위)
   document.querySelectorAll('input[name="share-injury"]')
@@ -2891,11 +2861,9 @@ db.collection('patientEvents')
       summary.style.fontWeight = '800';
       const locTag = (d.locType === 'gps') ? '📍GPS' : '⭐수동';
       const locColor = (d.locType === 'gps') ? '#0b7ac4' : '#ff4b8b';
-      const uploaderTag = d.uploader ? `<span style="font-size:0.72rem; font-weight:900; padding:2px 8px; border-radius:999px; border:1px solid #ff4b8b; background:#fff0f6; color:#d81b60;">${esc(d.uploader)}</span>` : '';
       summary.innerHTML = `
         <div style="display:flex; gap:8px; align-items:center;">
           <span style="font-weight:900; color:${locColor};">${locTag}</span>
-          ${uploaderTag}
           <span>${esc(d.address || '(주소 없음)')}</span>
         </div>
         <div style="font-size:0.75rem;color:#666;margin-top:2px;">
@@ -2912,7 +2880,6 @@ db.collection('patientEvents')
       detail.style.lineHeight = '1.4';
      detail.innerHTML = `
   <div>공유종류: <b>${esc(d.locType === 'gps' ? 'GPS' : '수동')}</b></div>
-  <div>올린사람: <b>${esc(d.uploader || '')}</b></div>
   <div>나이: <b>${esc(d.age || '')}</b></div>
   <div>성별: <b>${esc(d.sex || '')}</b></div>
   <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
@@ -3224,54 +3191,18 @@ document.addEventListener('fullscreenchange', () => {
 })();
 
 
-
-// 🔊 알림 소리(브라우저 정책상 최초 사용자 터치 이후에만 재생될 수 있음)
-let __alertAudioCtx = null;
-async function __unlockAlertAudio() {
-  try {
-    if (!__alertAudioCtx) {
-      __alertAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (__alertAudioCtx.state === 'suspended') await __alertAudioCtx.resume();
-  } catch (e) { /* ignore */ }
-}
-document.addEventListener('pointerdown', __unlockAlertAudio, { once: true });
-
-function __playAlertBeep() {
-  try {
-    if (!__alertAudioCtx) return;
-    const ctx = __alertAudioCtx;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'sine';
-    o.frequency.value = 880; // Hz
-    g.gain.value = 0.04;     // volume
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    o.stop(ctx.currentTime + 0.12);
-  } catch (e) { /* ignore */ }
-}
-
-function showPatientToast(msg = '🚑 새로운 환자 발생 정보가 공유되었습니다') {
+function showPatientToast() {
   const toast = document.getElementById('patient-toast');
   if (!toast) return;
-
-  // 메시지 업데이트
-  toast.textContent = msg;
 
   toast.style.display = 'block';
 
   // 📱 모바일이면 진동
   if (navigator.vibrate) {
-    navigator.vibrate([120, 80, 120]);
+    navigator.vibrate(200);
   }
 
-  // 🔊 가능하면 삑 소리
-  __unlockAlertAudio().then(__playAlertBeep).catch(() => {});
-
-  clearTimeout(window.__patientToastTimer);
-  window.__patientToastTimer = setTimeout(() => {
+  setTimeout(() => {
     toast.style.display = 'none';
   }, 3000);
 }
