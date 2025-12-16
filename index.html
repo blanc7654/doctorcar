@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b7ac4" />
 
+
   <!-- 🔹 정적 manifest 파일 연결 -->
   <link rel="manifest" href="manifest.webmanifest" />
 
@@ -17,6 +18,7 @@
     gtag('js', new Date());
     gtag('config', 'G-MCKTRFREN3', { debug_mode: true });
   </script>
+
 
   <style>
     :root {
@@ -1125,6 +1127,18 @@ outline: 1px solid rgba(0,0,0,0.05);
 
 <div id="share-panel" style="display:none; margin-top:10px;">
 
+  <!-- ✅ 공유 위치 선택(환자발생지/내 GPS) -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">공유 위치 선택</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="seg-btn" data-target="share-loc" data-val="patient">⭐ 환자발생지</button>
+      <button type="button" class="seg-btn" data-target="share-loc" data-val="gps">📍 내 GPS</button>
+    </div>
+    <input type="hidden" id="share-loc" value="patient" />
+    <div id="share-loc-hint" style="font-size:0.78rem; color:#666; margin-top:6px; line-height:1.35;"></div>
+  </div>
+
+
   <!-- ✅ 나이군: 기존 id=share-age 유지 (select로 변경) -->
   <select id="share-age" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
     <option value="">나이군 선택</option>
@@ -1817,6 +1831,29 @@ outline: 1px solid rgba(0,0,0,0.05);
       return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
 
+
+    // ✅ 공유 패널: 현재 선택된 "공유 위치" 상태 힌트 갱신
+    function updateShareLocHint() {
+      const hintEl = document.getElementById('share-loc-hint');
+      if (!hintEl) return;
+
+      const locType = document.getElementById('share-loc')?.value || 'patient';
+
+      if (locType === 'gps') {
+        if (!USER_POS) {
+          hintEl.innerHTML = '📍 GPS 위치가 아직 없습니다. 먼저 <b>“GPS로 현위치주소 찾기”</b>를 눌러 주세요.';
+        } else {
+          hintEl.innerHTML = `📍 현재 GPS: <b>${esc(USER_ADDR || '(주소 확인 중)')}</b>`;
+        }
+      } else {
+        if (!PATIENT_POS) {
+          hintEl.innerHTML = '⭐ 환자발생지를 먼저 입력/선택해 주세요.';
+        } else {
+          hintEl.innerHTML = `⭐ 환자발생지: <b>${esc(PATIENT_ADDR || '(주소 확인 중)')}</b>`;
+        }
+      }
+    }
+
     // ✅ Kakao Mobility Directions API로 자동차 거리/시간 요약
     async function fetchDriveSummary(fromLatLng, toLatLng) {
       if (!fromLatLng || !toLatLng) return null;
@@ -2136,6 +2173,7 @@ function updateUserLocationOnMap() {
       reverseGeocode(USER_POS, (addr) => {
         USER_ADDR = addr;
         showGpsAddress(addr);
+        try { updateShareLocHint(); } catch(e) {}
       });
 
       if (mapModal && mapModal.style.display === 'flex') relayoutModalMap();
@@ -2361,6 +2399,9 @@ if (shareBtn && sharePanel) {
     }
 
     sharePanel.style.display = isOpen ? 'none' : 'block';
+
+    if (!isOpen) { try { updateShareLocHint(); } catch(e) {} }
+
   });
 }
 
@@ -2403,15 +2444,32 @@ if (shareSubmitBtn) {
       return;
     }
 
-    if (!PATIENT_POS) {
-      alert('환자발생지를 먼저 입력해주세요.');
-      return;
+    const locType = document.getElementById('share-loc')?.value || 'patient';
+
+    let locPos = null;
+    let locAddr = '';
+
+    if (locType === 'gps') {
+      if (!USER_POS) {
+        alert('GPS 위치를 먼저 찾은 뒤 공유해 주세요.');
+        return;
+      }
+      locPos = USER_POS;
+      locAddr = USER_ADDR || '';
+    } else {
+      if (!PATIENT_POS) {
+        alert('환자발생지를 먼저 입력해주세요.');
+        return;
+      }
+      locPos = PATIENT_POS;
+      locAddr = PATIENT_ADDR || '';
     }
 
 const data = {
-  lat: PATIENT_POS.getLat(),
-  lng: PATIENT_POS.getLng(),
-  address: PATIENT_ADDR || '',
+  locType: locType,
+  lat: locPos.getLat(),
+  lng: locPos.getLng(),
+  address: locAddr || '',
 
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
   age: document.getElementById('share-age')?.value || '',
@@ -2432,7 +2490,7 @@ try {
   const docRef = await db.collection('patientEvents').add(data);
   LAST_SHARED_EVENT_ID = docRef.id;
 
-  alert('환자발생 정보가 공유되었습니다.');
+  alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생 정보가 공유되었습니다.');
 
   // 입력/선택 초기화
   document.getElementById('share-panel').style.display = 'none';
@@ -2604,6 +2662,8 @@ function setPatientMarker(latLng, address) {
 
     relayoutModalMap();
   }
+  try { updateShareLocHint(); } catch(e) {}
+
 }
 
 
@@ -2782,8 +2842,13 @@ db.collection('patientEvents')
       const summary = document.createElement('div');
       summary.style.cursor = 'pointer';
       summary.style.fontWeight = '800';
+      const locTag = (d.locType === 'gps') ? '📍GPS' : '⭐수동';
+      const locColor = (d.locType === 'gps') ? '#0b7ac4' : '#ff4b8b';
       summary.innerHTML = `
-        ${esc(d.address || '(주소 없음)')}
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="font-weight:900; color:${locColor};">${locTag}</span>
+          <span>${esc(d.address || '(주소 없음)')}</span>
+        </div>
         <div style="font-size:0.75rem;color:#666;margin-top:2px;">
           ${d.createdAt?.toDate?.().toLocaleString() || ''}
         </div>
@@ -2797,6 +2862,7 @@ db.collection('patientEvents')
       detail.style.color = '#444';
       detail.style.lineHeight = '1.4';
      detail.innerHTML = `
+  <div>공유종류: <b>${esc(d.locType === 'gps' ? 'GPS' : '수동')}</b></div>
   <div>나이: <b>${esc(d.age || '')}</b></div>
   <div>성별: <b>${esc(d.sex || '')}</b></div>
   <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
@@ -3175,6 +3241,8 @@ function showPatientToast() {
     btn.style.background = "#ff4b8b";
     btn.style.border = "1px solid #ff4b8b";
     btn.style.color = "#fff";
+
+    if (targetId === 'share-loc') { try { updateShareLocHint(); } catch(e) {} }
   });
 
   // 공유하기 눌렀을 때, 다친부위 체크값을 문자열로 만들어서 공유 텍스트에 붙이고 싶으면
