@@ -1140,7 +1140,18 @@ outline: 1px solid rgba(0,0,0,0.05);
   </div>
 
 
-    <!-- ✅ 나이군 -->
+      <!-- ✅ 올린사람(선택) -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">올린사람(선택)</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="seg-btn" data-target="share-uploader" data-val="119상황실">119상황실</button>
+      <button type="button" class="seg-btn" data-target="share-uploader" data-val="구급대">구급대</button>
+      <button type="button" class="seg-btn" data-target="share-uploader" data-val="길병원">길병원</button>
+    </div>
+    <input type="hidden" id="share-uploader" />
+  </div>
+
+<!-- ✅ 나이군 -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:900; margin-bottom:6px;">나이군</div>
     <select id="share-age" style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fff; font-weight:900;">
@@ -1184,7 +1195,7 @@ outline: 1px solid rgba(0,0,0,0.05);
     <option value="Stab">Stab</option>
     <option value="추락">추락</option>
     <option value="낙상">낙상</option>
-    <option value="보행자">보행자</option>
+    <option value="보행자TA">보행자TA</option>
     <option value="자동차탑승자">자동차탑승자</option>
     <option value="오토바이탑승자">오토바이탑승자</option>
     <option value="작업중사고">작업중사고</option>
@@ -1195,8 +1206,8 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">다친 부위(복수선택)</div>
     <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
-      <label><input type="checkbox" name="share-injury" value="두부"> 두부</label>
       <label><input type="checkbox" name="share-injury" value="머리"> 머리</label>
+      <label><input type="checkbox" name="share-injury" value="목"> 목</label>
       <label><input type="checkbox" name="share-injury" value="가슴"> 가슴</label>
       <label><input type="checkbox" name="share-injury" value="복부골반"> 복부골반</label>
       <label><input type="checkbox" name="share-injury" value="팔"> 팔</label>
@@ -1875,8 +1886,22 @@ outline: 1px solid rgba(0,0,0,0.05);
     async function fetchDriveSummary(fromLatLng, toLatLng) {
       if (!fromLatLng || !toLatLng) return null;
 
-      const origin = `${fromLatLng.getLng()},${fromLatLng.getLat()}`;
-      const destination = `${toLatLng.getLng()},${toLatLng.getLat()}`;
+      const norm = (p) => {
+        if (!p) return null;
+        if (typeof p.getLat === 'function' && typeof p.getLng === 'function') return { lat: p.getLat(), lng: p.getLng() };
+        if (typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
+        // kakao.maps.LatLng 내부 필드(환경에 따라 노출될 수 있음)
+        if (typeof p.Ma === 'number' && typeof p.La === 'number') return { lat: p.Ma, lng: p.La };
+        return null;
+      };
+
+      const from = norm(fromLatLng);
+      const to = norm(toLatLng);
+      if (!from || !to) return null;
+
+      const origin = `${from.lng},${from.lat}`;
+      const destination = `${to.lng},${to.lat}`;
+
       const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${origin}&destination=${destination}`;
 
       try {
@@ -2402,7 +2427,7 @@ if (shareBtn && sharePanel) {
     const isOpen = sharePanel.style.display === 'block';
 
     if (!isOpen) {
-      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader']
         .forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
@@ -2488,6 +2513,8 @@ const data = {
   lng: locPos.getLng(),
   address: locAddr || '',
 
+  uploader: document.getElementById('share-uploader')?.value || '',
+
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
   age: document.getElementById('share-age')?.value || '',
   sex: document.getElementById('share-sex')?.value || '',
@@ -2513,7 +2540,7 @@ try {
   document.getElementById('share-panel').style.display = 'none';
 
   // hidden 값 비우기(추가된 항목 포함)
-  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
@@ -2861,9 +2888,11 @@ db.collection('patientEvents')
       summary.style.fontWeight = '800';
       const locTag = (d.locType === 'gps') ? '📍GPS' : '⭐수동';
       const locColor = (d.locType === 'gps') ? '#0b7ac4' : '#ff4b8b';
+      const uploaderTag = d.uploader ? `<span style="font-weight:900; background:#f7f2ff; border:1px solid #e1d5ff; color:#5b3fa3; padding:2px 8px; border-radius:999px; font-size:0.72rem;">${esc(d.uploader)}</span>` : '';
       summary.innerHTML = `
         <div style="display:flex; gap:8px; align-items:center;">
           <span style="font-weight:900; color:${locColor};">${locTag}</span>
+          ${uploaderTag}
           <span>${esc(d.address || '(주소 없음)')}</span>
         </div>
         <div style="font-size:0.75rem;color:#666;margin-top:2px;">
@@ -2880,6 +2909,7 @@ db.collection('patientEvents')
       detail.style.lineHeight = '1.4';
      detail.innerHTML = `
   <div>공유종류: <b>${esc(d.locType === 'gps' ? 'GPS' : '수동')}</b></div>
+  <div>올린사람: <b>${esc(d.uploader || '')}</b></div>
   <div>나이: <b>${esc(d.age || '')}</b></div>
   <div>성별: <b>${esc(d.sex || '')}</b></div>
   <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
