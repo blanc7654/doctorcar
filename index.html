@@ -1165,10 +1165,12 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">성별</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-sex" data-val="M">M</button>
       <button type="button" class="seg-btn" data-target="share-sex" data-val="F">F</button>
       <button type="button" class="seg-btn" data-target="share-sex" data-val="확인불가">확인불가</button>
     </div>
+</div>
     <input type="hidden" id="share-sex" />
   </div>
 
@@ -1213,11 +1215,13 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">혈압(SBP)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90이상">90이상</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90미만">90미만</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="uncheckable">uncheckable</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="CPR">CPR</button>
     </div>
+</div>
     <input type="hidden" id="share-bp" />
   </div>
 
@@ -1225,11 +1229,13 @@ outline: 1px solid rgba(0,0,0,0.05);
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">산소포화도(SpO₂)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="90이상">90이상</button>
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="70이상 90미만">70이상 90미만</button>
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="70미만">70미만</button>
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="uncheckable">uncheckable</button>
     </div>
+</div>
     <input type="hidden" id="share-spo2" />
   </div>
 
@@ -2430,9 +2436,8 @@ if (shareBtn && sharePanel) {
         locDefaultBtn.style.color = "#fff";
       }
 
-
-      document.querySelectorAll('#share-panel .active')
-        .forEach(btn => btn.classList.remove('active'));
+      // ✅ AVPU(active) 초기화
+      document.querySelectorAll('#share-panel .avpu-btn').forEach(b => b.classList.remove('active'));
 
       document.querySelectorAll('input[name="share-injury"]')
         .forEach(chk => chk.checked = false);
@@ -2567,11 +2572,8 @@ try {
     locDefaultBtn2.style.color = "#fff";
   }
 
-
-  // 버튼 active 전부 해제(AVPU 포함)
-  document.querySelectorAll('#share-panel .active')
-    .forEach(btn => btn.classList.remove('active'));
-
+  // ✅ AVPU(active) 초기화
+  document.querySelectorAll('#share-panel .avpu-btn').forEach(b => b.classList.remove('active'));
   // 체크박스 해제(다친부위)
   document.querySelectorAll('input[name="share-injury"]')
     .forEach(chk => chk.checked = false);
@@ -2871,6 +2873,72 @@ function showPatientToast(msg = '새 환자발생 정보가 등록되었습니�
   setTimeout(() => t.remove(), 2200);
 }
 
+
+// ===== 앱 켜져 있을 때 알림(토스트 + 진동 + (가능하면) 소리) =====
+// ⚠️ 소리는 모바일/크롬 정책상 "사용자 첫 터치/클릭 이후"에만 재생될 수 있습니다.
+let __patientAudioCtx = null;
+let __patientAudioUnlocked = false;
+
+function __unlockPatientAudio() {
+  try {
+    if (__patientAudioUnlocked) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    __patientAudioCtx = new AC();
+    // iOS/모바일에서 resume 필요할 수 있음
+    if (typeof __patientAudioCtx.resume === 'function') __patientAudioCtx.resume();
+    __patientAudioUnlocked = true;
+  } catch (e) {
+    // 무시
+  }
+}
+window.addEventListener('pointerdown', __unlockPatientAudio, { once: true, passive: true });
+window.addEventListener('keydown', __unlockPatientAudio, { once: true });
+
+function __playPatientBeep() {
+  if (!__patientAudioUnlocked || !__patientAudioCtx) return;
+
+  const ctx = __patientAudioCtx;
+  const now = ctx.currentTime;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  gain.connect(ctx.destination);
+
+  // 2번 짧게 삑-삑
+  const beep = (t) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, t);
+    osc.connect(gain);
+    osc.start(t);
+    osc.stop(t + 0.16);
+  };
+  beep(now);
+  beep(now + 0.22);
+}
+
+function triggerInAppPatientAlert(d) {
+  // "앱 켜져 있을 때"만: 화면이 백그라운드면 알림 스킵
+  if (document.hidden) return;
+
+  const uploader = (d && d.uploader) ? `(${d.uploader}) ` : '';
+  const addr = (d && d.address) ? String(d.address).trim() : '';
+  const msg = addr ? `🚨 새 환자발생 ${uploader}${addr}` : `🚨 새 환자발생 ${uploader}`.trim();
+
+  showPatientToast(msg);
+
+  try {
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+  } catch (e) {}
+
+  try { __playPatientBeep(); } catch (e) {}
+}
+
+const ALERTED_PATIENT_EVENT_IDS = new Set();
+
 let firstSnapshot = true;
 
 // ✅ 실시간 환자발생 리스트 (최근 10건)
@@ -2879,21 +2947,31 @@ db.collection('patientEvents')
   .limit(10)
   .onSnapshot(snapshot => {
 
-    // 🔔 처음 로딩 시에는 알림 안 띄움
-    if (firstSnapshot) {
-      firstSnapshot = false;
-    } else {
-      snapshot.docChanges().forEach(change => {
-        if (change.type === 'added') {
-          const id = change.doc.id;
-          // ❌ 내가 방금 올린 건 제외
-          if (id === LAST_SHARED_EVENT_ID) return;
-          showPatientToast();
-        }
-      });
+    // 🔔 처음 로딩 시에는 알림 안 띄움 (대신, 이미 떠 있는 10건은 "알림 처리 완료"로 기록)
+if (firstSnapshot) {
+  firstSnapshot = false;
+  snapshot.forEach(doc => ALERTED_PATIENT_EVENT_IDS.add(doc.id));
+} else {
+  snapshot.docChanges().forEach(change => {
+    if (change.type !== 'added') return;
+    const id = change.doc.id;
+
+    // ❌ 내가 방금 올린 건 제외
+    if (id === LAST_SHARED_EVENT_ID) {
+      ALERTED_PATIENT_EVENT_IDS.add(id);
+      return;
     }
 
-    const box = document.getElementById('patient-event-items');
+    // ✅ 중복 알림 방지(리로드/재연결 등)
+    if (ALERTED_PATIENT_EVENT_IDS.has(id)) return;
+    ALERTED_PATIENT_EVENT_IDS.add(id);
+
+    const d = change.doc.data() || {};
+    triggerInAppPatientAlert(d);
+  });
+}
+
+const box = document.getElementById('patient-event-items');
     if (!box) return;
     box.innerHTML = '';
 
