@@ -1139,7 +1139,19 @@ outline: 1px solid rgba(0,0,0,0.05);
   </div>
 
 
-  <!-- ✅ 나이군: 기존 id=share-age 유지 (select로 변경) -->
+  
+  <!-- ✅ 올린사람 -->
+  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
+    <div style="font-weight:800; margin-bottom:6px;">올린사람</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="seg-btn" data-target="share-uploader" data-val="119상황실">119상황실</button>
+      <button type="button" class="seg-btn" data-target="share-uploader" data-val="구급차">구급차</button>
+      <button type="button" class="seg-btn" data-target="share-uploader" data-val="길병원">길병원</button>
+    </div>
+    <input type="hidden" id="share-uploader" />
+  </div>
+
+<!-- ✅ 나이군: 기존 id=share-age 유지 (select로 변경) -->
   <select id="share-age" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ffd1e1; margin:6px 0;">
     <option value="">나이군 선택</option>
     <option value="0~12개월">0~12개월</option>
@@ -1152,9 +1164,10 @@ outline: 1px solid rgba(0,0,0,0.05);
   <!-- ✅ 성별: 기존 id=share-sex 유지 (radio -> hidden에 저장) -->
   <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
     <div style="font-weight:800; margin-bottom:6px;">성별</div>
-    <div style="display:flex; gap:10px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-sex" data-val="M">M</button>
       <button type="button" class="seg-btn" data-target="share-sex" data-val="F">F</button>
+      <button type="button" class="seg-btn" data-target="share-sex" data-val="확인불가">확인불가</button>
     </div>
     <input type="hidden" id="share-sex" />
   </div>
@@ -1202,6 +1215,8 @@ outline: 1px solid rgba(0,0,0,0.05);
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90이상">90이상</button>
       <button type="button" class="seg-btn" data-target="share-bp" data-val="90미만">90미만</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="uncheckable">uncheckable</button>
+      <button type="button" class="seg-btn" data-target="share-bp" data-val="CPR">CPR</button>
     </div>
     <input type="hidden" id="share-bp" />
   </div>
@@ -1211,7 +1226,9 @@ outline: 1px solid rgba(0,0,0,0.05);
     <div style="font-weight:800; margin-bottom:6px;">산소포화도(SpO₂)</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button type="button" class="seg-btn" data-target="share-spo2" data-val="90이상">90이상</button>
-      <button type="button" class="seg-btn" data-target="share-spo2" data-val="90미만">90미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70이상 90미만">70이상 90미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="70미만">70미만</button>
+      <button type="button" class="seg-btn" data-target="share-spo2" data-val="uncheckable">uncheckable</button>
     </div>
     <input type="hidden" id="share-spo2" />
   </div>
@@ -2385,11 +2402,34 @@ if (shareBtn && sharePanel) {
     const isOpen = sharePanel.style.display === 'block';
 
     if (!isOpen) {
-      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-uploader','share-pin']
         .forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
+
+      // ✅ seg-btn(성별/혈압/SpO2/올린사람/공유위치) 버튼 스타일 초기화
+      document.querySelectorAll('#share-panel .seg-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = "#fff";
+        b.style.border = "1px solid #ffd1e1";
+        b.style.color = "#d81b60";
+        b.style.fontWeight = "800";
+        b.style.borderRadius = "999px";
+        b.style.padding = "8px 12px";
+      });
+
+      // ✅ 공유 위치 기본값: 환자발생지
+      const locHidden = document.getElementById('share-loc');
+      if (locHidden) locHidden.value = 'patient';
+      const locDefaultBtn = document.querySelector('#share-panel .seg-btn[data-target="share-loc"][data-val="patient"]');
+      if (locDefaultBtn) {
+        locDefaultBtn.classList.add('active');
+        locDefaultBtn.style.background = "#ff4b8b";
+        locDefaultBtn.style.border = "1px solid #ff4b8b";
+        locDefaultBtn.style.color = "#fff";
+      }
+
 
       document.querySelectorAll('#share-panel .active')
         .forEach(btn => btn.classList.remove('active'));
@@ -2471,6 +2511,9 @@ const data = {
   lng: locPos.getLng(),
   address: locAddr || '',
 
+  // 선택형
+  uploader: document.getElementById('share-uploader')?.value || '',
+
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
   age: document.getElementById('share-age')?.value || '',
   sex: document.getElementById('share-sex')?.value || '',
@@ -2496,11 +2539,34 @@ try {
   document.getElementById('share-panel').style.display = 'none';
 
   // hidden 값 비우기(추가된 항목 포함)
-  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin']
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-uploader','share-pin']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+
+  // ✅ seg-btn 버튼 스타일 초기화
+  document.querySelectorAll('#share-panel .seg-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = "#fff";
+    b.style.border = "1px solid #ffd1e1";
+    b.style.color = "#d81b60";
+    b.style.fontWeight = "800";
+    b.style.borderRadius = "999px";
+    b.style.padding = "8px 12px";
+  });
+
+  // ✅ 공유 위치 기본값: 환자발생지
+  const locHidden2 = document.getElementById('share-loc');
+  if (locHidden2) locHidden2.value = 'patient';
+  const locDefaultBtn2 = document.querySelector('#share-panel .seg-btn[data-target="share-loc"][data-val="patient"]');
+  if (locDefaultBtn2) {
+    locDefaultBtn2.classList.add('active');
+    locDefaultBtn2.style.background = "#ff4b8b";
+    locDefaultBtn2.style.border = "1px solid #ff4b8b";
+    locDefaultBtn2.style.color = "#fff";
+  }
+
 
   // 버튼 active 전부 해제(AVPU 포함)
   document.querySelectorAll('#share-panel .active')
@@ -2845,8 +2911,9 @@ db.collection('patientEvents')
       const locTag = (d.locType === 'gps') ? '📍GPS' : '⭐수동';
       const locColor = (d.locType === 'gps') ? '#0b7ac4' : '#ff4b8b';
       summary.innerHTML = `
-        <div style="display:flex; gap:8px; align-items:center;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <span style="font-weight:900; color:${locColor};">${locTag}</span>
+          ${d.uploader ? `<span style="font-size:0.72rem; font-weight:900; background:#f1f3f5; color:#333; padding:2px 8px; border-radius:999px;">${esc(d.uploader)}</span>` : ``}
           <span>${esc(d.address || '(주소 없음)')}</span>
         </div>
         <div style="font-size:0.75rem;color:#666;margin-top:2px;">
@@ -2863,6 +2930,7 @@ db.collection('patientEvents')
       detail.style.lineHeight = '1.4';
      detail.innerHTML = `
   <div>공유종류: <b>${esc(d.locType === 'gps' ? 'GPS' : '수동')}</b></div>
+  <div>올린사람: <b>${esc(d.uploader || '')}</b></div>
   <div>나이: <b>${esc(d.age || '')}</b></div>
   <div>성별: <b>${esc(d.sex || '')}</b></div>
   <div>의식(AVPU): <b>${esc(d.avpu || '')}</b></div>
@@ -3230,6 +3298,7 @@ function showPatientToast() {
     // 같은 target 그룹 버튼들 active 토글
     const siblings = document.querySelectorAll(`.seg-btn[data-target="${targetId}"]`);
     siblings.forEach(b => {
+      b.classList.remove('active');
       b.style.background = "#fff";
       b.style.border = "1px solid #ffd1e1";
       b.style.color = "#d81b60";
@@ -3238,6 +3307,7 @@ function showPatientToast() {
       b.style.padding = "8px 12px";
     });
 
+    btn.classList.add('active');
     btn.style.background = "#ff4b8b";
     btn.style.border = "1px solid #ff4b8b";
     btn.style.color = "#fff";
