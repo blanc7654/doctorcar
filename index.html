@@ -3344,6 +3344,7 @@ function showPatientToast() {
     extra.ts = Date.now();
     extra.user_role = (window.currentUserRole || 'unknown');
     extra.entry_channel = (window.trafficInfo?.channel || 'unknown');
+    if (window.SURVEY_RESP_ID) extra.resp_id = window.SURVEY_RESP_ID;
     return extra;
   }
 
@@ -3461,6 +3462,7 @@ function showPatientToast() {
   
   // ✅ 설문: 변경 시 값 전송(선택형은 값, 자유서술은 길이만) + 제출 시 전체 응답 전송(자유서술 원문은 GA4 제외)
   const surveyForm = document.getElementById('doctorcar-survey');
+  const SAVE_SURVEY_TO_FIRESTORE = false; // true로 바꾸면 설문을 Firestore에도 저장
   if (surveyForm) {
     // 변경 이벤트: 선택값은 값까지, 자유서술은 길이만
     surveyForm.addEventListener('change', function(ev){
@@ -3487,6 +3489,9 @@ function showPatientToast() {
       try{
         const fd = new FormData(surveyForm);
 
+        // 응답 묶음 ID(같은 제출 건을 BigQuery에서 한 덩어리로 조인하기 위함)
+        window.SURVEY_RESP_ID = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('r_' + Date.now() + '_' + Math.random().toString(16).slice(2));
+
         // 자유서술 필드들(원문은 GA4로 보내지 않음)
         const freeTextKeys = [
           'treatment_free_text',
@@ -3510,13 +3515,13 @@ function showPatientToast() {
         try{
           for (const [k, v] of fd.entries()) {
             if (!k) continue;
-            if (freeTextKeys.includes(k)) continue;
+            const isFreeText = freeTextKeys.includes(k);
             if (v == null) continue;
             const sv = String(v);
             if (!sv) continue;
             gtagEvent('survey_answer_submit', common({
               q: trunc(String(k), 40),
-              v: trunc(sv, 90)
+              v: isFreeText ? trunc(sv, 100) : trunc(sv, 90)
             }));
           }
         }catch(e){}
@@ -3524,7 +3529,7 @@ function showPatientToast() {
         // 3) Firestore: 전체 응답 저장(자유서술 원문 포함, 100자 제한) → Firebase Extension으로 BigQuery에 적재 가능
         try{
           const dbRef = (typeof db !== 'undefined') ? db : (window.db || null);
-          if (dbRef && typeof dbRef.collection === 'function' && typeof firebase !== 'undefined' && firebase.firestore) {
+          if (dbRef && typeof dbRef.collection === 'function' && typeof firebase !== 'undefined' && firebase.firestore) && SAVE_SURVEY_TO_FIRESTORE) {
             const answers = {};
             for (const [k, v] of fd.entries()) {
               if (!k) continue;
@@ -3556,6 +3561,7 @@ function showPatientToast() {
           }
         }catch(e){}
       }catch(e){}
+      try{ window.SURVEY_RESP_ID = null; }catch(e){}
     }, true);
   }
 
