@@ -2426,14 +2426,6 @@ if (shareBtn && sharePanel) {
   shareBtn.addEventListener('click', () => {
     const isOpen = sharePanel.style.display === 'block';
 
-    // GA4: 공유 패널 열기/닫기
-    if (typeof gtag === 'function') {
-      gtag('event', isOpen ? 'close_share_panel' : 'open_share_panel', {
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
-
     if (!isOpen) {
       ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader']
         .forEach(id => {
@@ -2472,58 +2464,8 @@ avpuButtons.forEach(btn => {
 
     // 3️⃣ 값 저장 (기존 Firestore 로직 그대로 사용)
     avpuHiddenInput.value = btn.dataset.val;
-
-    // GA4: 의식(AVPU) 선택 기록
-    if (typeof gtag === 'function') {
-      gtag('event', 'select_share_avpu', {
-        value: btn.dataset.val,
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
   });
 });
-
-// GA4: 공유 폼(나이/기전/다친부위) 선택 기록
-const shareAgeSel = document.getElementById('share-age');
-if (shareAgeSel) {
-  shareAgeSel.addEventListener('change', () => {
-    if (typeof gtag === 'function') {
-      gtag('event', 'select_share_age', {
-        value: shareAgeSel.value || '',
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
-  });
-}
-
-const shareMechSel = document.getElementById('share-mech');
-if (shareMechSel) {
-  shareMechSel.addEventListener('change', () => {
-    if (typeof gtag === 'function') {
-      gtag('event', 'select_share_mechanism', {
-        value: shareMechSel.value || '',
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
-  });
-}
-
-document.querySelectorAll('input[name="share-injury"]').forEach(chk => {
-  chk.addEventListener('change', () => {
-    if (typeof gtag === 'function') {
-      gtag('event', 'toggle_share_injury', {
-        value: chk.value || '',
-        checked: chk.checked ? '1' : '0',
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
-  });
-});
-
 
 
 
@@ -2588,27 +2530,11 @@ const data = {
   createdAt: firebase.firestore.FieldValue.serverTimestamp()
 };
 
-// GA4: 공유하기 버튼 클릭(시도)
-if (typeof gtag === 'function') {
-  const injuriesArr = (data.injuries || []);
-  gtag('event', 'submit_patient_share_attempt', {
-    loc_type: data.locType || '',
-    uploader: data.uploader || '',
-    age: data.age || '',
-    sex: data.sex || '',
-    avpu: data.avpu || '',
-    mechanism: data.mechanism || '',
-    sbp: data.sbp || '',
-    spo2: data.spo2 || '',
-    injuries_count: String(injuriesArr.length),
-    injuries: (injuriesArr.join(',').slice(0, 90)),
-    entry_channel: (window.trafficInfo?.channel || 'unknown')
-  });
-}
-
 try {
   const docRef = await db.collection('patientEvents').add(data);
   LAST_SHARED_EVENT_ID = docRef.id;
+
+  
 
   // GA4: 공유 성공
   if (typeof gtag === 'function') {
@@ -2617,8 +2543,7 @@ try {
       entry_channel: (window.trafficInfo?.channel || 'unknown')
     });
   }
-
-  alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생 정보가 공유되었습니다.');
+alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생 정보가 공유되었습니다.');
 
   // 입력/선택 초기화
   document.getElementById('share-panel').style.display = 'none';
@@ -2653,22 +2578,6 @@ try {
         entry_channel: trafficInfo.channel,
         raw_referrer: (trafficInfo.rawRef || '').substring(0, 200)
       });
-    }
-
-    // ===== GA4 helper (safe wrapper) =====
-    if (!window.gaStr) {
-      window.gaStr = function(v, maxLen) {
-        try {
-          const s = (v === undefined || v === null) ? '' : String(v);
-          return s.length > (maxLen || 90) ? s.slice(0, maxLen || 90) : s;
-        } catch (e) { return ''; }
-      };
-    }
-    if (!window.gaEvent) {
-      window.gaEvent = function(name, params) {
-        if (typeof gtag !== 'function') return;
-        try { gtag('event', name, params || {}); } catch (e) {}
-      };
     }
 
     const qrCopyBtn = document.getElementById('qr-copy-btn');
@@ -2731,7 +2640,7 @@ try {
       btn.addEventListener('click', function () {
         const tel = btn.getAttribute('data-tel') || '01062063010';
         const target = btn.getAttribute('data-call-target') || 'unknown';
-
+        
         // GA4: 닥터카/전화 버튼 클릭(역할 선택 오버레이 열기)
         if (typeof gtag === 'function') {
           gtag('event', 'click_call_button_open_role', {
@@ -2857,15 +2766,6 @@ function renderPatientResults(list) {
 
       const lat = parseFloat(item.y);
       const lng = parseFloat(item.x);
-      // GA4: 자동완성 결과 클릭(주소 원문은 GA4로 보내지지 않도록 최소 정보만)
-      if (typeof gtag === 'function') {
-        gtag('event', 'select_patient_autocomplete', {
-          result_name_len: String(name || '').length,
-          has_road_addr: addr ? '1' : '0',
-          entry_channel: (window.trafficInfo?.channel || 'unknown')
-        });
-      }
-
       PATIENT_POS = new kakao.maps.LatLng(lat, lng);
       PATIENT_ADDR = addr || name;
 
@@ -3061,14 +2961,6 @@ db.collection('patientEvents')
       const btn = detail.querySelector('button');
       if (btn && typeof d.lat === 'number' && typeof d.lng === 'number') {
         btn.addEventListener('click', () => {
-          // GA4: 환자발생 리스트에서 지도 표시 클릭
-          if (typeof gtag === 'function') {
-            gtag('event', 'click_patient_event_show_on_map', {
-              loc_type: d.locType || '',
-              has_uploader: d.uploader ? '1' : '0',
-              entry_channel: (window.trafficInfo?.channel || 'unknown')
-            });
-          }
           const pos = new kakao.maps.LatLng(d.lat, d.lng);
           setPatientMarker(pos, d.address || '');
           showPatientToast('지도에 환자발생지를 표시했습니다.');
@@ -3329,32 +3221,6 @@ document.addEventListener('fullscreenchange', () => {
     return;
   }
 
-  // GA4: 설문 선택/입력 변화 추적(선택형은 값까지)
-  form.addEventListener('change', function(e){
-    const el = e.target;
-    if (!el) return;
-    const name = el.name || el.id || '';
-    if (!name) return;
-
-    const type = (el.type || '').toLowerCase();
-    let v = '';
-    if (type === 'checkbox') {
-      v = (el.checked ? 'checked:' : 'unchecked:') + (el.value || '');
-    } else {
-      v = el.value || '';
-    }
-
-    const isFreeText = (type === 'textarea' || el.tagName === 'TEXTAREA');
-    if (typeof gtag === 'function') {
-      gtag('event', 'survey_answer_change', {
-        q: name,
-        v: isFreeText ? ('len:' + String((v || '').length)) : String(v).slice(0, 90),
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
-  });
-
   form.addEventListener('submit', function(e){
     e.preventDefault(); // 페이지 새로고침 방지
 
@@ -3366,39 +3232,6 @@ document.addEventListener('fullscreenchange', () => {
         submit_time: new Date().toISOString()
       });
     }
-
-    // GA4: 제출 시점의 전체 응답(질문별로 1개씩 이벤트로 전송)
-    try {
-      const fd = new FormData(form);
-      const userRole = (window.currentUserRole || 'unknown');
-      const channel = (window.trafficInfo?.channel || 'unknown');
-
-      // 자유서술(원문은 GA4에 저장하지 않음: 길이만)
-      const t1 = (fd.get('treatment_free_text') || '').toString();
-      const t2 = (fd.get('improvement_free_text') || '').toString();
-      if (typeof gtag === 'function') {
-        gtag('event', 'survey_free_text_len', {
-          treatment_len: String(t1.length),
-          improvement_len: String(t2.length),
-          user_role: userRole,
-          entry_channel: channel
-        });
-      }
-
-      // FormData는 동일 name이 여러 개면 여러 번 나옵니다(checkbox 대응)
-      if (typeof gtag === 'function') {
-        for (const [k, v] of fd.entries()) {
-          if (!k) continue;
-          if (k === 'treatment_free_text' || k === 'improvement_free_text') continue;
-          gtag('event', 'survey_answer_submit', {
-            q: String(k).slice(0, 40),
-            v: String(v).slice(0, 90),
-            user_role: userRole,
-            entry_channel: channel
-          });
-        }
-      }
-    } catch (e) {}
 
     alert('설문이 제출되었습니다. 감사합니다!');
     form.reset(); // 제출 후 초기화 (원치 않으면 이 줄 삭제)
@@ -3459,23 +3292,6 @@ function showPatientToast() {
     const hidden = document.getElementById(targetId);
     if (hidden) hidden.value = val;
 
-    // GA4: 공유 패널 선택값 기록
-    if (typeof gtag === 'function') {
-      const map = {
-        'share-loc': 'select_share_location',
-        'share-uploader': 'select_share_uploader',
-        'share-sex': 'select_share_sex',
-        'share-bp': 'select_share_sbp',
-        'share-spo2': 'select_share_spo2'
-      };
-      gtag('event', map[targetId] || 'select_share_option', {
-        target: targetId,
-        value: val,
-        user_role: (window.currentUserRole || 'unknown'),
-        entry_channel: (window.trafficInfo?.channel || 'unknown')
-      });
-    }
-
     // 같은 target 그룹 버튼들 active 토글
     const siblings = document.querySelectorAll(`.seg-btn[data-target="${targetId}"]`);
     siblings.forEach(b => {
@@ -3502,5 +3318,248 @@ function showPatientToast() {
 </script>
 
 
+
+<script>
+/* ==========================================================
+   GA4 Tracking Add-on (survey free-text 포함)
+   - 주소 원문은 전송하지 않음(길이만)
+   - 설문 자유서술은 100자 이내로 잘라 전송
+   ========================================================== */
+(function(){
+  function hasGtag(){ return (typeof window.gtag === 'function'); }
+  function gtagEvent(name, params){
+    try{
+      if (!hasGtag()) return;
+      window.gtag('event', name, params || {});
+    }catch(e){}
+  }
+  function trunc(s, n){
+    s = (s == null) ? '' : String(s);
+    s = s.replace(/\s+/g,' ').trim();
+    if (n != null && n > 0 && s.length > n) return s.slice(0, n);
+    return s;
+  }
+  function common(extra){
+    extra = extra || {};
+    extra.ts = Date.now();
+    extra.user_role = (window.currentUserRole || 'unknown');
+    extra.entry_channel = (window.trafficInfo?.channel || 'unknown');
+    return extra;
+  }
+
+  // ✅ share-* 세그먼트 버튼 (공유위치/올린사람/성별/의식/혈압/SpO2)
+  document.addEventListener('click', function(ev){
+    const btn = ev.target && ev.target.closest ? ev.target.closest('.seg-btn') : null;
+    if (!btn) return;
+
+    const target = btn.getAttribute('data-target') || '';
+    const val = btn.getAttribute('data-val') || '';
+
+    if (!target.startsWith('share-')) return;
+
+    const map = {
+      'share-loc': 'select_share_location',
+      'share-uploader': 'select_share_uploader',
+      'share-sex': 'select_share_sex',
+      'share-avpu': 'select_share_avpu',
+      'share-bp': 'select_share_sbp',
+      'share-spo2': 'select_share_spo2'
+    };
+    const evName = map[target];
+    if (evName) {
+      gtagEvent(evName, common({ value: trunc(val, 50) }));
+    }
+  }, true);
+
+  // ✅ share-age / share-mech 드롭다운
+  const shareAge = document.getElementById('share-age');
+  if (shareAge) {
+    shareAge.addEventListener('change', function(){
+      gtagEvent('select_share_age', common({ value: trunc(shareAge.value, 50) }));
+    }, true);
+  }
+
+  const shareMech = document.getElementById('share-mech');
+  if (shareMech) {
+    shareMech.addEventListener('change', function(){
+      gtagEvent('select_share_mechanism', common({ value: trunc(shareMech.value, 50) }));
+    }, true);
+  }
+
+  // ✅ 다친부위(복수): 체크/해제
+  document.addEventListener('change', function(ev){
+    const el = ev.target;
+    if (!el) return;
+    if (el.name === 'share-injury' && (el.type === 'checkbox')) {
+      gtagEvent('toggle_share_injury', common({
+        value: trunc(el.value, 50),
+        checked: !!el.checked
+      }));
+    }
+  }, true);
+
+  // ✅ 공유하기 버튼 클릭(누른 시점의 선택값 요약)
+  const shareSubmit = document.getElementById('share-submit');
+  if (shareSubmit) {
+    shareSubmit.addEventListener('click', function(){
+      try{
+        const loc = document.getElementById('share-loc')?.value || '';
+        const uploader = document.getElementById('share-uploader')?.value || '';
+        const sex = document.getElementById('share-sex')?.value || '';
+        const avpu = document.getElementById('share-avpu')?.value || '';
+        const bp = document.getElementById('share-bp')?.value || '';
+        const spo2 = document.getElementById('share-spo2')?.value || '';
+        const age = document.getElementById('share-age')?.value || '';
+        const mech = document.getElementById('share-mech')?.value || '';
+
+        const injuries = Array.from(document.querySelectorAll('input[name="share-injury"]:checked'))
+          .map(x => x.value).filter(Boolean);
+
+        gtagEvent('submit_patient_share_attempt', common({
+          loc: trunc(loc, 20),
+          uploader: trunc(uploader, 20),
+          age: trunc(age, 20),
+          sex: trunc(sex, 10),
+          avpu: trunc(avpu, 20),
+          mech: trunc(mech, 30),
+          bp: trunc(bp, 20),
+          spo2: trunc(spo2, 20),
+          injuries: trunc(injuries.join(','), 120),
+          injury_cnt: injuries.length
+        }));
+      }catch(e){}
+    }, true);
+  }
+
+  // ✅ 환자발생 주소 자동완성 결과 클릭 (주소/원문은 전송하지 않음)
+  const patientResults = document.getElementById('patient-results');
+  if (patientResults) {
+    patientResults.addEventListener('click', function(ev){
+      const item = ev.target && ev.target.closest ? ev.target.closest('div') : null;
+      if (!item) return;
+      const label = trunc(item.textContent || '', 9999);
+      if (!label) return;
+      gtagEvent('select_patient_autocomplete', common({
+        label_len: label.length
+      }));
+    }, true);
+  }
+
+  // ✅ 환자발생 리스트: "⭐ 이 환자발생지로 지도 표시" 버튼 클릭
+  const patientEventItems = document.getElementById('patient-event-items');
+  if (patientEventItems) {
+    patientEventItems.addEventListener('click', function(ev){
+      const btn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+      if (!btn) return;
+      const t = (btn.textContent || '');
+      if (t.indexOf('지도 표시') !== -1) {
+        gtagEvent('click_patient_event_show_on_map', common({}));
+      }
+    }, true);
+  }
+
+  
+  // ✅ 설문: 변경 시 값 전송(선택형은 값, 자유서술은 길이만) + 제출 시 전체 응답 전송(자유서술 원문은 GA4 제외)
+  const surveyForm = document.getElementById('doctorcar-survey');
+  if (surveyForm) {
+    // 변경 이벤트: 선택값은 값까지, 자유서술은 길이만
+    surveyForm.addEventListener('change', function(ev){
+      const el = ev.target;
+      if (!el || !el.name) return;
+
+      const type = (el.type || '').toLowerCase();
+      let v = '';
+      if (type === 'checkbox') {
+        v = (el.checked ? 'checked:' : 'unchecked:') + (el.value || '');
+      } else {
+        v = el.value || '';
+      }
+
+      const isFreeText = (type === 'textarea' || el.tagName === 'TEXTAREA');
+      gtagEvent('survey_answer_change', common({
+        q: trunc(el.name, 40),
+        v: isFreeText ? ('len:' + String((v || '').length)) : trunc(v, 90)
+      }));
+    }, true);
+
+    // 제출 이벤트: (1) GA4로는 선택형/값 중심 + 자유서술은 길이만 (2) 자유서술 원문은 Firestore에 저장(=BigQuery로 옮기기 쉬움)
+    surveyForm.addEventListener('submit', async function(ev){
+      try{
+        const fd = new FormData(surveyForm);
+
+        // 자유서술 필드들(원문은 GA4로 보내지 않음)
+        const freeTextKeys = [
+          'treatment_free_text',
+          'improvement_free_text',
+          'org_type_other_text',
+          'region_other_text',
+          'visit_purpose_other_text'
+        ];
+
+        // 1) GA4: 자유서술 길이만
+        try{
+          const lens = {};
+          freeTextKeys.forEach(k => {
+            const val = (fd.get(k) || '').toString();
+            lens[k + '_len'] = String(val.length);
+          });
+          gtagEvent('survey_free_text_len', common(lens));
+        }catch(e){}
+
+        // 2) GA4: 질문별 응답(자유서술 제외)
+        try{
+          for (const [k, v] of fd.entries()) {
+            if (!k) continue;
+            if (freeTextKeys.includes(k)) continue;
+            if (v == null) continue;
+            const sv = String(v);
+            if (!sv) continue;
+            gtagEvent('survey_answer_submit', common({
+              q: trunc(String(k), 40),
+              v: trunc(sv, 90)
+            }));
+          }
+        }catch(e){}
+
+        // 3) Firestore: 전체 응답 저장(자유서술 원문 포함, 100자 제한) → Firebase Extension으로 BigQuery에 적재 가능
+        try{
+          const dbRef = (typeof db !== 'undefined') ? db : (window.db || null);
+          if (dbRef && typeof dbRef.collection === 'function' && typeof firebase !== 'undefined' && firebase.firestore) {
+            const answers = {};
+            for (const [k, v] of fd.entries()) {
+              if (!k) continue;
+              const sv = (v == null) ? '' : String(v);
+
+              // checkbox 같은 동일 name 다중 값 대응
+              if (answers[k] !== undefined) {
+                if (Array.isArray(answers[k])) answers[k].push(sv);
+                else answers[k] = [answers[k], sv];
+              } else {
+                answers[k] = sv;
+              }
+            }
+
+            // 자유서술은 100자 제한 저장(교수님 설문 UI 가정)
+            const freeText = {};
+            freeTextKeys.forEach(k => {
+              freeText[k] = trunc((fd.get(k) || '').toString(), 100);
+            });
+
+            await dbRef.collection('doctorcarSurvey').add({
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              user_role: (window.currentUserRole || 'unknown'),
+              entry_channel: (window.trafficInfo?.channel || 'unknown'),
+              page: location.pathname || '',
+              answers: answers,
+              free_text: freeText
+            });
+          }
+        }catch(e){}
+      }catch(e){}
+    }, true);
+  }
+
+})();
+</script>
 </body>
 </html>
