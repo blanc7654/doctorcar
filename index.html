@@ -13,6 +13,11 @@
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-MCKTRFREN3"></script>
   <script>
+
+  // CSS attribute selector escape (구형 브라우저 대비)
+  function escCssAttr(s){
+    return String(s || '').replace(/["\\\]]/g, '\\$&');
+  }
     window.dataLayer = window.dataLayer || [];
     function gtag(){ dataLayer.push(arguments); }
     gtag('js', new Date());
@@ -975,7 +980,27 @@ outline: 1px solid rgba(0,0,0,0.05);
 }
 
 
-  </style>
+  
+
+    /* ===== seg-btn 안정화: inline 스타일 꼬임 방지 ===== */
+    .seg-btn{
+      background:#fff !important;
+      border:1px solid #ffd1e1 !important;
+      color:#d81b60 !important;
+      font-weight:800 !important;
+      border-radius:999px !important;
+      padding:8px 12px !important;
+      cursor:pointer !important;
+      font-size:0.95rem !important;
+      transition: background .08s ease, color .08s ease, border-color .08s ease;
+      user-select:none;
+    }
+    .seg-btn.is-active{
+      background:#ff4b8b !important;
+      border-color:#ff4b8b !important;
+      color:#fff !important;
+    }
+    </style>
 
   <!-- Kakao 지도 SDK (Geocoder 포함: libraries=services) -->
   <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b9ccd41f81d72605a0882435c138dc91&libraries=services"></script>
@@ -1873,7 +1898,7 @@ outline: 1px solid rgba(0,0,0,0.05);
       const s = String(addr || '').trim();
       if (!s) return '';
       // 예) "인천 남동구 구월동 1583" → "인천 남동구"
-      const m = s.match(/^(\S+)\s+(\S+(?:구|군|시))/);
+      const m = s.match(/^(\S+)\s+(\S+(?:구|군|시))\b/);
       if (m) return `${m[1]} ${m[2]}`;
       // 예외: 앞 2토큰이라도 반환
       const parts = s.split(/\s+/).filter(Boolean);
@@ -2470,7 +2495,7 @@ function resetSharePanelUI() {
     b.style.cursor = 'pointer';
     b.style.fontSize = '0.95rem';
   };
-  panel.querySelectorAll('.seg-btn').forEach(baseSegStyle);
+  panel.querySelectorAll('.seg-btn').forEach(b => { b.classList.remove('is-active'); b.removeAttribute('style'); });
 
   // AVPU 등 active 클래스 초기화
   panel.querySelectorAll('.active').forEach(btn => btn.classList.remove('active'));
@@ -3386,31 +3411,28 @@ function showPatientToast() {
 
 <script>
   // seg-btn (M/F, SBP, SpO2 등) 클릭 시 hidden input에 값 저장 + 버튼 활성화 표시
+  // seg-btn 클릭: data-target 그룹 단위로 "단 하나만" 활성화(색 고정/꼬임 방지)
   document.addEventListener("click", (e) => {
     const btn = (e.target && e.target.closest) ? e.target.closest(".seg-btn") : null;
     if (!btn) return;
 
-    const targetId = btn.dataset.target;
-    const val = btn.dataset.val;
+    const targetId = btn.getAttribute("data-target") || "";
+    const val = btn.getAttribute("data-val") || "";
 
-    const hidden = document.getElementById(targetId);
-    if (hidden) hidden.value = val;
+    // hidden input에 값 저장
+    if (targetId) {
+      const hidden = document.getElementById(targetId);
+      if (hidden) hidden.value = val;
+    }
 
-    // 같은 target 그룹 버튼들 active 토글
-    const siblings = document.querySelectorAll(`.seg-btn[data-target="${targetId}"]`);
-    siblings.forEach(b => {
-      b.style.background = "#fff";
-      b.style.border = "1px solid #ffd1e1";
-      b.style.color = "#d81b60";
-      b.style.fontWeight = "800";
-      b.style.borderRadius = "999px";
-      b.style.padding = "8px 12px";
-    });
+    // 같은 target 그룹 버튼들 활성화 클래스 토글 (inline style 안 씀)
+    if (targetId) {
+      const siblings = document.querySelectorAll(`.seg-btn[data-target="${escCssAttr(targetId)}"]`);
+      siblings.forEach(b => b.classList.remove("is-active"));
+    }
+    btn.classList.add("is-active");
 
-    btn.style.background = "#ff4b8b";
-    btn.style.border = "1px solid #ff4b8b";
-    btn.style.color = "#fff";
-
+    // 공유 위치 힌트 갱신
     if (targetId === 'share-loc') { try { updateShareLocHint(); } catch(e) {} }
   });
 
