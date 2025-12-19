@@ -2459,6 +2459,32 @@ if (shareBtn && sharePanel) {
 
       document.querySelectorAll('input[name="share-injury"]')
         .forEach(chk => chk.checked = false);
+
+      // ✅ seg-btn 인라인 스타일 초기화 (이전 선택이 남아 2개가 동시에 선택된 것처럼 보이는 현상 방지)
+      const baseSegStyle = (b) => {
+        b.style.background = "#fff";
+        b.style.border = "1px solid #ffd1e1";
+        b.style.color = "#d81b60";
+        b.style.fontWeight = "800";
+        b.style.borderRadius = "999px";
+        b.style.padding = "8px 12px";
+      };
+      const activeSegStyle = (b) => {
+        b.style.background = "#ff4b8b";
+        b.style.border = "1px solid #ff4b8b";
+        b.style.color = "#fff";
+      };
+
+      // share-panel 안의 모든 seg-btn을 기본 스타일로 리셋
+      document.querySelectorAll('#share-panel .seg-btn').forEach(baseSegStyle);
+
+      // 공유위치 기본값은 patient로(기존과 동일)
+      const shareLocHidden = document.getElementById('share-loc');
+      if (shareLocHidden) shareLocHidden.value = 'patient';
+
+      // patient 버튼만 활성화
+      const locPatientBtn = document.querySelector('#share-panel .seg-btn[data-target="share-loc"][data-val="patient"]');
+      if (locPatientBtn) activeSegStyle(locPatientBtn);
     }
 
     sharePanel.style.display = isOpen ? 'none' : 'block';
@@ -2544,8 +2570,8 @@ const data = {
   address: locAddr || '',
 
   // BigQuery/GA4용(상세주소는 전송하지 않음)
-  share_id: shareId,
-  admin_area: adminArea,
+  share_id: String(shareId || ''),
+  admin_area: String(adminArea || ''),
   uploader: document.getElementById('share-uploader')?.value || '',
 
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
