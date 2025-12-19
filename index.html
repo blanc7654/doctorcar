@@ -2139,17 +2139,17 @@ async function showEtaPopup(map, toLatLng, targetName, targetTel) {
       infoWindow.open(map, markerForOpen);
       CURRENT_INFO_WINDOW = infoWindow;
 
-      if (!USER_POS && !PATIENT_POS) {
-        infoWindow.setContent(`
-          <div style="padding:8px 10px;font-size:12px; line-height:1.35;">
-            <div style="font-weight:700;margin-bottom:4px;">${esc(targetName || '대상')}</div>
-            <div style="color:#c62828;"><b>현재 위치(GPS)</b> 또는 <b style="color:#d81b60;">환자발생지</b>를 먼저 지정해 주세요.</div>
-          </div>
-        `);
-        return;
-      }
 
       const lines = [];
+      if (!USER_POS && !PATIENT_POS) {
+        lines.push(`
+          <div class="iw-row">
+            <div class="iw-left">안내</div>
+            <div class="iw-right"><b>현재 위치(GPS)</b> 또는 <b style="color:#d81b60;">환자발생지</b>를 지정하면 소요시간을 계산합니다.</div>
+          </div>
+        `);
+      }
+
 
       // ✅ 클릭 순간에만 계산
       if (USER_POS) {
