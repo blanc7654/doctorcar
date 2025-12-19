@@ -2446,6 +2446,49 @@ function updateUserLocationOnMap() {
       window.location.href = 'tel:' + tel;
     }
 
+
+// ✅ 공유 패널 상태를 "항상 초기 상태"로 되돌리기 (색/hidden 값/검사값 꼬임 방지)
+function resetSharePanelUI() {
+  const panel = document.getElementById('share-panel');
+  if (!panel) return;
+
+  // hidden 값 초기화
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader','share-loc']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+  // 버튼 스타일 초기화(선택된 것처럼 남는 문제 방지)
+  const baseSegStyle = (b) => {
+    b.style.background = '#fff';
+    b.style.border = '1px solid #ffd1e1';
+    b.style.borderRadius = '999px';
+    b.style.padding = '8px 12px';
+    b.style.fontWeight = '800';
+    b.style.color = '#d81b60';
+    b.style.cursor = 'pointer';
+    b.style.fontSize = '0.95rem';
+  };
+  panel.querySelectorAll('.seg-btn').forEach(baseSegStyle);
+
+  // AVPU 등 active 클래스 초기화
+  panel.querySelectorAll('.active').forEach(btn => btn.classList.remove('active'));
+
+  // 다친부위 체크박스 해제
+  document.querySelectorAll('input[name="share-injury"]').forEach(chk => chk.checked = false);
+
+  // 공유 패널 환자발생지(자동완성 선택) 상태 초기화
+  SHARE_PATIENT_POS = null;
+  SHARE_PATIENT_ADDR = null;
+  SHARE_PATIENT_INPUT_DIRTY = true;
+
+  // 다음 제출은 새 share_id로
+  window.SHARE_RESP_ID = null;
+
+  try { updateShareLocHint(); } catch(e) {}
+}
+
 // ===== 공유 패널 열기/닫기 =====
 const shareBtn = document.getElementById('open-share-panel');
 const sharePanel = document.getElementById('share-panel');
@@ -2455,41 +2498,7 @@ if (shareBtn && sharePanel) {
     const isOpen = sharePanel.style.display === 'block';
 
     if (!isOpen) {
-      // 입력/선택 초기화
-      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader','share-loc']
-        .forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = '';
-        });
-
-      // seg-btn(인라인 스타일) 초기화
-      const baseSegStyle = (b) => {
-        b.style.background = '#fff';
-        b.style.border = '2px solid #bbb';
-        b.style.borderRadius = '999px';
-        b.style.padding = '8px 12px';
-        b.style.fontWeight = '800';
-        b.style.color = '#222';
-        b.style.cursor = 'pointer';
-        b.style.fontSize = '0.95rem';
-      };
-      document.querySelectorAll('#share-panel .seg-btn').forEach(baseSegStyle);
-
-      // AVPU(클래스 active) 초기화
-      document.querySelectorAll('#share-panel .active')
-        .forEach(btn => btn.classList.remove('active'));
-
-      // 체크박스(다친부위) 초기화
-      document.querySelectorAll('input[name="share-injury"]')
-        .forEach(chk => chk.checked = false);
-
-      // 공유 패널용 환자발생지 선택 상태 초기화
-      SHARE_PATIENT_POS = null;
-      SHARE_PATIENT_ADDR = null;
-      SHARE_PATIENT_INPUT_DIRTY = true;
-
-      // 다음 제출은 새 share_id로 묶이게
-      window.SHARE_RESP_ID = null;
+      try { resetSharePanelUI(); } catch(e) {}
     }
 
     sharePanel.style.display = isOpen ? 'none' : 'block';
@@ -2641,35 +2650,16 @@ try {
   }
 alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생 정보가 공유되었습니다.');
 
-  // 다음 공유는 새로운 share_id로 생성
-  window.SHARE_RESP_ID = null;
-  SHARE_PATIENT_POS = null;
-  SHARE_PATIENT_ADDR = null;
-  SHARE_PATIENT_INPUT_DIRTY = true;
-
-  // 입력/선택 초기화
+  // ✅ 패널 닫고 초기화
   document.getElementById('share-panel').style.display = 'none';
-
-  // hidden 값 비우기(추가된 항목 포함)
-  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader']
-    .forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-
-  // 버튼 active 전부 해제(AVPU 포함)
-  document.querySelectorAll('#share-panel .active')
-    .forEach(btn => btn.classList.remove('active'));
-
-  // 체크박스 해제(다친부위)
-  document.querySelectorAll('input[name="share-injury"]')
-    .forEach(chk => chk.checked = false);
+  try { resetSharePanelUI(); } catch(e) {}
 
 } catch (e) {
   console.error(e);
   const msg = (e && (e.message || e.code)) ? (e.message || e.code) : '';
-  alert('공유 중 오류가 발생했습니다.' + (msg ? `
-(${msg})` : ''));
+  alert('공유 중 오류가 발생했습니다.' + (msg ? `\n(${msg})` : ''));
+  // 오류 후에도 버튼/선택 꼬임 방지 위해 초기화
+  try { resetSharePanelUI(); } catch(e2) {}
 }
   });
 }
