@@ -1135,7 +1135,7 @@ outline: 1px solid rgba(0,0,0,0.05);
       <button type="button" class="seg-btn" data-target="share-loc" data-val="patient">⭐ 환자발생지</button>
       
     </div>
-    <input type="hidden" id="share-loc" value="patient" />
+    <input type="hidden" id="share-loc" value="" />
     <div id="share-loc-hint" style="font-size:0.78rem; color:#666; margin-top:6px; line-height:1.35;"></div>
   </div>
 
@@ -1842,11 +1842,14 @@ outline: 1px solid rgba(0,0,0,0.05);
     let USER_ADDR = null;
     let PATIENT_POS = null;
     let PATIENT_ADDR = null;
-    let PATIENT_INPUT_DIRTY = false; // 수동 입력 중(자동완성 선택 전) 상태
-    // ✅ 공유 패널 전용 환자발생지 상태(리스트/지도 표시와 분리)
+
+    // ✅ 공유 패널에서만 사용하는 "환자발생지 선택" (리스트/지도 클릭과 분리)
     let SHARE_PATIENT_POS = null;
     let SHARE_PATIENT_ADDR = null;
-    let SHARE_PATIENT_INPUT_DIRTY = false; // 공유용 수동 입력 중(선택 전)
+    let SHARE_PATIENT_INPUT_DIRTY = true; // 입력창이 바뀌면 true, 자동완성 선택 완료 시 false
+
+    // ✅ 공유 제출을 BigQuery에서 한 묶음으로 보기 위한 ID
+    window.SHARE_RESP_ID = null;
     let HOSPITAL_MAP = null;
     let USER_MARKER = null;
     let USER_LABEL = null;
@@ -1865,16 +1868,28 @@ outline: 1px solid rgba(0,0,0,0.05);
     }
 
 
-    // ✅ 공유 패널: 현재 선택된 "공유 위치" 상태 힌트 갱신
+    // ✅ (유틸) 주소 문자열에서 행정구역(시/도 + 구/군) 정도만 추출 (BigQuery/GA4용)
+    function extractAdminArea(addr) {
+      const s = String(addr || '').trim();
+      if (!s) return '';
+      // 예) "인천 남동구 구월동 1583" → "인천 남동구"
+      const m = s.match(/^(\S+)\s+(\S+(?:구|군|시))/);
+      if (m) return `${m[1]} ${m[2]}`;
+      // 예외: 앞 2토큰이라도 반환
+      const parts = s.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return `${parts[0]} ${parts[1]}`;
+      return parts[0] || '';
+    }
+
+// ✅ 공유 패널: 현재 선택된 "공유 위치" 상태 힌트 갱신
     function updateShareLocHint() {
       const hintEl = document.getElementById('share-loc-hint');
       if (!hintEl) return;
 
       const locType = document.getElementById('share-loc')?.value || '';
 
-      // ✅ 기본: 아무것도 선택하지 않았을 때
       if (!locType) {
-        hintEl.innerHTML = '📌 공유 위치를 선택해 주세요. <b>내 GPS</b> 또는 <b>환자발생지</b>';
+        hintEl.innerHTML = '⭐ <b>공유 위치를 선택해 주세요.</b> (내 GPS / 환자발생지)';
         return;
       }
 
@@ -1884,15 +1899,14 @@ outline: 1px solid rgba(0,0,0,0.05);
         } else {
           hintEl.innerHTML = `📍 현재 GPS: <b>${esc(USER_ADDR || '(주소 확인 중)')}</b>`;
         }
-      } else if (locType === 'patient') {
-        // ✅ 공유 패널은 "리스트/지도에 표시된 환자발생지"를 자동 사용하지 않음
-        if (SHARE_PATIENT_INPUT_DIRTY || !SHARE_PATIENT_POS) {
-          hintEl.innerHTML = '⭐ 환자발생지를 먼저 <b>주소명 수동 입력</b>하고 <b>자동완성 목록에서 선택</b>해 주세요.';
-        } else {
-          hintEl.innerHTML = `⭐ 환자발생지: <b>${esc(SHARE_PATIENT_ADDR || '(주소 확인 중)')}</b>`;
-        }
+        return;
+      }
+
+      // patient
+      if (SHARE_PATIENT_INPUT_DIRTY || !SHARE_PATIENT_POS) {
+        hintEl.innerHTML = '⭐ 환자발생지를 <b>주소명으로 입력</b>한 뒤, <b>자동완성 목록에서 선택</b>해 주세요.';
       } else {
-        hintEl.innerHTML = '📌 공유 위치를 선택해 주세요.';
+        hintEl.innerHTML = `⭐ 환자발생지: <b>${esc(SHARE_PATIENT_ADDR || '(주소 확인 중)')}</b>`;
       }
     }
 
@@ -2432,17 +2446,6 @@ function updateUserLocationOnMap() {
       window.location.href = 'tel:' + tel;
     }
 
-// ===== 행정구역(시/도 + 구/군/시) 추출 (BigQuery/GA4 전송용: 상세주소는 전송하지 않음) =====
-function extractAdminArea(addr) {
-  addr = String(addr || '').replace(/\s+/g, ' ').trim();
-  if (!addr) return '';
-  // 예: "인천광역시 남동구 ..." / "경기도 부천시 ..." / "서울특별시 강남구 ..."
-  const m = addr.match(/^(.*?(?:특별시|광역시|특별자치시|도|시))\s+(.+?(?:구|군|시))/);
-  if (m) return (m[1] + ' ' + m[2]).trim();
-  const parts = addr.split(' ');
-  return parts.slice(0, 2).join(' ').trim();
-}
-
 // ===== 공유 패널 열기/닫기 =====
 const shareBtn = document.getElementById('open-share-panel');
 const sharePanel = document.getElementById('share-panel');
@@ -2450,56 +2453,43 @@ const sharePanel = document.getElementById('share-panel');
 if (shareBtn && sharePanel) {
   shareBtn.addEventListener('click', () => {
     const isOpen = sharePanel.style.display === 'block';
-    // 공유 시도/제출을 BigQuery에서 묶기 위한 ID (상세주소는 전송하지 않음)
-    if (!isOpen) {
-      window.SHARE_RESP_ID = (window.crypto && crypto.randomUUID)
-        ? ('s_' + crypto.randomUUID())
-        : ('s_' + Date.now() + '_' + Math.random().toString(16).slice(2));
-    } else {
-      // 패널을 닫으면 묶음 ID 제거(다음 공유 때 새로 생성)
-      window.SHARE_RESP_ID = null;
-    }
-
 
     if (!isOpen) {
-      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader']
+      // 입력/선택 초기화
+      ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader','share-loc']
         .forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
 
+      // seg-btn(인라인 스타일) 초기화
+      const baseSegStyle = (b) => {
+        b.style.background = '#fff';
+        b.style.border = '2px solid #bbb';
+        b.style.borderRadius = '999px';
+        b.style.padding = '8px 12px';
+        b.style.fontWeight = '800';
+        b.style.color = '#222';
+        b.style.cursor = 'pointer';
+        b.style.fontSize = '0.95rem';
+      };
+      document.querySelectorAll('#share-panel .seg-btn').forEach(baseSegStyle);
+
+      // AVPU(클래스 active) 초기화
       document.querySelectorAll('#share-panel .active')
         .forEach(btn => btn.classList.remove('active'));
 
+      // 체크박스(다친부위) 초기화
       document.querySelectorAll('input[name="share-injury"]')
         .forEach(chk => chk.checked = false);
 
-      // ✅ seg-btn 인라인 스타일 초기화 (이전 선택이 남아 2개가 동시에 선택된 것처럼 보이는 현상 방지)
-      const baseSegStyle = (b) => {
-        b.style.background = "#fff";
-        b.style.border = "1px solid #ffd1e1";
-        b.style.color = "#d81b60";
-        b.style.fontWeight = "800";
-        b.style.borderRadius = "999px";
-        b.style.padding = "8px 12px";
-      };
-      const activeSegStyle = (b) => {
-        b.style.background = "#ff4b8b";
-        b.style.border = "1px solid #ff4b8b";
-        b.style.color = "#fff";
-      };
-
-      // share-panel 안의 모든 seg-btn을 기본 스타일로 리셋
-      document.querySelectorAll('#share-panel .seg-btn').forEach(baseSegStyle);
-
-      // ✅ 공유 패널을 열 때는 공유 위치를 기본 선택하지 않음(실수 방지)
-      const shareLocHidden = document.getElementById('share-loc');
-      if (shareLocHidden) shareLocHidden.value = '';
-
-      // ✅ 공유 패널 전용 환자발생지 상태 초기화(리스트/지도 상태와 분리)
+      // 공유 패널용 환자발생지 선택 상태 초기화
       SHARE_PATIENT_POS = null;
       SHARE_PATIENT_ADDR = null;
-      SHARE_PATIENT_INPUT_DIRTY = false;
+      SHARE_PATIENT_INPUT_DIRTY = true;
+
+      // 다음 제출은 새 share_id로 묶이게
+      window.SHARE_RESP_ID = null;
     }
 
     sharePanel.style.display = isOpen ? 'none' : 'block';
@@ -2555,31 +2545,45 @@ if (shareSubmitBtn) {
 
     if (locType === 'gps') {
       if (!USER_POS) {
-        alert('GPS 위치가 아직 없습니다. 먼저 “GPS로 현위치주소 찾기”를 눌러 주세요.');
+        alert('GPS 위치가 없습니다. 먼저 “GPS로 현위치주소 찾기”를 눌러 주세요.');
         return;
       }
       locPos = USER_POS;
       locAddr = USER_ADDR || '';
     } else if (locType === 'patient') {
+      // ✅ 공유 패널에서는 "자동완성에서 선택"된 환자발생지만 인정
       if (SHARE_PATIENT_INPUT_DIRTY || !SHARE_PATIENT_POS) {
-        alert('환자발생지를 먼저 주소명으로 입력하고, 자동완성 목록에서 선택해 주세요.');
+        alert('환자발생지를 주소명으로 입력한 뒤, 자동완성 목록에서 선택해 주세요.');
         return;
       }
       locPos = SHARE_PATIENT_POS;
       locAddr = SHARE_PATIENT_ADDR || '';
     } else {
-      alert('공유 위치를 선택해 주세요. (내 GPS / 환자발생지)');
+      alert('공유 위치(내 GPS / 환자발생지)를 먼저 선택해 주세요.');
       return;
     }
 
-    // BigQuery/GA4용 공유 묶음 ID (같은 공유 제출을 한 덩어리로 묶기)
+    // ✅ BigQuery에서 한 번의 공유를 묶기 위한 ID(=share_id)
     if (!window.SHARE_RESP_ID) {
-      window.SHARE_RESP_ID = (window.crypto && crypto.randomUUID)
-        ? ('s_' + crypto.randomUUID())
-        : ('s_' + Date.now() + '_' + Math.random().toString(16).slice(2));
+      try { window.SHARE_RESP_ID = 'p_' + crypto.randomUUID(); }
+      catch (e) { window.SHARE_RESP_ID = 'p_' + Date.now() + '_' + Math.random().toString(16).slice(2); }
     }
     const shareId = window.SHARE_RESP_ID;
+
+    // ✅ GA4/BigQuery로는 '행정구역 정도'만 (상세 주소는 보내지 않음)
     const adminArea = extractAdminArea(locAddr);
+    const addrLen = String(locAddr || '').length;
+
+    // 제출 시도 로그(분석용)
+    if (typeof gtag === 'function') {
+      gtag('event', 'submit_patient_share_attempt', {
+        share_id: shareId,
+        loc_type: locType,
+        admin_area: adminArea,
+        addr_len: addrLen,
+        entry_channel: trafficInfo?.channel || 'unknown'
+      });
+    }
 
 const data = {
   locType: locType,
@@ -2587,9 +2591,6 @@ const data = {
   lng: locPos.getLng(),
   address: locAddr || '',
 
-  // BigQuery/GA4용(상세주소는 전송하지 않음)
-  share_id: String(shareId || ''),
-  admin_area: String(adminArea || ''),
   uploader: document.getElementById('share-uploader')?.value || '',
 
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
@@ -2613,19 +2614,38 @@ try {
 
   
 
-
-  // 다음 공유 시 새 ID 생성
-  window.SHARE_RESP_ID = null;
-  // GA4: 공유 성공
+  // GA4: 공유 성공 (BigQuery에서 share_id로 묶어서 분석)
   if (typeof gtag === 'function') {
+    const injuriesArr = Array.isArray(data.injuries) ? data.injuries : [];
+    const injuriesStr = injuriesArr.join('|').slice(0, 120);
+
     gtag('event', 'submit_patient_share_success', {
+      share_id: shareId,
       loc_type: data.locType || '',
-      share_id: (data.share_id || ''),
-      admin_area: (data.admin_area || ''),
+      admin_area: adminArea,
+      addr_len: addrLen,
+
+      // 선택 항목들(PII 없이)
+      uploader: data.uploader || '',
+      age: data.age || '',
+      sex: data.sex || '',
+      avpu: data.avpu || '',
+      mechanism: data.mechanism || '',
+      bp: data.bp || '',
+      spo2: data.spo2 || '',
+      injuries_count: injuriesArr.length,
+      injuries: injuriesStr,
+
       entry_channel: (window.trafficInfo?.channel || 'unknown')
     });
   }
 alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생 정보가 공유되었습니다.');
+
+  // 다음 공유는 새로운 share_id로 생성
+  window.SHARE_RESP_ID = null;
+  SHARE_PATIENT_POS = null;
+  SHARE_PATIENT_ADDR = null;
+  SHARE_PATIENT_INPUT_DIRTY = true;
 
   // 입력/선택 초기화
   document.getElementById('share-panel').style.display = 'none';
@@ -2647,7 +2667,9 @@ alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생
 
 } catch (e) {
   console.error(e);
-  alert('공유 중 오류가 발생했습니다.');
+  const msg = (e && (e.message || e.code)) ? (e.message || e.code) : '';
+  alert('공유 중 오류가 발생했습니다.' + (msg ? `
+(${msg})` : ''));
 }
   });
 }
@@ -2779,18 +2801,6 @@ alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생
 function setPatientMarker(latLng, address) {
   if (!latLng) return;
 
-  // ✅ LatLng 타입 통일(간혹 plain object가 들어오는 경우 방지)
-  if (typeof latLng.getLat !== 'function' || typeof latLng.getLng !== 'function') {
-    const la = (latLng && (latLng.lat ?? latLng.La ?? latLng.y));
-    const ln = (latLng && (latLng.lng ?? latLng.Lng ?? latLng.x));
-    if (typeof la === 'number' && typeof ln === 'number' && window.kakao && kakao.maps) {
-      latLng = new kakao.maps.LatLng(la, ln);
-    }
-  }
-
-  // 수동 입력 중 상태 해제(선택 완료)
-  PATIENT_INPUT_DIRTY = false;
-
   // 1) 전역은 LatLng 그대로 유지 (다른 로직들과 타입 통일)
   PATIENT_POS = latLng;
   PATIENT_ADDR = address || null;
@@ -2863,11 +2873,10 @@ function renderPatientResults(list) {
       PATIENT_POS = new kakao.maps.LatLng(lat, lng);
       PATIENT_ADDR = addr || name;
 
-      // ✅ 공유 패널 전용 환자발생지에도 반영(자동완성 선택 시에만)
+      // ✅ 공유 패널용(리스트/지도 클릭과 분리): 자동완성 선택 완료로 인정
       SHARE_PATIENT_POS = PATIENT_POS;
       SHARE_PATIENT_ADDR = PATIENT_ADDR;
       SHARE_PATIENT_INPUT_DIRTY = false;
-      try { updateShareLocHint(); } catch(e) {}
 
       renderPatientOnMap(HOSPITAL_MAP);
 
@@ -2893,20 +2902,11 @@ if (patientInput) {
   let t = null;
   patientInput.addEventListener('input', () => {
     const q = patientInput.value.trim();
-
-    // ✅ 다시 타이핑을 시작하면: 이전 선택(리스트/이전 검색)을 공유에 쓰지 않도록 초기화
-    PATIENT_INPUT_DIRTY = true;
-    // 공유 패널에서도 이전 환자발생지 선택값을 무효화
+    // ✅ 입력이 바뀌면 공유 패널에서는 '미선택' 상태로 돌립니다.
     SHARE_PATIENT_INPUT_DIRTY = true;
     SHARE_PATIENT_POS = null;
     SHARE_PATIENT_ADDR = null;
-
-    PATIENT_POS = null;
-    PATIENT_ADDR = null;
-    if (PATIENT_MARKER) { try { PATIENT_MARKER.setMap(null); } catch(e) {} PATIENT_MARKER = null; }
-    if (PATIENT_LABEL) { try { PATIENT_LABEL.setMap(null); } catch(e) {} PATIENT_LABEL = null; }
-    updateShareLocHint();
-
+    try { updateShareLocHint(); } catch(e) {}
     if (t) clearTimeout(t);
     if (q.length < 2) { clearPatientResults(); return; }
 
@@ -3397,7 +3397,7 @@ function showPatientToast() {
 <script>
   // seg-btn (M/F, SBP, SpO2 등) 클릭 시 hidden input에 값 저장 + 버튼 활성화 표시
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".seg-btn");
+    const btn = (e.target && e.target.closest) ? e.target.closest(".seg-btn") : null;
     if (!btn) return;
 
     const targetId = btn.dataset.target;
@@ -3459,7 +3459,6 @@ function showPatientToast() {
     extra.user_role = (window.currentUserRole || 'unknown');
     extra.entry_channel = (window.trafficInfo?.channel || 'unknown');
     if (window.SURVEY_RESP_ID) extra.resp_id = window.SURVEY_RESP_ID;
-    if (window.SHARE_RESP_ID) extra.share_id = window.SHARE_RESP_ID;
     return extra;
   }
 
@@ -3531,13 +3530,8 @@ function showPatientToast() {
         const injuries = Array.from(document.querySelectorAll('input[name="share-injury"]:checked'))
           .map(x => x.value).filter(Boolean);
 
-        const addr = (loc === 'gps') ? (USER_ADDR || '') : (SHARE_PATIENT_ADDR || '');
-        const admin_area = extractAdminArea(addr);
-
         gtagEvent('submit_patient_share_attempt', common({
           loc: trunc(loc, 20),
-          share_id: trunc((window.SHARE_RESP_ID || ''), 80),
-          admin_area: trunc(admin_area, 60),
           uploader: trunc(uploader, 20),
           age: trunc(age, 20),
           sex: trunc(sex, 10),
@@ -3629,17 +3623,6 @@ function showPatientToast() {
             lens[k + '_len'] = String(val.length);
           });
           gtagEvent('survey_free_text_len', common(lens));
-        }catch(e){}
-
-        // 1b) GA4: 자유서술 원문(100자 제한)
-        try{
-          for (const k of freeTextKeys) {
-            const raw = (fd.get(k) || '').toString();
-            const v = trunc(raw, 100);
-            if (v && v.trim()) {
-              gtagEvent('survey_answer_submit', common({ q: k, v }));
-            }
-          }
         }catch(e){}
 
         // 2) GA4: 질문별 응답(자유서술 제외)
