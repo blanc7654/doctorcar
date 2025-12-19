@@ -1843,6 +1843,10 @@ outline: 1px solid rgba(0,0,0,0.05);
     let PATIENT_POS = null;
     let PATIENT_ADDR = null;
     let PATIENT_INPUT_DIRTY = false; // 수동 입력 중(자동완성 선택 전) 상태
+    // ✅ 공유 패널 전용 환자발생지 상태(리스트/지도 표시와 분리)
+    let SHARE_PATIENT_POS = null;
+    let SHARE_PATIENT_ADDR = null;
+    let SHARE_PATIENT_INPUT_DIRTY = false; // 공유용 수동 입력 중(선택 전)
     let HOSPITAL_MAP = null;
     let USER_MARKER = null;
     let USER_LABEL = null;
@@ -1866,7 +1870,13 @@ outline: 1px solid rgba(0,0,0,0.05);
       const hintEl = document.getElementById('share-loc-hint');
       if (!hintEl) return;
 
-      const locType = document.getElementById('share-loc')?.value || 'patient';
+      const locType = document.getElementById('share-loc')?.value || '';
+
+      // ✅ 기본: 아무것도 선택하지 않았을 때
+      if (!locType) {
+        hintEl.innerHTML = '📌 공유 위치를 선택해 주세요. <b>내 GPS</b> 또는 <b>환자발생지</b>';
+        return;
+      }
 
       if (locType === 'gps') {
         if (!USER_POS) {
@@ -1874,12 +1884,15 @@ outline: 1px solid rgba(0,0,0,0.05);
         } else {
           hintEl.innerHTML = `📍 현재 GPS: <b>${esc(USER_ADDR || '(주소 확인 중)')}</b>`;
         }
-      } else {
-        if (PATIENT_INPUT_DIRTY || !PATIENT_POS) {
-          hintEl.innerHTML = '⭐ 환자발생지를 먼저 입력하고 <b>자동완성 목록에서 선택</b>해 주세요.';
+      } else if (locType === 'patient') {
+        // ✅ 공유 패널은 "리스트/지도에 표시된 환자발생지"를 자동 사용하지 않음
+        if (SHARE_PATIENT_INPUT_DIRTY || !SHARE_PATIENT_POS) {
+          hintEl.innerHTML = '⭐ 환자발생지를 먼저 <b>주소명 수동 입력</b>하고 <b>자동완성 목록에서 선택</b>해 주세요.';
         } else {
-          hintEl.innerHTML = `⭐ 환자발생지: <b>${esc(PATIENT_ADDR || '(주소 확인 중)')}</b>`;
+          hintEl.innerHTML = `⭐ 환자발생지: <b>${esc(SHARE_PATIENT_ADDR || '(주소 확인 중)')}</b>`;
         }
+      } else {
+        hintEl.innerHTML = '📌 공유 위치를 선택해 주세요.';
       }
     }
 
@@ -2479,13 +2492,14 @@ if (shareBtn && sharePanel) {
       // share-panel 안의 모든 seg-btn을 기본 스타일로 리셋
       document.querySelectorAll('#share-panel .seg-btn').forEach(baseSegStyle);
 
-      // 공유위치 기본값은 patient로(기존과 동일)
+      // ✅ 공유 패널을 열 때는 공유 위치를 기본 선택하지 않음(실수 방지)
       const shareLocHidden = document.getElementById('share-loc');
-      if (shareLocHidden) shareLocHidden.value = 'patient';
+      if (shareLocHidden) shareLocHidden.value = '';
 
-      // patient 버튼만 활성화
-      const locPatientBtn = document.querySelector('#share-panel .seg-btn[data-target="share-loc"][data-val="patient"]');
-      if (locPatientBtn) activeSegStyle(locPatientBtn);
+      // ✅ 공유 패널 전용 환자발생지 상태 초기화(리스트/지도 상태와 분리)
+      SHARE_PATIENT_POS = null;
+      SHARE_PATIENT_ADDR = null;
+      SHARE_PATIENT_INPUT_DIRTY = false;
     }
 
     sharePanel.style.display = isOpen ? 'none' : 'block';
@@ -2534,25 +2548,28 @@ if (shareSubmitBtn) {
       return;
     }
 
-    const locType = document.getElementById('share-loc')?.value || 'patient';
+    const locType = document.getElementById('share-loc')?.value || '';
 
     let locPos = null;
     let locAddr = '';
 
     if (locType === 'gps') {
       if (!USER_POS) {
-        alert('GPS 위치를 먼저 찾은 뒤 공유해 주세요.');
+        alert('GPS 위치가 아직 없습니다. 먼저 “GPS로 현위치주소 찾기”를 눌러 주세요.');
         return;
       }
       locPos = USER_POS;
       locAddr = USER_ADDR || '';
-    } else {
-      if (!PATIENT_POS) {
-        alert('환자발생지를 먼저 입력해주세요.');
+    } else if (locType === 'patient') {
+      if (SHARE_PATIENT_INPUT_DIRTY || !SHARE_PATIENT_POS) {
+        alert('환자발생지를 먼저 주소명으로 입력하고, 자동완성 목록에서 선택해 주세요.');
         return;
       }
-      locPos = PATIENT_POS;
-      locAddr = PATIENT_ADDR || '';
+      locPos = SHARE_PATIENT_POS;
+      locAddr = SHARE_PATIENT_ADDR || '';
+    } else {
+      alert('공유 위치를 선택해 주세요. (내 GPS / 환자발생지)');
+      return;
     }
 
     // BigQuery/GA4용 공유 묶음 ID (같은 공유 제출을 한 덩어리로 묶기)
@@ -2846,6 +2863,12 @@ function renderPatientResults(list) {
       PATIENT_POS = new kakao.maps.LatLng(lat, lng);
       PATIENT_ADDR = addr || name;
 
+      // ✅ 공유 패널 전용 환자발생지에도 반영(자동완성 선택 시에만)
+      SHARE_PATIENT_POS = PATIENT_POS;
+      SHARE_PATIENT_ADDR = PATIENT_ADDR;
+      SHARE_PATIENT_INPUT_DIRTY = false;
+      try { updateShareLocHint(); } catch(e) {}
+
       renderPatientOnMap(HOSPITAL_MAP);
 
       const bounds = new kakao.maps.LatLngBounds();
@@ -2873,6 +2896,11 @@ if (patientInput) {
 
     // ✅ 다시 타이핑을 시작하면: 이전 선택(리스트/이전 검색)을 공유에 쓰지 않도록 초기화
     PATIENT_INPUT_DIRTY = true;
+    // 공유 패널에서도 이전 환자발생지 선택값을 무효화
+    SHARE_PATIENT_INPUT_DIRTY = true;
+    SHARE_PATIENT_POS = null;
+    SHARE_PATIENT_ADDR = null;
+
     PATIENT_POS = null;
     PATIENT_ADDR = null;
     if (PATIENT_MARKER) { try { PATIENT_MARKER.setMap(null); } catch(e) {} PATIENT_MARKER = null; }
@@ -3503,11 +3531,12 @@ function showPatientToast() {
         const injuries = Array.from(document.querySelectorAll('input[name="share-injury"]:checked'))
           .map(x => x.value).filter(Boolean);
 
-        const addr = (loc === 'gps') ? (window.USER_ADDR || '') : (window.PATIENT_ADDR || '');
+        const addr = (loc === 'gps') ? (USER_ADDR || '') : (SHARE_PATIENT_ADDR || '');
         const admin_area = extractAdminArea(addr);
 
         gtagEvent('submit_patient_share_attempt', common({
           loc: trunc(loc, 20),
+          share_id: trunc((window.SHARE_RESP_ID || ''), 80),
           admin_area: trunc(admin_area, 60),
           uploader: trunc(uploader, 20),
           age: trunc(age, 20),
