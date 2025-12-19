@@ -1868,6 +1868,8 @@ outline: 1px solid rgba(0,0,0,0.05);
     let PATIENT_POS = null;
     let PATIENT_ADDR = null;
 
+    let PATIENT_POS_SOURCE = null; // 'manual' (자동완성 선택), 'list' (리스트 클릭), 'typed' (입력만)
+
     // ✅ 공유 패널에서만 사용하는 "환자발생지 선택" (리스트/지도 클릭과 분리)
     let SHARE_PATIENT_POS = null;
     let SHARE_PATIENT_ADDR = null;
@@ -2508,6 +2510,18 @@ function resetSharePanelUI() {
   SHARE_PATIENT_ADDR = null;
   SHARE_PATIENT_INPUT_DIRTY = true;
 
+  // ✅ 메인 화면에서 '자동완성 클릭 선택'으로 환자발생지를 이미 확정해둔 경우,
+  // 공유 패널을 열 때 그 값은 재사용 가능(단, 리스트 클릭으로 찍은 값은 제외)
+  if (PATIENT_POS && PATIENT_POS_SOURCE === 'manual' && PATIENT_ADDR) {
+    SHARE_PATIENT_POS = PATIENT_POS;
+    SHARE_PATIENT_ADDR = PATIENT_ADDR;
+    SHARE_PATIENT_INPUT_DIRTY = false;
+  }
+
+    // ✅ 입력만 한 상태에서는 공유 패널에서 환자발생지를 '미선택'으로 취급
+    PATIENT_POS_SOURCE = 'typed';
+    SHARE_PATIENT_POS = null;
+    SHARE_PATIENT_ADDR = null;
   // 다음 제출은 새 share_id로
   window.SHARE_RESP_ID = null;
 
@@ -2820,6 +2834,9 @@ function setPatientMarker(latLng, address) {
   PATIENT_POS = latLng;
   PATIENT_ADDR = address || null;
 
+
+  // ✅ 환자발생지 출처: 리스트(환자발생 리스트 클릭 등)
+  PATIENT_POS_SOURCE = 'list';
   // 2) 병원 지도에 표시
   if (HOSPITAL_MAP) {
     renderPatientOnMap(HOSPITAL_MAP);
@@ -2887,6 +2904,8 @@ function renderPatientResults(list) {
       const lng = parseFloat(item.x);
       PATIENT_POS = new kakao.maps.LatLng(lat, lng);
       PATIENT_ADDR = addr || name;
+
+      PATIENT_POS_SOURCE = 'manual';
 
       // ✅ 공유 패널용(리스트/지도 클릭과 분리): 자동완성 선택 완료로 인정
       SHARE_PATIENT_POS = PATIENT_POS;
