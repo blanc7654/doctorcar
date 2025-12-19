@@ -2418,6 +2418,17 @@ function updateUserLocationOnMap() {
       window.location.href = 'tel:' + tel;
     }
 
+// ===== 행정구역(시/도 + 구/군/시) 추출 (BigQuery/GA4 전송용: 상세주소는 전송하지 않음) =====
+function extractAdminArea(addr) {
+  addr = String(addr || '').replace(/\s+/g, ' ').trim();
+  if (!addr) return '';
+  // 예: "인천광역시 남동구 ..." / "경기도 부천시 ..." / "서울특별시 강남구 ..."
+  const m = addr.match(/^(.*?(?:특별시|광역시|특별자치시|도|시))\s+(.+?(?:구|군|시))/);
+  if (m) return (m[1] + ' ' + m[2]).trim();
+  const parts = addr.split(' ');
+  return parts.slice(0, 2).join(' ').trim();
+}
+
 // ===== 공유 패널 열기/닫기 =====
 const shareBtn = document.getElementById('open-share-panel');
 const sharePanel = document.getElementById('share-panel');
@@ -2425,6 +2436,16 @@ const sharePanel = document.getElementById('share-panel');
 if (shareBtn && sharePanel) {
   shareBtn.addEventListener('click', () => {
     const isOpen = sharePanel.style.display === 'block';
+    // 공유 시도/제출을 BigQuery에서 묶기 위한 ID (상세주소는 전송하지 않음)
+    if (!isOpen) {
+      window.SHARE_RESP_ID = (window.crypto && crypto.randomUUID)
+        ? ('s_' + crypto.randomUUID())
+        : ('s_' + Date.now() + '_' + Math.random().toString(16).slice(2));
+    } else {
+      // 패널을 닫으면 묶음 ID 제거(다음 공유 때 새로 생성)
+      window.SHARE_RESP_ID = null;
+    }
+
 
     if (!isOpen) {
       ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader']
@@ -2507,12 +2528,24 @@ if (shareSubmitBtn) {
       locAddr = PATIENT_ADDR || '';
     }
 
+    // BigQuery/GA4용 공유 묶음 ID (같은 공유 제출을 한 덩어리로 묶기)
+    if (!window.SHARE_RESP_ID) {
+      window.SHARE_RESP_ID = (window.crypto && crypto.randomUUID)
+        ? ('s_' + crypto.randomUUID())
+        : ('s_' + Date.now() + '_' + Math.random().toString(16).slice(2));
+    }
+    const shareId = window.SHARE_RESP_ID;
+    const adminArea = extractAdminArea(locAddr);
+
 const data = {
   locType: locType,
   lat: locPos.getLat(),
   lng: locPos.getLng(),
   address: locAddr || '',
 
+  // BigQuery/GA4용(상세주소는 전송하지 않음)
+  share_id: shareId,
+  admin_area: adminArea,
   uploader: document.getElementById('share-uploader')?.value || '',
 
   // 선택형(버튼/셀렉트)이면 hidden input에 저장된 값을 읽는 구조
@@ -2536,10 +2569,15 @@ try {
 
   
 
+
+  // 다음 공유 시 새 ID 생성
+  window.SHARE_RESP_ID = null;
   // GA4: 공유 성공
   if (typeof gtag === 'function') {
     gtag('event', 'submit_patient_share_success', {
       loc_type: data.locType || '',
+      share_id: (data.share_id || ''),
+      admin_area: (data.admin_area || ''),
       entry_channel: (window.trafficInfo?.channel || 'unknown')
     });
   }
@@ -3345,6 +3383,7 @@ function showPatientToast() {
     extra.user_role = (window.currentUserRole || 'unknown');
     extra.entry_channel = (window.trafficInfo?.channel || 'unknown');
     if (window.SURVEY_RESP_ID) extra.resp_id = window.SURVEY_RESP_ID;
+    if (window.SHARE_RESP_ID) extra.share_id = window.SHARE_RESP_ID;
     return extra;
   }
 
@@ -3416,8 +3455,12 @@ function showPatientToast() {
         const injuries = Array.from(document.querySelectorAll('input[name="share-injury"]:checked'))
           .map(x => x.value).filter(Boolean);
 
+        const addr = (loc === 'gps') ? (window.USER_ADDR || '') : (window.PATIENT_ADDR || '');
+        const admin_area = extractAdminArea(addr);
+
         gtagEvent('submit_patient_share_attempt', common({
           loc: trunc(loc, 20),
+          admin_area: trunc(admin_area, 60),
           uploader: trunc(uploader, 20),
           age: trunc(age, 20),
           sex: trunc(sex, 10),
@@ -3509,6 +3552,17 @@ function showPatientToast() {
             lens[k + '_len'] = String(val.length);
           });
           gtagEvent('survey_free_text_len', common(lens));
+        }catch(e){}
+
+        // 1b) GA4: 자유서술 원문(100자 제한)
+        try{
+          for (const k of freeTextKeys) {
+            const raw = (fd.get(k) || '').toString();
+            const v = trunc(raw, 100);
+            if (v && v.trim()) {
+              gtagEvent('survey_answer_submit', common({ q: k, v }));
+            }
+          }
         }catch(e){}
 
         // 2) GA4: 질문별 응답(자유서술 제외)
