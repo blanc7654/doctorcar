@@ -1842,6 +1842,7 @@ outline: 1px solid rgba(0,0,0,0.05);
     let USER_ADDR = null;
     let PATIENT_POS = null;
     let PATIENT_ADDR = null;
+    let PATIENT_INPUT_DIRTY = false; // 수동 입력 중(자동완성 선택 전) 상태
     let HOSPITAL_MAP = null;
     let USER_MARKER = null;
     let USER_LABEL = null;
@@ -1874,8 +1875,8 @@ outline: 1px solid rgba(0,0,0,0.05);
           hintEl.innerHTML = `📍 현재 GPS: <b>${esc(USER_ADDR || '(주소 확인 중)')}</b>`;
         }
       } else {
-        if (!PATIENT_POS) {
-          hintEl.innerHTML = '⭐ 환자발생지를 먼저 입력/선택해 주세요.';
+        if (PATIENT_INPUT_DIRTY || !PATIENT_POS) {
+          hintEl.innerHTML = '⭐ 환자발생지를 먼저 입력하고 <b>자동완성 목록에서 선택</b>해 주세요.';
         } else {
           hintEl.innerHTML = `⭐ 환자발생지: <b>${esc(PATIENT_ADDR || '(주소 확인 중)')}</b>`;
         }
@@ -2761,6 +2762,18 @@ alert(locType === 'gps' ? 'GPS 위치가 공유되었습니다.' : '환자발생
 function setPatientMarker(latLng, address) {
   if (!latLng) return;
 
+  // ✅ LatLng 타입 통일(간혹 plain object가 들어오는 경우 방지)
+  if (typeof latLng.getLat !== 'function' || typeof latLng.getLng !== 'function') {
+    const la = (latLng && (latLng.lat ?? latLng.La ?? latLng.y));
+    const ln = (latLng && (latLng.lng ?? latLng.Lng ?? latLng.x));
+    if (typeof la === 'number' && typeof ln === 'number' && window.kakao && kakao.maps) {
+      latLng = new kakao.maps.LatLng(la, ln);
+    }
+  }
+
+  // 수동 입력 중 상태 해제(선택 완료)
+  PATIENT_INPUT_DIRTY = false;
+
   // 1) 전역은 LatLng 그대로 유지 (다른 로직들과 타입 통일)
   PATIENT_POS = latLng;
   PATIENT_ADDR = address || null;
@@ -2857,6 +2870,15 @@ if (patientInput) {
   let t = null;
   patientInput.addEventListener('input', () => {
     const q = patientInput.value.trim();
+
+    // ✅ 다시 타이핑을 시작하면: 이전 선택(리스트/이전 검색)을 공유에 쓰지 않도록 초기화
+    PATIENT_INPUT_DIRTY = true;
+    PATIENT_POS = null;
+    PATIENT_ADDR = null;
+    if (PATIENT_MARKER) { try { PATIENT_MARKER.setMap(null); } catch(e) {} PATIENT_MARKER = null; }
+    if (PATIENT_LABEL) { try { PATIENT_LABEL.setMap(null); } catch(e) {} PATIENT_LABEL = null; }
+    updateShareLocHint();
+
     if (t) clearTimeout(t);
     if (q.length < 2) { clearPatientResults(); return; }
 
