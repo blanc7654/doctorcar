@@ -2518,10 +2518,9 @@ function resetSharePanelUI() {
     SHARE_PATIENT_INPUT_DIRTY = false;
   }
 
-    // ✅ 입력만 한 상태에서는 공유 패널에서 환자발생지를 '미선택'으로 취급
-    PATIENT_POS_SOURCE = 'typed';
-    SHARE_PATIENT_POS = null;
-    SHARE_PATIENT_ADDR = null;
+  // ✅ (중요) 공유 패널 초기화 시에는 '환자발생지 출처'를 건드리지 않습니다.
+  // - 메인 자동완성에서 '클릭 선택'으로 확정된 값(PATIENT_POS_SOURCE==='manual')은 공유 패널에서 재사용 가능
+  // - 입력만 한 상태(공유용 SHARE_PATIENT_INPUT_DIRTY=true)는 patientInput input 이벤트에서 이미 '미선택' 처리됨
   // 다음 제출은 새 share_id로
   window.SHARE_RESP_ID = null;
 
