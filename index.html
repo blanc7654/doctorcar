@@ -1875,6 +1875,10 @@ outline: 1px solid rgba(0,0,0,0.05);
     let SHARE_PATIENT_ADDR = null;
     let SHARE_PATIENT_INPUT_DIRTY = true; // 입력창이 바뀌면 true, 자동완성 선택 완료 시 false
 
+    // ✅ 마지막 '자동완성 클릭 선택' 환자발생지(공유 패널 재사용용, 리스트 클릭에 의해 덮어쓰지 않음)
+    let LAST_MANUAL_PATIENT_POS = null;
+    let LAST_MANUAL_PATIENT_ADDR = null;
+
     // ✅ 공유 제출을 BigQuery에서 한 묶음으로 보기 위한 ID
     window.SHARE_RESP_ID = null;
     let HOSPITAL_MAP = null;
@@ -2512,7 +2516,12 @@ function resetSharePanelUI() {
 
   // ✅ 메인 화면에서 '자동완성 클릭 선택'으로 환자발생지를 이미 확정해둔 경우,
   // 공유 패널을 열 때 그 값은 재사용 가능(단, 리스트 클릭으로 찍은 값은 제외)
-  if (PATIENT_POS && PATIENT_POS_SOURCE === 'manual' && PATIENT_ADDR) {
+  if (LAST_MANUAL_PATIENT_POS && LAST_MANUAL_PATIENT_ADDR) {
+    SHARE_PATIENT_POS = LAST_MANUAL_PATIENT_POS;
+    SHARE_PATIENT_ADDR = LAST_MANUAL_PATIENT_ADDR;
+    SHARE_PATIENT_INPUT_DIRTY = false;
+  } else if (PATIENT_POS && PATIENT_POS_SOURCE === 'manual' && PATIENT_ADDR) {
+    // (호환) 과거 로직: manual 선택 직후 아직 LAST_MANUAL이 없을 수 있는 경우 대비
     SHARE_PATIENT_POS = PATIENT_POS;
     SHARE_PATIENT_ADDR = PATIENT_ADDR;
     SHARE_PATIENT_INPUT_DIRTY = false;
@@ -2910,6 +2919,11 @@ function renderPatientResults(list) {
       SHARE_PATIENT_POS = PATIENT_POS;
       SHARE_PATIENT_ADDR = PATIENT_ADDR;
       SHARE_PATIENT_INPUT_DIRTY = false;
+
+
+      // ✅ 자동완성 '클릭 선택' 값은 공유 패널에서 계속 재사용(공유 후/리스트 클릭 이후에도 유지)
+      LAST_MANUAL_PATIENT_POS = PATIENT_POS;
+      LAST_MANUAL_PATIENT_ADDR = PATIENT_ADDR;
 
       renderPatientOnMap(HOSPITAL_MAP);
 
