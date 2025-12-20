@@ -2060,6 +2060,14 @@ async function showEtaPopup(map, toLatLng, targetName, targetTel) {
 
   window._closeEtaPopup = closeEtaOverlay;
 
+  // ✅ 전화번호는 위치 입력 전에도 항상 표시 (위치 미입력 시에도)
+  const tel0 = formatTel(targetTel);
+  const telHtmlAlways = tel0 ? `
+    <div class="eta-phone">
+      ☎ <a href="tel:${esc(tel0)}">${esc(tel0)}</a>
+    </div>
+  ` : ``;
+
   if (!USER_POS && !PATIENT_POS) {
     overlay.setContent(`
       <div class="eta-pop">
@@ -2067,8 +2075,11 @@ async function showEtaPopup(map, toLatLng, targetName, targetTel) {
           <div class="eta-pop-title">${esc(targetName || '대상')}</div>
           <button class="eta-pop-close" onclick="window._closeEtaPopup()">닫기</button>
         </div>
-        <div class="eta-pop-body" style="color:#c62828;font-weight:900;">
-          현재 위치(GPS) 또는 환자발생지를 먼저 지정해 주세요.
+        <div class="eta-pop-body">
+          <div style="color:#c62828;font-weight:900;margin-bottom:8px;">
+            현재 위치(GPS) 또는 환자발생지를 먼저 지정해 주세요.
+          </div>
+          ${telHtmlAlways}
         </div>
       </div>
     `);
