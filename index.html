@@ -2496,6 +2496,7 @@ function resetSharePanelUI() {
   if (!panel) return;
 
   // hidden 값 초기화
+  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-uploader','share-loc']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
