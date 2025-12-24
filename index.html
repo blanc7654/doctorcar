@@ -1265,16 +1265,7 @@ outline: 1px solid rgba(0,0,0,0.05);
     </div>
     <input type="hidden" id="share-spo2" />
   </div>
-
-    <!-- ✅ PIN(가시성 강화) -->
-  <div style="margin:6px 0; padding:10px; border-radius:12px; border:1px solid #ffd1e1; background:#fff;">
-    <div style="font-weight:900; margin-bottom:6px;">PIN</div>
-    <input id="share-pin" placeholder="PIN 입력" type="password"
-           style="width:100%; padding:12px; border-radius:12px; border:2px solid #ff4b8b; background:#fffbe8; font-weight:900; letter-spacing:1px;" />
-  </div>
-
-
-  <button id="share-submit"
+<button id="share-submit"
     style="margin-top:6px;
            width:100%;
            padding:8px;
@@ -2505,7 +2496,6 @@ function resetSharePanelUI() {
   if (!panel) return;
 
   // hidden 값 초기화
-  ['share-age','share-sex','share-avpu','share-mech','share-bp','share-spo2','share-pin','share-uploader','share-loc']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
@@ -2607,15 +2597,7 @@ if (shareSubmitBtn) {
 
  const avpuEl = document.getElementById('share-avpu');
  const avpu = (avpuEl && avpuEl.value) ? avpuEl.value : "";   // 미선택이면 ""
- 
-
-    const pin = document.getElementById('share-pin')?.value?.trim();
-    if (pin !== '1119') {
-      alert('PIN이 올바르지 않습니다.');
-      return;
-    }
-
-    const locType = document.getElementById('share-loc')?.value || '';
+const locType = document.getElementById('share-loc')?.value || '';
 
     let locPos = null;
     let locAddr = '';
@@ -3077,6 +3059,20 @@ db.collection('patientEvents')
 
     snapshot.forEach(doc => {
       const d = doc.data() || {};
+      // ✅ 6시간(=21600000ms) 지난 항목은 목록에서 숨김
+      const createdAt = d.createdAt;
+      let createdMs = null;
+      if (createdAt && typeof createdAt.toDate === 'function') {
+        createdMs = createdAt.toDate().getTime();
+      } else if (typeof createdAt === 'number') {
+        createdMs = createdAt;
+      } else if (typeof createdAt === 'string') {
+        const t = Date.parse(createdAt);
+        if (!Number.isNaN(t)) createdMs = t;
+      }
+      if (!createdMs && typeof d.clientTs === 'number') createdMs = d.clientTs;
+      if (createdMs && (Date.now() - createdMs) > 6 * 60 * 60 * 1000) return;
+
 
       const wrapper = document.createElement('div');
       wrapper.style.borderBottom = '1px dashed #ddd';
